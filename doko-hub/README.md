@@ -24,7 +24,7 @@ npm install
 ```
 Lädt alle nötigen Pakete runter.
 
-Falls in dem Ordner "src" die Datei ".env" nicht existiert, diese erstellen.
+Falls in dem Ordner "doko-hub" die Datei ".env" nicht existiert, diese erstellen.
 Dann den Text aus ".env.example" kopieren und "<passwort>" zu dem bei PostgreSQL gewählten Passwort ändern.
 
 ```bash
