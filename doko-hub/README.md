@@ -36,9 +36,9 @@ Um die Datenbank zu initialisieren.
 
 ## Ordner Aufteilung
 
-Datei für die Datenbank: `doko-hub/src/lib/server/db`
-Ordner für das Backend: `doko-hub/src/routes/api`
-Ordner für das Frontend: `doko-hub/src/routes/app`
+- Datei für die Datenbank: `doko-hub/src/lib/server/db`
+- Ordner für das Backend: `doko-hub/src/routes/api`
+- Ordner für das Frontend: `doko-hub/src/routes/app`
 
 ## Wichtige Befehle
 
