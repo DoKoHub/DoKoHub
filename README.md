@@ -8,6 +8,8 @@ Ergebnisse und Statistiken über mehrere Runden Doppelkopf aufzunehmen und auszu
 
 ## Getting Started
 
+Das Quick-Guide für das Projekt Setup befindet sich in dem Ordner `doko-hub`.
+
 > TODO: Setup von dev environment
 > Sachen wie:
 > - Dependencies installieren per `npm -i`
