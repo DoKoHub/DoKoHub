@@ -24,13 +24,36 @@ npm install
 ```
 Lädt alle nötigen Pakete runter.
 
+> [!WARNING]
+> Sollte der Error `Die Datei [...\npm.psi] kann nicht geladen werden, [...]` auftauchen
+> 1.  Neues z.B CMD Fenster als Administrator starten
+> 2.  ODER `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` ausführen und erneut versuchen.
+
 Falls in dem Ordner "doko-hub" die Datei ".env" nicht existiert, diese erstellen.
 Dann den Text aus ".env.example" kopieren und "<passwort>" zu dem bei PostgreSQL gewählten Passwort ändern.
 
 ```bash
 npm run db:push
 ```
-Um die Datenbank zu initialisieren.
+Dann `Yes, I want to execute all statements` auswählen mit den Pfeiltasten und `Enter` drücken.
+>Um die Datenbank zu initialisieren.
+
+```bash
+npm run dev
+```
+> Startet das Projekt. Über den Browser [localhost](http://localhost:5173/) erreichbar.
+
+# Test ob das Projekt funktioniert
+
+Um zu testen ob alle Komponenten funktionieren, auf der Website in dem Nummern-Feld eine beliebige Zahl eingeben.
+
+Als nächstes die Anwendung `pgAdmin` starten.
+> `pgAdmin` ist ein Tool um Datenbanken zu verwalten.
+
+1. Ordner ausklappen `servers`>`postgressql 18`>`databases>postgres`
+2. Rechtsklick auf `schemas` > `Query Tool`
+3. `SELECT * FROM nummer;` ausführen.
+4. Wenn die eingegebene Zahl in der Tabelle eingertragen ist, funktioniert Alles.
 
 # Nützliche Infos
 
