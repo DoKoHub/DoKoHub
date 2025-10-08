@@ -10,5 +10,8 @@
 - Projektorganisation und Aufgabenverteilung besprochen
 
 07.10. Gruppen Meeting 
+- ER - Modell besprochen 
+- gemeinsame Vorstellung der funktionalen Anwendung besprochen und visualisiert
+- über restliche Aufgaben des 1. Meilensteins gesprochen, welche soweit fertig sind
 
 08.10. Meeting mit Supervisor
