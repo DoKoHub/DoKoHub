@@ -15,3 +15,22 @@
 - über restliche Aufgaben des 1. Meilensteins gesprochen, welche soweit fertig sind
 
 08.10. Meeting mit Supervisor
+- Vorstellung Zwischenergebnis 
+- Feedback
+    - Für Call: Statt Seite zu speichern, Spieler speichern - Gruppe: hinzufügen, aus Gruppe dann session & Datum
+    - Docker schon frühzeitig miteinbinden 
+    - Nächster Meilenstein detaillierter beschreiben: grobe Unterpunkte
+- Allgemein
+    - Für Statistik auch Aussagen der Spieler erfassen
+    - Pipeline im 2. oder 3. Meilenstein
+    - figma
+    - mobile first 
+    - ⁠Achievements als Zusatz: Idee für Bonuspunkte
+
+08.10. kurzes Gruppenmeeting im Anschluss
+- Klärung mit Lizenz: MIT
+- Konstantin liest sich in Docker ein 
+
+10.10. Gruppenmeeting um 17 Uhr
+ - Aufgabenverteilung
+
