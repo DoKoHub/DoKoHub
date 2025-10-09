@@ -295,10 +295,10 @@ bezüglich der Architektur und deren Dokumentation.
 
 | Rolle                         | Kontakt                                                                                       | Erwartungshaltung                                                                                                   |
 | ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Betreuende                    | `le.brauner@ostfalia.de`                                                                      | [Funktionale Anforderungen](#anforderungen) sind erfüllt und klar dokumentiert; Häufige Rückmeldung der Entwickler. |
+| Betreuende                    | `le.brauner@ostfalia.de`                                                                      | [Funktionale Anforderungen](#aufgabenstellung) sind erfüllt und klar dokumentiert; Häufige Rückmeldung der Entwickler. |
 | Entwickler                    | *siehe [github repo (github.com)](https://github.com/DoKoHub/DoKoHub)*                        | Klar definierte Anforderungen; Konstantes Feedback von anderen Stakeholdern; Aktuelle Dokumentation                 |
 | Verteilungsbeauftrage         | -                                                                                             | Klar definierte Verteilungsprozesse; Reproduzierbare Softwarebundles; Überwachungsmöglichkeiten                     |
-| Endnutzer                     | -                                                                                             | [Funktionale Anforderungen](#anforderungen) sind erfüllt; Intuitive Nutzerschnittstelle und flüssiges Appverhalten  |
+| Endnutzer                     | -                                                                                             | [Funktionale Anforderungen](#aufgabenstellung) sind erfüllt; Intuitive Nutzerschnittstelle und flüssiges Appverhalten  |
 | Externe/Zukünftige Entwickler | Klare, aktuelle Dokumentation; Quick-Start-Anleitung und reproduzierbare Entwicklungsumgebung |                                                                                                                     |
 | Externe App-Frontends         | -                                                                                             | Klar dokumentierte, standartisierte Schnittstelle zum Backend                                                       |
 
@@ -377,7 +377,7 @@ online-Dokumentation (auf Englisch!).
 | --- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | C01 | Primär von Studierenden entwickelt        | Architektur und Code müssen so simpel wie möglich gehalten werden. Komplexe Anforderungen müssen vereinfacht werden.                                  |
 | C02 | Kein Budget für Kostenpflichtige Services | DoKoHub muss auf quelloffener Software aufbauen und im Fall von Cloud-Hosting innerhalb der kostenfreien Grenzen bleiben                              |
-| C03 | Platformunabhängig                        | Sowohl Front- als auch Backend müssen mit Plattformunabhängigen Technologien aufgebaut sein. Siehe [Q03](#qualit%C3%A4tsziele), [F06](#anforderungen) |
+| C03 | Platformunabhängig                        | Sowohl Front- als auch Backend müssen mit Plattformunabhängigen Technologien aufgebaut sein. Siehe [Q03](#qualit%C3%A4tsziele), [F06](#aufgabenstellung) |
 
 # Kontextabgrenzung
 
@@ -686,12 +686,19 @@ da es die Standardaufteilung für moderne Webapps ist.
 Die Authentifkation der Spieler wird mithilfe von [OAuth2 (oauth.net,englisch)](https://oauth.net/) geregelt.
 Das entspricht F07.
 
->TODO: Lizenz für das Projekt finden. Rückfrage an Lea!
+Das Frontend kommuniziert mit dem Backend über eine [REST-API (wikipedia.org, englisch)](https://en.wikipedia.org/wiki/REST).
+REST ist eine weit verbreitete und bekannte API-Technologie, was third-party Clients zulässt und die strikte Trennung von Front- und Backend einhält.
+
+Zur Reproduzierbarkeit der Entwicklungsumgebung werden Docker Dev-Container eingesetzt.
+Ebenfalls wird eine CI-Pipeline basierend auf Docker aufgesetzt.
+
+L01 entsprechend wird das Projekt unter der MIT-Lizenz auf [Github (github.com)](https://github.com/DoKoHub/DoKoHub) gehostet und ist öffentlich einsehbar.
 
 # Bausteinsicht
 
 > TODO: Architektur weiter dokumentieren!
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -775,9 +782,11 @@ online-Dokumentation (auf Englisch!).
 </div>
 
 </div>
+-->
 
 ## Whitebox Gesamtsystem
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -813,8 +822,10 @@ des nachfolgenden Whitebox-Templates. Dieses enthält:
   mit Beispielen oder einfachen Signaturen zurecht.
 
 </div>
+-->
 
 ***\<Übersichtsdiagramm>***
+<!--
 
 Begründung\
 *\<Erläuternder Text>*
@@ -847,9 +858,11 @@ Blackbox-Template. Dessen Überschrift ist jeweils der Namen dieser
 Blackbox.
 
 </div>
+-->
 
 ### \<Name Blackbox 1>
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -888,7 +901,7 @@ Blackbox-Templates:
 *\<(Optional) Erfüllte Anforderungen>*
 
 *\<(optional) Offene Punkte/Probleme/Risiken>*
-
+-->
 ### \<Name Blackbox 2>
 
 *\<Blackbox-Template>*
@@ -899,12 +912,13 @@ Blackbox-Templates:
 
 ### \<Name Schnittstelle 1>
 
-…​
+...
 
 ### \<Name Schnittstelle m>
 
 ## Ebene 2
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -921,9 +935,11 @@ besonders volatile Bausteine. Normale, einfache oder standardisierte
 Teile sollten Sie weglassen.
 
 </div>
+-->
 
 ### Whitebox *\<Baustein 1>*
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -933,6 +949,7 @@ Teile sollten Sie weglassen.
 …​zeigt das Innenleben von *Baustein 1*.
 
 </div>
+-->
 
 *\<Whitebox-Template>*
 
@@ -940,7 +957,7 @@ Teile sollten Sie weglassen.
 
 *\<Whitebox-Template>*
 
-…​
+...
 
 ### Whitebox *\<Baustein m>*
 
@@ -948,6 +965,7 @@ Teile sollten Sie weglassen.
 
 ## Ebene 3
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -961,6 +979,7 @@ Bei tieferen Gliederungen der Architektur kopieren Sie diesen Teil von
 arc42 für die weiteren Ebenen.
 
 </div>
+-->
 
 ### Whitebox \<\_Baustein x.1\_>
 
@@ -970,7 +989,7 @@ arc42 für die weiteren Ebenen.
 
 </div>
 
-…​zeigt das Innenleben von *Baustein x.1*.
+... zeigt das Innenleben von *Baustein x.1*.
 
 </div>
 
@@ -986,6 +1005,7 @@ arc42 für die weiteren Ebenen.
 
 # Laufzeitsicht
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -1079,6 +1099,7 @@ online-Dokumentation (auf Englisch!).
 </div>
 
 </div>
+-->
 
 ## *\<Bezeichnung Laufzeitszenario 1>*
 
