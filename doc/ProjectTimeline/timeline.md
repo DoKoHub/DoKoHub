@@ -32,5 +32,15 @@
 - Konstantin liest sich in Docker ein 
 
 10.10. Gruppenmeeting um 17 Uhr
- - Aufgabenverteilung
-
+ - Aufgabenverteilung für 15.10.
+    - ER - Modell überarbeiten: Leen
+    - DoKo Setup Konstantin 
+    - jeder installiert sich Docker
+    - Allgemein Docker Konstantin & Taron
+    - Punkte für 2. Meilenstein besprochen, Larin aktuallisert Änderung
+- Aufgaben für 2. Meilenstein
+    - Teamleitung: Laila
+    - Erstellung der REST-API Endpunkte und Anbindung an Datenbank & pipeline: Taron 
+    - Figma & UI für Anzeige von Spielern und Gruppen: Konstantin & Melanie 
+    - ER - Modell implementieren: Leen, Larin & Taron
+Anbindung von Frontend an die neuen Backend-Datenpunkte wird zeitlich verschoben
