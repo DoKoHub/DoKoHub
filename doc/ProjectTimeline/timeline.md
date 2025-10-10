@@ -34,7 +34,8 @@
 10.10. Gruppenmeeting um 17 Uhr
  - Aufgabenverteilung für 15.10.
     - ER - Modell überarbeiten: Leen
-    - DoKo Setup Konstantin 
+    - DoKo Setup: Konstantin 
+    - Figma Melanie:
     - jeder installiert sich Docker
     - Allgemein Docker Konstantin & Taron
     - Punkte für 2. Meilenstein besprochen, Larin aktuallisert Änderung
