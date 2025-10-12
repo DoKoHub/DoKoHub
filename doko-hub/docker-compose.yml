@@ -1,14 +1,48 @@
 services:
-  db:
-    image: postgres
-    restart: always
+  app:
+    build: .
+    restart: unless-stopped
     ports:
-      - 5432:5432
-    environment: 
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: local
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      db-setup:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+
+  db-setup:
+    build:
+      context: .
+      target: builder
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run db:migrate
+
+  db:
+    # Use a specific major version for predictability
+    image: postgres:16-alpine
+    restart: always
+    # The database port is no longer exposed to the host machine for better security.
+    # The 'app' service can still reach it via Docker's internal network.
+    # During development, it's helpful to keep the port open so we can
+    # have a look at the db while it's running
+    ports:
+      - 5432:5432 
+    env_file:
+      - .env
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # This check verifies that the database is ready to accept connections.
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
