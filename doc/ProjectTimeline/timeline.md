@@ -45,3 +45,7 @@
     - Figma & UI für Anzeige von Spielern und Gruppen: Konstantin & Melanie 
     - ER - Modell implementieren: Leen, Larin & Taron
 Anbindung von Frontend an die neuen Backend-Datenpunkte wird zeitlich verschoben
+
+13.10. Gruppenmeeting
+- kurze Besprechung IST Stand 
+- Hilfestellung bei Docker
