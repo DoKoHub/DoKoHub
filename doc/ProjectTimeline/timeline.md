@@ -49,3 +49,24 @@ Anbindung von Frontend an die neuen Backend-Datenpunkte wird zeitlich verschoben
 13.10. Gruppenmeeting
 - kurze Besprechung IST Stand 
 - Hilfestellung bei Docker
+
+15.10. Meeting mit Supervisor 
+- Abschluss 1. Meilenstein 
+- Besprechung 2. Meilenstein 
+    - Ziele nach SMART neu formulieren
+- Besprechung UI & features
+    - OAuth-Provider sollen konfigurierbar sein
+    - Spieler ohne Account sind offline
+    - Name der Spieler sollen flexibel sein, also änderbar
+    - im Design frei, minimalistisch gern gesehen 
+    - allg. 4 Spieler, max 5 
+    - beim Verlassen der Gruppe sollen Daten erhalten bleiben um Statistiken weiterhin sehen zu können 
+    - Spieler mit Account / Registierung kann Gruppe erstellen
+    - Link zum Einladen temporär
+    - Sitzreihenfolge wechselbar sein
+- alles weitere in Figma einsehbar 
+
+15.10. kurzes Gruppenmeeting im Anschluss
+- Termin 16.10. 19:30 um Ziele nach SMART neu zu formulieren und wie besprochen weiterzuleiten
+- kurze Besprechung über weiteres Vorgehen 
+    
