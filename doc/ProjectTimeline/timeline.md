@@ -1,4 +1,4 @@
-# Dokumentation bis zum 1. Meilenstein 
+# Dokumentation 1. Meilenste vom 01.10. - 15.10.
 29.09. Bekanntgabe Teamprojekt und Terminfindung untereinander für Kick-Off Meeting 
 
 01.10. Kick-Off Meeting und detaillierter Projektbeschreibung und erwarteten Anforderungen 
