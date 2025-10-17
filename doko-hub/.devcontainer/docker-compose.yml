@@ -1,15 +1,18 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - ..:/workspaces:cached
     command: sleep infinity
+    user: node
     depends_on:
       - db
     networks:
       - dokohub
+    ports:
+      - 3000:3000
 
   db:
     image: postgres:16
