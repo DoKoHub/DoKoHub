@@ -9,9 +9,6 @@
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "22"
 		},
-		"ghcr.io/duduribeiro/devcontainer-features/neovim:1": { 
-		    "version": "nightly" 
-		}
 	},
 	"customizations": {
 		"vscode": {
