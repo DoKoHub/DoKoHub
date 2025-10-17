@@ -1,7 +1,6 @@
 # Dokumentation 2.Meilenstein vom 15.10 - 29.10
 
-## 16.10. Teammeeting
-**Teilnehmer:** gesamtes Team  
+## 16.10. Teammeeting   
 **Ziel des Meetings:** Besprechung der Verantwortlichkeiten, Feedback-Runde und Anpassungen basierend auf dem Meeting vom 15.10. mit dem Supervisor.  
 
 **Besprochene Punkte:**
@@ -15,4 +14,4 @@
 
 **Ergebnis:**  
 Die Aufgabenverteilung und Zieldefinition für den 2. Meilenstein sind abgeschlossen.  
-Alle Teammitglieder beginnen nun mit der Umsetzung ihrer jeweiligen Bereiche. 
+Alle Teammitglieder beginnen nun mit der Umsetzung ihrer jeweiligen Bereiche.
