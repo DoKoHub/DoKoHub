@@ -27,12 +27,6 @@ services:
     # Use a specific major version for predictability
     image: postgres:16-alpine
     restart: always
-    # The database port is no longer exposed to the host machine for better security.
-    # The 'app' service can still reach it via Docker's internal network.
-    # During development, it's helpful to keep the port open so we can
-    # have a look at the db while it's running
-    ports:
-      - 5432:5432 
     env_file:
       - .env
     volumes:
