@@ -2,7 +2,7 @@
 	"name": "DoKoHub",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspaces",
+	"workspaceFolder": "/workspaces/doko-hub",
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/git:1": {},
