@@ -13,7 +13,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         //Falls UUID leer ist
         if (!groupId) {
-            return BadResponse('Missing group id');
+            return new BadResponse('Missing group id');
         }
 
         // Alle möglichen Spieler aus DB sammeln
@@ -24,14 +24,14 @@ export const GET: RequestHandler = async({ params }) => {
         
         // Pruefen ob Gruppen zurueckgegeben wurden
         if (!groupsFromDB) {
-            return BadResponse('Group not found');
+            return new BadResponse('Group not found');
         }
 
         // OK und Gruppe zurueckgeben
-        return GETResponse(groupsFromDB[0] as PlayGroup);
+        return new GETResponse(groupsFromDB[0] as PlayGroup);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse( `Database error while fetching group "${params.group}"`, error);
+        return new ErrorResponse( `Database error while fetching group "${params.group}"`, error);
     }
 };
 
@@ -42,14 +42,14 @@ export const PUT: RequestHandler = async({ request, params }) => {
         
         //Falls UUID leer ist
         if (!groupId) {
-            return BadResponse('Missing group id');
+            return new BadResponse('Missing group id');
         }
 
         const body = await request.json();
         const newGroup = body.playGroup;
         
         if (!newGroup) {
-            return BadResponse('Must send a valid PlayGroup');
+            return new BadResponse('Must send a valid PlayGroup');
         }
 
         const [updatedGroup] = await db
@@ -58,10 +58,10 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .where(eq(playgroup.id, groupId))
             .returning();
 
-        return PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
+        return new PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse(`Database error while updating group "${params.group}"`, error);
+        return new ErrorResponse(`Database error while updating group "${params.group}"`, error);
     }
 }
 
@@ -72,7 +72,7 @@ export const DELETE: RequestHandler = async({ params }) => {
 
         //Falls UUID leer ist
         if (!groupId) {
-            return BadResponse('Missing group id');
+            return new BadResponse('Missing group id');
         }
 
         const [deletedGroup] = await db
@@ -80,8 +80,8 @@ export const DELETE: RequestHandler = async({ params }) => {
             .where(eq(playgroup.id, groupId))
             .returning();
         
-        return PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
+        return new PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
     } catch(error) {
-        return ErrorResponse('Database error while deletig group', error);
+        return new ErrorResponse('Database error while deletig group', error);
     }
 }

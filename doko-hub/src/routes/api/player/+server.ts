@@ -17,9 +17,9 @@ export const GET: RequestHandler = async() => {
             .from(player);
 
         // Liste zurueckgeben
-        return GETResponse(playersFromDB as Player[]);
+        return new GETResponse(playersFromDB as Player[]);
     } catch(error) {
-        return ErrorResponse('Database error while fetching players', error)
+        return new ErrorResponse('Database error while fetching players', error)
     }
     
 };
@@ -39,7 +39,7 @@ export const POST: RequestHandler = async({ request }) => {
         const name = body.name;
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             // Name ist nicht valide
-            return BadResponse('name is required and must be a string.');
+            return new BadResponse('name is required and must be a string.');
         }
 
         // Spieler in DB schreiben und erstelltes Objekt speichern
@@ -49,9 +49,9 @@ export const POST: RequestHandler = async({ request }) => {
             .returning();
 
         // OK und Spieler zurueckgeben
-        return POSTResponse('Player created', { name: 'player', data: insertedPlayer as Player })
+        return new POSTResponse('Player created', { name: 'player', data: insertedPlayer as Player })
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse('Database error while creating player', error)
+        return new ErrorResponse('Database error while creating player', error)
     }
 }

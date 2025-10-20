@@ -12,7 +12,7 @@ export const POST: RequestHandler = async({ request, params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return BadResponse('Missing player id');
+            return new BadResponse('Missing player id');
         }
 
         // Request body auslesen
@@ -22,7 +22,7 @@ export const POST: RequestHandler = async({ request, params }) => {
 
         // Pruefen ob playerIdentiyt null ist
         if (!input) {
-            return BadResponse('Valid PlayerIdentity required');
+            return new BadResponse('Valid PlayerIdentity required');
         }
 
         input.playerId = playerID;
@@ -34,7 +34,7 @@ export const POST: RequestHandler = async({ request, params }) => {
             .where(eq(playerIdentity.playerId, playerID));
         
         if (output) {
-            return BadResponse('Player already has an identity');
+            return new BadResponse('Player already has an identity');
         }
 
         // Mapping v.1
@@ -64,9 +64,9 @@ export const POST: RequestHandler = async({ request, params }) => {
         };
 
         // OK und PlayerIdentity Objekt zurueckgeben
-        return POSTResponse(`Linked Player "${playerID}" to given PlayerIdentity`, {name: 'playerIdentity', data: returningPlayerIdentity})
+        return new POSTResponse(`Linked Player "${playerID}" to given PlayerIdentity`, {name: 'playerIdentity', data: returningPlayerIdentity})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse('Database error while linking PlayerIdentity', error)
+        return new ErrorResponse('Database error while linking PlayerIdentity', error)
     }
 };

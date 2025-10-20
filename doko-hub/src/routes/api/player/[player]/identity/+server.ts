@@ -12,7 +12,7 @@ export const GET: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return BadResponse('Missing player id');
+            return new BadResponse('Missing player id');
         }
 
         // PlayerIdentity aus der DB holen
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         // Pruefen ob die identitset null ist
         if (!dbPlayerIdentity) {
-            return BadResponse('PlayerIdentity not found');
+            return new BadResponse('PlayerIdentity not found');
         }
 
         // Mapping
@@ -37,10 +37,10 @@ export const GET: RequestHandler = async({ params }) => {
         };
 
         // OK und PlayerIdentity zurueckgeben
-        return GETResponse(returningPlayerIdentity);
+        return new GETResponse(returningPlayerIdentity);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse('Database error while getting PlayerIdentity', error);
+        return new ErrorResponse('Database error while getting PlayerIdentity', error);
     }
 }
 
@@ -50,14 +50,14 @@ export const PUT: RequestHandler = async({ request, params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return BadResponse('Missing player id');
+            return new BadResponse('Missing player id');
         }
 
         // Request body
         const body = await request.json();
 
         if (!body.playerIdentity) {
-            return BadResponse('Valid PlayerIdentity required');
+            return new BadResponse('Valid PlayerIdentity required');
         }
 
         //Mapping
@@ -72,7 +72,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         // Pruefen ob Identität null ist
         if (!updatedPlayerIdentity) {
-            return BadResponse('PlayerIdentity not found');
+            return new BadResponse('PlayerIdentity not found');
         }
 
         // Mapping
@@ -86,10 +86,10 @@ export const PUT: RequestHandler = async({ request, params }) => {
         };
 
         // OK und aktualisierte PlayerIdentity zurueckgeben
-        return PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${returningPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: returningPlayerIdentity});
+        return new PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${returningPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: returningPlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse('Database error while updating PlayerIdentity', error);
+        return new ErrorResponse('Database error while updating PlayerIdentity', error);
     }
 }
 
@@ -99,7 +99,7 @@ export const DELETE: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return BadResponse('Missing player id');
+            return new BadResponse('Missing player id');
         }
 
         // PlayerIdentity aus der DB loeschen und als Objekt speichern
@@ -110,7 +110,7 @@ export const DELETE: RequestHandler = async({ params }) => {
 
         // Pruefen ob geloeschtes Objekt null ist
         if (!dbPlayerIdentity) {
-            return BadResponse('PlayerIdentity not found');
+            return new BadResponse('PlayerIdentity not found');
         }
 
         // Mapping
@@ -124,9 +124,9 @@ export const DELETE: RequestHandler = async({ params }) => {
         };
 
         // OK und geloeschte Identitaet zurueckgeben
-        return PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: returningPlayerIdentity});
+        return new PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: returningPlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return ErrorResponse('Database error while deleting PlayerIdentity', error);
+        return new ErrorResponse('Database error while deleting PlayerIdentity', error);
     }
 }
