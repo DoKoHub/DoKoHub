@@ -1,3 +1,4 @@
+import { BadResponse, ErrorResponse, GETResponse, POSTResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { player } from "$lib/server/db/schema";
 import type { Player } from "$lib/types";
@@ -15,27 +16,10 @@ export const GET: RequestHandler = async() => {
             .select()
             .from(player);
 
-        // Gesammelte Objekte in type Player umwandeln
-        const players: Player[] = playersFromDB as Player[];
-
         // Liste zurueckgeben
-        return new Response(
-            JSON.stringify(players), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return GETResponse(playersFromDB as Player[]);
     } catch(error) {
-        // Falls die DB einen Fehler wirft
-        return new Response(
-            JSON.stringify({  
-                error: 'Database error while fetching players',
-                details: error instanceof Error? error.message : String(error)
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return ErrorResponse('Database error while fetching players', error)
     }
     
 };
@@ -55,13 +39,7 @@ export const POST: RequestHandler = async({ request }) => {
         const name = body.name;
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             // Name ist nicht valide
-            return new Response(
-                JSON.stringify({
-                    error: 'name is required and must be a string.'
-                }), {
-                    status: 400
-                }
-            );
+            return BadResponse('name is required and must be a string.');
         }
 
         // Spieler in DB schreiben und erstelltes Objekt speichern
@@ -69,32 +47,11 @@ export const POST: RequestHandler = async({ request }) => {
             .insert(player)
             .values({ name })
             .returning();
-        // Umwandeln in type Player
-        const returnPlayer: Player = {
-            id: insertedPlayer.id,
-            name: insertedPlayer.name
-        }
 
         // OK und Spieler zurueckgeben
-        return new Response(
-            JSON.stringify({
-                message: 'Player created',
-                player: returnPlayer
-            }), {
-                status: 201,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return POSTResponse('Player created', { name: 'player', data: insertedPlayer as Player })
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new Response(
-            JSON.stringify({  
-                error: 'Database error while creating player',
-                details: error instanceof Error? error.message : String(error)
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return ErrorResponse('Database error while creating player', error)
     }
 }

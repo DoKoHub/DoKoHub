@@ -1,3 +1,4 @@
+import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { playerIdentity } from "$lib/server/db/schema";
 import type { PlayerIdentity } from "$lib/types";
@@ -11,12 +12,7 @@ export const GET: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new Response(
-                JSON.stringify({ error: 'Missing player id' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('Missing player id');
         }
 
         // PlayerIdentity aus der DB holen
@@ -27,12 +23,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         // Pruefen ob die identitset null ist
         if (!dbPlayerIdentity) {
-            return new Response(
-                JSON.stringify({ error: 'PlayerIdentity not found' }), {
-                    status: 404,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('PlayerIdentity not found');
         }
 
         // Mapping
@@ -46,23 +37,10 @@ export const GET: RequestHandler = async({ params }) => {
         };
 
         // OK und PlayerIdentity zurueckgeben
-        return new Response(
-            JSON.stringify({playerIdentity: returningPlayerIdentity}), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
-    }catch(error) {
+        return GETResponse(returningPlayerIdentity);
+    } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new Response(
-            JSON.stringify({  
-                error: 'Database error while getting PlayerIdentity',
-                details: error instanceof Error? error.message : String(error)
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return ErrorResponse('Database error while getting PlayerIdentity', error);
     }
 }
 
@@ -72,25 +50,14 @@ export const PUT: RequestHandler = async({ request, params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new Response(
-                JSON.stringify({ error: 'Missing player id' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('Missing player id');
         }
 
         // Request body
         const body = await request.json();
 
         if (!body.playerIdentity) {
-            return new Response(
-                JSON.stringify({
-                    error: 'Valid PlayerIdentity required'
-                }), {
-                    status: 400
-                }
-            );
+            return BadResponse('Valid PlayerIdentity required');
         }
 
         //Mapping
@@ -105,12 +72,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         // Pruefen ob Identität null ist
         if (!updatedPlayerIdentity) {
-            return new Response(
-                JSON.stringify({ error: 'PlayerIdentity not found' }), {
-                    status: 404,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('PlayerIdentity not found');
         }
 
         // Mapping
@@ -124,26 +86,10 @@ export const PUT: RequestHandler = async({ request, params }) => {
         };
 
         // OK und aktualisierte PlayerIdentity zurueckgeben
-        return new Response(
-            JSON.stringify({
-                message: `Updated PlayerIdentity for playerId: "${returningPlayerIdentity.playerId}"`,
-                playerIdentity: returningPlayerIdentity,
-            }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${returningPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: returningPlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new Response(
-            JSON.stringify({  
-                error: 'Database error while updating PlayerIdentity',
-                details: error instanceof Error? error.message : String(error)
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return ErrorResponse('Database error while updating PlayerIdentity', error);
     }
 }
 
@@ -153,12 +99,7 @@ export const DELETE: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new Response(
-                JSON.stringify({ error: 'Missing player id' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('Missing player id');
         }
 
         // PlayerIdentity aus der DB loeschen und als Objekt speichern
@@ -169,12 +110,7 @@ export const DELETE: RequestHandler = async({ params }) => {
 
         // Pruefen ob geloeschtes Objekt null ist
         if (!dbPlayerIdentity) {
-            return new Response(
-                JSON.stringify({ error: 'PlayerIdentity not found' }), {
-                    status: 404,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('PlayerIdentity not found');
         }
 
         // Mapping
@@ -188,25 +124,9 @@ export const DELETE: RequestHandler = async({ params }) => {
         };
 
         // OK und geloeschte Identitaet zurueckgeben
-        return new Response(
-            JSON.stringify({
-                message: 'Deleted PlayerIdentity',
-                playerIdentity: returningPlayerIdentity,
-            }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: returningPlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new Response(
-            JSON.stringify({  
-                error: 'Database error while deleting PlayerIdentity',
-                details: error instanceof Error? error.message : String(error)
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return ErrorResponse('Database error while deleting PlayerIdentity', error);
     }
 }

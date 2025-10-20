@@ -1,3 +1,4 @@
+import { BadResponse, ErrorResponse, POSTResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { playerIdentity } from "$lib/server/db/schema";
 import type { PlayerIdentity } from "$lib/types";
@@ -11,12 +12,7 @@ export const POST: RequestHandler = async({ request, params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new Response(
-                JSON.stringify({ error: 'Missing player id' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            return BadResponse('Missing player id');
         }
 
         // Request body auslesen
@@ -26,13 +22,7 @@ export const POST: RequestHandler = async({ request, params }) => {
 
         // Pruefen ob playerIdentiyt null ist
         if (!input) {
-            return new Response(
-                JSON.stringify({
-                    error: 'Valid PlayerIdentity required'
-                }), {
-                    status: 400
-                }
-            );
+            return BadResponse('Valid PlayerIdentity required');
         }
 
         input.playerId = playerID;
@@ -44,13 +34,7 @@ export const POST: RequestHandler = async({ request, params }) => {
             .where(eq(playerIdentity.playerId, playerID));
         
         if (output) {
-            return new Response(
-                JSON.stringify({
-                    error: 'Player already has an identity'
-                }), {
-                    status: 400
-                }
-            );
+            return BadResponse('Player already has an identity');
         }
 
         // Mapping v.1
@@ -79,26 +63,10 @@ export const POST: RequestHandler = async({ request, params }) => {
             createdAt: dbIdentity.createdAt ? dbIdentity.createdAt.toISOString() : null
         };
 
-        // OK und PlayerIdentity Objekt zurueckgeben 
-        return new Response(
-            JSON.stringify({
-                message: `Linked Player "${playerID}" to given PlayerIdentity`,
-                playerIdentity: returningPlayerIdentity
-            }), {
-                status: 201,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        // OK und PlayerIdentity Objekt zurueckgeben
+        return POSTResponse(`Linked Player "${playerID}" to given PlayerIdentity`, {name: 'playerIdentity', data: returningPlayerIdentity})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new Response(
-            JSON.stringify({  
-                error: 'Database error while linking PlayerIdentity',
-                details: error instanceof Error? error.message : String(error)
-            }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+        return ErrorResponse('Database error while linking PlayerIdentity', error)
     }
 };
