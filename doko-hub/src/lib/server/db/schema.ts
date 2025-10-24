@@ -13,6 +13,24 @@ export const ruleset = pgEnum('ruleset', [
     'HAUSREGEL_KEINE_PFLICHTSOLO'
 ]);
 
+export const gameType = pgEnum('game_type', [
+  'NORMAL',
+  'HOCHZEIT',
+  'SOLO_FARBE',
+  'SOLO_DAMEN',
+  'SOLO_BUBEN',
+  'SOLO_NULL'
+]);
+
+export const soloColor = pgEnum('solo_color', ['CLUBS', 'SPADES', 'HEARTS', 'DIAMONDS']);
+
+export const side = pgEnum('side', ['RE', 'KONTRA']);
+
+export const callType = pgEnum('call_type', ['RE', 'KONTRA', 'KEINE90', 'KEINE60', 'KEINE30', 'SCHWARZ']);
+
+export const bonusType = pgEnum('bonus_type', ['DOKO', 'FUCHS', 'KARLCHEN', 'LAUFENDE', 'GEGEN_DIE_ALTEN']);
+
+
 export const player = pgTable('player', {
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 35 }).notNull()
@@ -69,3 +87,53 @@ export const session = pgTable('session', {
 	startedAt: timestamp('started_at').notNull(),
 	endedAt: timestamp('ended_at')
 })
+
+export const sessionMember = pgTable('session_member', {
+  sessionId: uuid('session_id').references(() => session.id).notNull(),
+  playerId:  uuid('player_id').references(() => player.id).notNull(),
+}, (table) => {
+  return {
+    sessionMemberPk: primaryKey({
+      name: 'session_member_pk',
+      columns: [table.sessionId, table.playerId]
+    })
+  };
+});
+
+export const round = pgTable('round', {
+  id:        uuid('id').primaryKey().defaultRandom(),
+  sessionId: uuid('session_id').references(() => session.id).notNull(),
+  roundNum:  integer('round_num'),              
+  gameType:  gameType('game_type').notNull(),
+  soloColor: soloColor('solo_color')
+});
+
+export const roundParticipation = pgTable('round_participation', {
+  roundId:  uuid('round_id').references(() => round.id).notNull(),
+  playerId: uuid('player_id').references(() => player.id).notNull(),
+  side:     side('side').notNull(),      // 'RE' | 'KONTRA'
+  seatPos:  integer('seat_pos').notNull() // 1..4
+}, (table) => {
+  return {
+    roundParticipationPk: primaryKey({
+      name: 'round_participation_pk',
+      columns: [table.roundId, table.playerId]
+    })
+  };
+});
+
+export const roundScore = pgTable('round_score', {
+  roundId:  uuid('round_id').references(() => round.id).notNull(),
+  playerId: uuid('player_id').references(() => player.id).notNull(),
+  eyes:     integer('eyes').notNull().default(0)
+}, (table) => {
+  return {
+    roundScorePk: primaryKey({
+      name: 'round_score_pk',
+      columns: [table.roundId, table.playerId]
+    })
+  };
+});
+
+
+
