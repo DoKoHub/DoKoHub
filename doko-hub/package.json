@@ -23,7 +23,11 @@
   },
   "devDependencies": {
     "@mdi/js": "^7.4.47",
+    "@smui/banner": "^8.0.3",
     "@smui/button": "^8.0.3",
+    "@smui/card": "^8.0.3",
+    "@smui/list": "^8.0.3",
+    "@smui/top-app-bar": "^8.0.3",
     "@smui/touch-target": "^8.0.3",
     "@sveltejs/adapter-auto": "^6.1.0",
     "@sveltejs/adapter-node": "^5.3.3",
