@@ -135,5 +135,37 @@ export const roundScore = pgTable('round_score', {
   };
 });
 
+export const roundCall = pgTable('round_call', {
+  id:       uuid('id').primaryKey().defaultRandom(),
+  roundId:  uuid('round_id').references(() => round.id).notNull(),
+  playerId: uuid('player_id').references(() => player.id).notNull(),
+  call:     callType('call').notNull()
+});
+
+export const roundBonus = pgTable('round_bonus', {
+  id:       uuid('id').primaryKey().defaultRandom(),
+  roundId:  uuid('round_id').references(() => round.id).notNull(),
+  playerId: uuid('player_id').references(() => player.id).notNull(),
+  bonus:    bonusType('bonus').notNull(),
+  count:    integer('count').notNull().default(0)
+});
+
+export const roundPoints = pgTable('round_points', {
+  roundId:  uuid('round_id').references(() => round.id).notNull(),
+  playerId: uuid('player_id').references(() => player.id).notNull(),
+  score:    integer('score').notNull()
+}, (table) => {
+  return {
+    roundPointsPk: primaryKey({
+      name: 'round_points_pk',
+      columns: [table.roundId, table.playerId]
+    })
+  };
+});
+
+
+
+
+
 
 
