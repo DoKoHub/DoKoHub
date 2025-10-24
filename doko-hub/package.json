@@ -38,18 +38,18 @@
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.5",
     "playwright": "^1.55.1",
+    "sass": "^1.93.2",
     "smui-theme": "^8.0.3",
-		"sass": "^1.93.2",
     "svelte": "^5.39.5",
     "svelte-check": "^4.3.2",
+    "svelte-preprocess": "^6.0.3",
     "typescript": "^5.9.2",
-		"svelte-preprocess": "^6.0.3",
     "vite": "^7.1.7",
     "vitest": "^3.2.4",
     "vitest-browser-svelte": "^1.1.0"
   },
   "dependencies": {
-    "postgres": "^3.4.7",
-		"dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "postgres": "^3.4.7"
   }
 }
