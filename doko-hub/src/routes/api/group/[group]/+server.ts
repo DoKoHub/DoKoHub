@@ -1,7 +1,7 @@
 import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
-import { playgroup } from "$lib/server/db/schema";
-import type { PlayGroup } from "$lib/types";
+import { groupInvite, playgroup } from "$lib/server/db/schema";
+import type { PlayGroup, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
@@ -65,7 +65,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
     }
 }
 
-export const DELETE: RequestHandler = async({ params }) => {
+export const DELETE: RequestHandler = async({ params, fetch }) => {
     try {
         // UUID der Gruppe
         const groupId = params.group;

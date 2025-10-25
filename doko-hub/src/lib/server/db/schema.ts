@@ -39,8 +39,8 @@ export const groupInvite = pgTable('group_invite', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	groupId: uuid('group_id').references(() => playgroup.id).notNull(),
 	token: varchar('token', { length: 64}).notNull(),
-	expiresAt: timestamp('expires_at').notNull(),
-	createdBy: uuid('created_by').references(() => player.id).notNull()
+	expiresAt: timestamp('expires_at'),
+	createdBy: uuid('created_by').references(() => player.id)
 })
 
 export const playgroupMember = pgTable('playgroup_member', {

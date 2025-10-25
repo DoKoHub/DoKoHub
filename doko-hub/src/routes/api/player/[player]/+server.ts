@@ -89,7 +89,7 @@ export const DELETE: RequestHandler = async({ params }) => {
             .delete(player)
             .where(eq(player.id, playerID))
             .returning();
-        
+
         // Pruefen ob geloeschted Objekt null ist
         if (!deletedPlayer) {
             return new BadResponse('Player not found');
@@ -97,8 +97,8 @@ export const DELETE: RequestHandler = async({ params }) => {
 
         // OK und Spieler zurueckgeben
         return new PUTOrDeleteResponse('Player deleted', {name: 'player', data: deletedPlayer as Player})
-    }catch(error) {
+    } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while deleting player', error)
+        return new ErrorResponse('Database error while deleting player', error);
     }
 }
