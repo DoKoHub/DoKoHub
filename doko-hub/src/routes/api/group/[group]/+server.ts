@@ -1,6 +1,6 @@
 import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
-import { groupInvite, playgroup } from "$lib/server/db/schema";
+import { playgroup } from "$lib/server/db/schema";
 import type { PlayGroup, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async({ params }) => {
             .where(eq(playgroup.id, groupId));
         
         // Pruefen ob Gruppen zurueckgegeben wurden
-        if (!groupsFromDB) {
+        if (!groupsFromDB[0]) {
             return new BadResponse('Group not found');
         }
 
