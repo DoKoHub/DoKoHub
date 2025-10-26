@@ -46,8 +46,7 @@
   .login-card-container {
     flex: 1;
 
-    padding: 25px;
-    max-width: 300px;
+    width: 100%;
 
     display: flex;
     align-items: center;
@@ -56,6 +55,7 @@
 
   :global(.login-card) {
     max-width: 300px;
+    margin: 25px;
     text-wrap-mode: wrap;
   }
 </style>
