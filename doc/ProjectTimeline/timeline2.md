@@ -18,7 +18,7 @@ Alle Teammitglieder beginnen nun mit der Umsetzung ihrer jeweiligen Bereiche.
 
 ## 25.10. – Teammeeting: Präsentation der Zwischenergebnisse
 
-- Wir haben uns getroffen, um den aktuellen Stand aller Bereiche zu zeigen (Datenbank, REST-API, UI und Dokumentation).  
+- Wir haben uns getroffen, um den aktuellen Stand aller Bereiche zu zeigen (Datenbank, REST-API, UI und Präsentation).  
 - Gemeinsam haben wir uns die bisherigen Ergebnisse angeschaut und besprochen, was bereits gut funktioniert.  
 - Es gab eine kurze Feedbackrunde mit kleinen Verbesserungsvorschlägen.  
 - Einige Punkte konnten direkt angepasst werden, andere werden bis zur Abgabe noch überarbeitet.  
