@@ -1,7 +1,7 @@
 import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
-import { groupInvite, playgroupMember } from "$lib/server/db/schema";
-import type { PlayerIdentity, PlayerStatus, PlayGroupMember } from "$lib/types";
+import { playgroupMember } from "$lib/server/db/schema";
+import type { PlayerStatus, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 
@@ -108,8 +108,14 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             return new BadResponse('Missing member id');
         }
 
+        // Nicht loeschen, aber Member auf "LEFT" setzen 
+
         const [deletedMember] = await db
-            .delete(playgroupMember)
+            .update(playgroupMember)
+            .set({
+                status: "LEFT" as PlayerStatus,
+                leftAt: new Date()
+            })
             .where(and(
                 eq(playgroupMember.groupId, groupId),
                 eq(playgroupMember.playerId, memberId)
@@ -119,9 +125,6 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         if (!deletedMember) {
             return new BadResponse('Member not found');
         }
-
-        // Pruefen ob noch registrierte Nutzer in der Gruppe sind
-        handlePlayGroupMemberLeave(groupId, fetch);
 
         const member: PlayGroupMember = {
             groupId: deletedMember.groupId,
@@ -136,57 +139,3 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         return new ErrorResponse('Database error while deleting member');
     }
 };
-
-/**
- * Diese Methode prueft ob noch registrierte Nutzer in der Gruppe sind.
- * Falls nicht wird diese geloescht.
- * 
- * @param groupId 
- */
-async function handlePlayGroupMemberLeave(groupId: string, fetch: typeof globalThis.fetch) {
-    const response = await fetch(`/api/group/${groupId}/member`);
-    
-    if (!response.ok) {
-        return;
-    }
-
-    const memberList: PlayGroupMember[] = await response.json();
-    
-    let hasIdentity = false;
-    for (const member of memberList) {
-        const memberIdentityResponse = await fetch(`/api/player/${member.playerId}/identity`);
-        if (!memberIdentityResponse.ok) {
-            continue;
-        }
-        const identity = (await memberIdentityResponse.json()) as PlayerIdentity | null;
-        if (identity) {
-            hasIdentity = true;
-            break;
-        }
-    }
-
-    if (hasIdentity) {
-        return;
-    }
-
-    // Keine Member (Player) mit Identity mehr in der Gruppe => Gruppe und alle Abhängigkeiten loeschen
-
-    // Member loeschen
-    for (const member of memberList) {
-        await fetch(`/api/group/${groupId}/member/${member.playerId}`, {
-            method: "DELETE"
-        });
-    }
-
-    // Invites loeschen
-    await db
-            .delete(groupInvite)
-            .where(eq(groupInvite.groupId, groupId));
-
-    // TODO: Sessions loeschen
-
-    // Gruppe löschen
-    await fetch(`/api/group/${groupId}`, {
-        method: "DELETE"
-    });
-}

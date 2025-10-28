@@ -1,7 +1,7 @@
 import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
-import { playgroup } from "$lib/server/db/schema";
-import type { PlayGroup } from "$lib/types";
+import { groupInvite, playgroup } from "$lib/server/db/schema";
+import type { PlayGroup, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
@@ -76,6 +76,33 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         if (!groupId) {
             return new BadResponse('Missing group id');
         }
+
+        const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
+
+        if (Object.keys(groupResponseBody).length == 0) {
+            return new BadResponse("Group not found");
+        }
+
+
+        // Abhängigkeiten löschen
+        const memberResponse = await fetch(`/api/group/${groupId}/member`);
+        if (memberResponse.ok) {
+            const memberList: PlayGroupMember[] = await memberResponse.json();
+
+            // Member loeschen
+            for (const member of memberList) {
+                await fetch(`/api/group/${groupId}/member/${member.playerId}`, {
+                    method: "DELETE"
+                });
+            }
+        }
+
+        // Invites loeschen
+        await db
+            .delete(groupInvite)
+            .where(eq(groupInvite.groupId, groupId));
+
+        // TODO: Sessions loeschen
 
         const [deletedGroup] = await db
             .delete(playgroup)
