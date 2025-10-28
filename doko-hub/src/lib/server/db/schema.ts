@@ -13,6 +13,16 @@ export const ruleset = pgEnum('ruleset', [
     'HAUSREGEL_KEINE_PFLICHTSOLO'
 ]);
 
+export const memberstatus = pgEnum('memberstatus', [
+    'ACTIVE',
+	'LEFT'
+]);
+
+export const sessionstatus = pgEnum('sessionstatus', [
+    'FULL',
+	'NOTFULL'
+]);
+
 export const gameType = pgEnum('game_type', [
   'NORMAL',
   'HOCHZEIT',
@@ -39,7 +49,7 @@ export const player = pgTable('player', {
 export const playgroup = pgTable('playgroup', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: varchar('name', { length: 35 }).notNull(),
-	createdOn: date('created_on').notNull(),
+	createdOn: date('created_on'),
 	lastPlayedOn: date('last_played_on'),
 	note: text('note')
 });
@@ -50,22 +60,22 @@ export const playerIdentity = pgTable('player_identity', {
 	provider: authProvider('provider').notNull(),
 	subject: varchar('subject', { length: 100 }).notNull(),
 	email: varchar('email', { length: 255}),
-	createdAt: timestamp('created_at').notNull()
+	createdAt: timestamp('created_at')
 })
 
 export const groupInvite = pgTable('group_invite', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	groupId: uuid('group_id').references(() => playgroup.id).notNull(),
 	token: varchar('token', { length: 64}).notNull(),
-	expiresAt: timestamp('expires_at').notNull(),
-	createdBy: uuid('created_by').references(() => player.id).notNull()
+	expiresAt: timestamp('expires_at'),
+	createdBy: uuid('created_by').references(() => player.id)
 })
 
 export const playgroupMember = pgTable('playgroup_member', {
 	groupId: uuid('group_id').references(() => playgroup.id).notNull(),
 	playerId: uuid('player_id').references(() => player.id).notNull(),
 	nickname: varchar('nickname', { length: 35}),
-	status: varchar('status', { length: 35}).notNull(),
+	status: memberstatus('status'),
 	leftAt: timestamp('left_at')
 }, 
 (table) => {
@@ -82,9 +92,9 @@ export const session = pgTable('session', {
 	groupId: uuid('group_id').references(() => playgroup.id).notNull(),
 	title: varchar('title', { length: 35}).notNull(),
 	ruleset: ruleset('ruleset').notNull(),
-	status: varchar('status', { length: 35}).notNull(),
-	plannedRounds: integer('planned_rounds'),
-	startedAt: timestamp('started_at').notNull(),
+	status: sessionstatus('status'),
+	plannedRounds: integer('planned_rounds').notNull(),
+	startedAt: timestamp('started_at'),
 	endedAt: timestamp('ended_at')
 })
 
