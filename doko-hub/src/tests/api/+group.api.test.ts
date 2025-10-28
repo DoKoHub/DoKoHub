@@ -110,6 +110,13 @@ describe('API /api/group/[group]', () => {
         expect(response.body.playGroup.name).toBe(updateData.name);
     });
 
+    // Test: DELETE (Gruppe existiert nicht)
+    test('DELETE: Should return 400 if group ID is not found', async () => {
+        const response = await api.delete(`/api/group/${NON_EXISTENT_ID}`);
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('Group not found');
+    });
+
     // Test: DELETE (ungültiges ID-Format)
     test('DELETE: Should return 500 if group ID has an invalid format', async () => {
         const response = await api.delete('/api/group/invalid-uuid-to-delete');

@@ -141,6 +141,13 @@ describe('API /api/player/[player]', () => {
         expect(response.body.error).toBe('name is required and must be a string.');
     });
 
+    // Test: DELETE (Spieler existiert nicht)
+    test('DELETE: Should return 400 if player ID is not found', async () => {
+        const response = await api.delete(`/api/player/${NON_EXISTENT_ID}`);
+        expect(response.status).toBe(400); 
+        expect(response.body.error).toBe('Player not found'); 
+    });
+
     // Test: DELETE (Ungültiges ID-Format)
     test('DELETE: Should return 500 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.delete('/api/player/not-a-valid-uuid-on-delete');
@@ -171,7 +178,6 @@ describe('API /api/player/[player]/register', () => {
         playerIdWithoutIdentity = response.body.player.id;
     });
 
-    /**
     // Test: POST (Ungültiges E-Mail-Format)
     test('POST: Should fail if playerIdentity.email has an invalid format (Status 400)', async () => {
         const response = await api.post(`/api/player/${playerIdWithoutIdentity}/register`, {
@@ -180,7 +186,6 @@ describe('API /api/player/[player]/register', () => {
         expect(response.status).toBe(400);
         expect(response.body.error).toBeDefined();
     });
-     */
 
     // Test: POST (Validierung - playerIdentity.provider fehlt)
     test('POST: Should fail if playerIdentity.provider is missing (Status 500)', async () => {
@@ -299,7 +304,6 @@ describe('API /api/player/[player]/identity', () => {
         expect(response.body.error).toBeDefined();
     });
 
-    /**
     // Test: PUT (Ungültiges E-Mail-Format)
     test('PUT: Should fail if updated email has an invalid format (Status 400)', async () => {
         const response = await api.put(`/api/player/${playerIdWithIdentity}/identity`, {
@@ -309,7 +313,6 @@ describe('API /api/player/[player]/identity', () => {
         expect(response.status).toBe(400);
         expect(response.body.error).toBeDefined(); 
     });
-    */
 
     // Test: PUT (Erfolgreiche Anpassung des E-Mail-Feldes)
     test('PUT: Should successfully update the email (Status 200)', async () => {
