@@ -23,7 +23,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         return new GETResponse(members as PlayGroupMember[]);
     } catch(error) {
-        return new ErrorResponse('Database error while loading group members', error);
+        return new ErrorResponse('Database error while loading group members');
     }
 }
 
@@ -76,6 +76,6 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
 
         return new POSTResponse('Created group member', {name: 'playGroupMember', data: mappedPlayGroupMember});
     } catch(error) {
-        return new ErrorResponse('Database error while creating group member', error);
+        return new ErrorResponse('Database error while creating group member');
     }
 };

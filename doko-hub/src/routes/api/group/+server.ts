@@ -20,7 +20,7 @@ export const GET: RequestHandler = async() => {
         return new GETResponse(groups);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while fetching groups', error)
+        return new ErrorResponse('Database error while fetching groups')
     }
 }
 
@@ -49,6 +49,6 @@ export const POST: RequestHandler = async({ request }) => {
         return new POSTResponse('Group created', {name: 'playGroup', data: insertedGroup as PlayGroup})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while creating group', error);
+        return new ErrorResponse('Database error while creating group');
     }
 }

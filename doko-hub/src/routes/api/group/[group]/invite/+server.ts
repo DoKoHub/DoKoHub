@@ -40,7 +40,7 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
 
         return new POSTResponse('Created Invite', {name: 'groupInvite', data: invite});
     } catch (error) {
-        return new ErrorResponse('Error while creating group invite', error)
+        return new ErrorResponse('Error while creating group invite')
     }
 }
 

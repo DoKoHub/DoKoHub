@@ -1,6 +1,6 @@
 import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
-import { playgroup } from "$lib/server/db/schema";
+import { groupInvite, playgroup } from "$lib/server/db/schema";
 import type { PlayGroup, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -31,7 +31,7 @@ export const GET: RequestHandler = async({ params }) => {
         return new GETResponse(groupsFromDB[0] as PlayGroup);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse( `Database error while fetching group "${params.group}"`, error);
+        return new ErrorResponse( `Database error while fetching group "${params.group}"`);
     }
 };
 
@@ -54,14 +54,20 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         const [updatedGroup] = await db
             .update(playgroup)
-            .set(newGroup)
+            .set({
+                name: newGroup.name,
+                lastPlayedOn: newGroup.lastPlayedOn,
+                note: newGroup.note
+            })
             .where(eq(playgroup.id, groupId))
             .returning();
+
+        // Gruppe existiert
 
         return new PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse(`Database error while updating group "${params.group}"`, error);
+        return new ErrorResponse(`Database error while updating group "${params.group}"`);
     }
 }
 
@@ -75,6 +81,33 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             return new BadResponse('Missing group id');
         }
 
+        const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
+
+        if (Object.keys(groupResponseBody).length == 0) {
+            return new BadResponse("Group not found");
+        }
+
+
+        // Abhängigkeiten löschen
+        const memberResponse = await fetch(`/api/group/${groupId}/member`);
+        if (memberResponse.ok) {
+            const memberList: PlayGroupMember[] = await memberResponse.json();
+
+            // Member loeschen
+            for (const member of memberList) {
+                await fetch(`/api/group/${groupId}/member/${member.playerId}`, {
+                    method: "DELETE"
+                });
+            }
+        }
+
+        // Invites loeschen
+        await db
+            .delete(groupInvite)
+            .where(eq(groupInvite.groupId, groupId));
+
+        // TODO: Sessions loeschen
+
         const [deletedGroup] = await db
             .delete(playgroup)
             .where(eq(playgroup.id, groupId))
@@ -82,6 +115,6 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         
         return new PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
     } catch(error) {
-        return new ErrorResponse('Database error while deletig group', error);
+        return new ErrorResponse('Database error while deleting group');
     }
 }

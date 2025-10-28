@@ -52,6 +52,6 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
 
         return new POSTResponse('Player joined group', {name: 'playGroupMember', data: addBody.playGroupMember as PlayGroupMember})
     } catch(error) {
-        return new ErrorResponse('Database error while joining group', error);
+        return new ErrorResponse('Database error while joining group');
     }
 };
