@@ -1,15 +1,15 @@
-import { api } from '../setup/+api'; 
+import { api } from '../setup/+api';
 import { setupDatabase } from '../setup/+setup';
-import { db } from '$lib/server/db'; 
+import { db } from '$lib/server/db';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 const MOCK_PLAYER_IDENTITY = {
-    provider: 'GOOGLE', 
-    subject: 'google-sub-123456789', 
-    email: 'test.user@example.com', 
+    provider: 'GOOGLE',
+    subject: 'google-sub-123456789',
+    email: 'test.user@example.com',
     createdAt: new Date().toISOString()
 };
 
@@ -24,7 +24,7 @@ afterAll(async () => {
 // Tests für /api/player (GET & POST)
 
 describe('API /api/player', () => {
-    beforeEach(setupDatabase); 
+    beforeEach(setupDatabase);
 
     // Test: GET (Leere Liste)
     test('GET: Should return an empty array if no players exist (Status 200)', async () => {
@@ -82,7 +82,7 @@ describe('API /api/player', () => {
 
 describe('API /api/player/[player]', () => {
     let createdPlayerId: string;
-    
+
     beforeEach(async () => {
         await setupDatabase();
         const response = await api.post('/api/player', { name: 'InitialPlayer' });
@@ -92,7 +92,7 @@ describe('API /api/player/[player]', () => {
     // Test: GET (Ungültiges ID-Format)
     test('GET: Should return 500 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.get('/api/player/not-a-valid-uuid');
-        expect(response.status).toBe(500); 
+        expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error while fetching player \"not-a-valid-uuid\"');
     });
 
@@ -106,7 +106,7 @@ describe('API /api/player/[player]', () => {
     // Test: GET (Nicht gefunden)
     test('GET: Should return 400 (Bad Response) if player ID is not found', async () => {
         const response = await api.get(`/api/player/${NON_EXISTENT_ID}`);
-        expect(response.status).toBe(400); 
+        expect(response.status).toBe(400);
         expect(response.body.error).toBe('Player not found');
     });
 
@@ -121,7 +121,7 @@ describe('API /api/player/[player]', () => {
     test('PUT: Should successfully update the player name (Status 200)', async () => {
         const newName = 'UpdatedName';
         const response = await api.put(`/api/player/${createdPlayerId}`, { name: newName });
-        
+
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Updated Player');
         expect(response.body.player.name).toBe(newName);
@@ -144,7 +144,7 @@ describe('API /api/player/[player]', () => {
     // Test: DELETE (Ungültiges ID-Format)
     test('DELETE: Should return 500 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.delete('/api/player/not-a-valid-uuid-on-delete');
-        expect(response.status).toBe(500); 
+        expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error while deleting player');
     });
 
@@ -156,7 +156,7 @@ describe('API /api/player/[player]', () => {
 
         // Überprüfen ob der Player wirklich gelöscht wurde
         const getResponse = await api.get(`/api/player/${createdPlayerId}`);
-        expect(getResponse.status).toBe(400); 
+        expect(getResponse.status).toBe(400);
     });
 });
 
@@ -196,14 +196,14 @@ describe('API /api/player/[player]/register', () => {
         await api.post(`/api/player/${playerIdWithoutIdentity}/register`, {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
-        
+
         const player2Resp = await api.post('/api/player', { name: 'Player2' });
         const player2Id = player2Resp.body.player.id;
-        
+
         const response = await api.post(`/api/player/${player2Id}/register`, {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
-        
+
         expect(response.status).toBe(201);
     });
 
@@ -221,8 +221,8 @@ describe('API /api/player/[player]/register', () => {
         const response = await api.post('/api/player/invalid-player-id/register', {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
-        expect(response.status).toBe(500); 
-        expect(response.body.error).toBe('Database error while linking PlayerIdentity'); 
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Database error while linking PlayerIdentity');
     });
 
     // Test: POST (Erfolgreiche Verknüpfung)
@@ -248,11 +248,11 @@ describe('API /api/player/[player]/register', () => {
         await api.post(`/api/player/${playerIdWithoutIdentity}/register`, {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
-        
+
         const response = await api.post(`/api/player/${playerIdWithoutIdentity}/register`, {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
-        
+
         expect(response.status).toBe(400);
         expect(response.body.error).toBe('Player already has an identity');
     });
@@ -268,7 +268,7 @@ describe('API /api/player/[player]/identity', () => {
         await setupDatabase();
         let playerResp = await api.post('/api/player', { name: 'PlayerIdentityTest' });
         playerIdWithIdentity = playerResp.body.player.id;
-        
+
         await api.post(`/api/player/${playerIdWithIdentity}/register`, {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
@@ -296,7 +296,7 @@ describe('API /api/player/[player]/identity', () => {
         });
 
         expect(response.status).toBe(500);
-        expect(response.body.error).toBeDefined(); 
+        expect(response.body.error).toBeDefined();
     });
 
     /**
