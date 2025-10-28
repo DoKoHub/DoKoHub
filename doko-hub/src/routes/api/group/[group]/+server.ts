@@ -54,7 +54,11 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         const [updatedGroup] = await db
             .update(playgroup)
-            .set(newGroup)
+            .set({
+                name: newGroup.name,
+                lastPlayedOn: newGroup.lastPlayedOn,
+                note: newGroup.note
+            })
             .where(eq(playgroup.id, groupId))
             .returning();
 
