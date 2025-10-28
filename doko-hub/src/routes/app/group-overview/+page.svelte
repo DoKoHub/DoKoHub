@@ -20,7 +20,7 @@
     <SecondaryText>Spieler: {group.players.join(", ")}</SecondaryText>
     <SecondaryText
       >Zuletzt gespielt am:
-      <Time timestamp={group.last_played} format="dd.mm.YYYY"></Time>
+      <Time timestamp={group.last_played} format="dd.MM.YYYY"></Time>
     </SecondaryText>
   </Text>
 {/snippet}
