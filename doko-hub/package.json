@@ -26,7 +26,9 @@
     "@smui/banner": "^8.0.3",
     "@smui/button": "^8.0.3",
     "@smui/card": "^8.0.3",
+    "@smui/circular-progress": "^8.0.3",
     "@smui/list": "^8.0.3",
+    "@smui/textfield": "^8.0.3",
     "@smui/top-app-bar": "^8.0.3",
     "@smui/touch-target": "^8.0.3",
     "@sveltejs/adapter-auto": "^6.1.0",
@@ -50,6 +52,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "svelte-time": "^2.0.2"
   }
 }
