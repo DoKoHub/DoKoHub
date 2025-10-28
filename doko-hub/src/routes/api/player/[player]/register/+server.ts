@@ -67,6 +67,6 @@ export const POST: RequestHandler = async({ request, params }) => {
         return new POSTResponse(`Linked Player "${playerID}" to given PlayerIdentity`, {name: 'playerIdentity', data: returningPlayerIdentity})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while linking PlayerIdentity', error)
+        return new ErrorResponse('Database error while linking PlayerIdentity')
     }
 };

@@ -19,7 +19,7 @@ export const GET: RequestHandler = async() => {
         // Liste zurueckgeben
         return new GETResponse(playersFromDB as Player[]);
     } catch(error) {
-        return new ErrorResponse('Database error while fetching players', error)
+        return new ErrorResponse('Database error while fetching players')
     }
     
 };
@@ -52,6 +52,6 @@ export const POST: RequestHandler = async({ request }) => {
         return new POSTResponse('Player created', { name: 'player', data: insertedPlayer as Player })
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while creating player', error)
+        return new ErrorResponse('Database error while creating player')
     }
 }

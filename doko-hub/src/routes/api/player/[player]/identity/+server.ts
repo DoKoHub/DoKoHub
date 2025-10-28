@@ -40,7 +40,7 @@ export const GET: RequestHandler = async({ params }) => {
         return new GETResponse(returningPlayerIdentity);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while getting PlayerIdentity', error);
+        return new ErrorResponse('Database error while getting PlayerIdentity');
     }
 }
 
@@ -89,7 +89,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
         return new PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${returningPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: returningPlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while updating PlayerIdentity', error);
+        return new ErrorResponse('Database error while updating PlayerIdentity');
     }
 }
 
@@ -127,6 +127,6 @@ export const DELETE: RequestHandler = async({ params }) => {
         return new PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: returningPlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while deleting PlayerIdentity', error);
+        return new ErrorResponse('Database error while deleting PlayerIdentity');
     }
 }

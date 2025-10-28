@@ -33,7 +33,7 @@ export const GET: RequestHandler = async({ params }) => {
         // OK und Spieler zurueckgeben
         return new GETResponse(playersFromDB[0] as Player);
     } catch(error) {
-        return new ErrorResponse(`Database error while fetching player "${params.player}"`, error)
+        return new ErrorResponse(`Database error while fetching player "${params.player}"`)
     }
 
 };
@@ -71,7 +71,7 @@ export const PUT: RequestHandler = async({ request, params}) => {
         // OK und Spieler zurueckgeben
         return new PUTOrDeleteResponse('Updated Player', {name: 'player', data: updatedPlayer as Player})
     } catch(error) {
-        return new ErrorResponse('Database error while updating player', error)
+        return new ErrorResponse('Database error while updating player')
     }
 };
 
@@ -99,6 +99,6 @@ export const DELETE: RequestHandler = async({ params }) => {
         return new PUTOrDeleteResponse('Player deleted', {name: 'player', data: deletedPlayer as Player})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while deleting player', error);
+        return new ErrorResponse('Database error while deleting player');
     }
 }

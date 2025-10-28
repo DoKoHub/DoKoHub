@@ -55,11 +55,10 @@ export class BadResponse extends Response {
 }
 
 export class ErrorResponse extends Response {
-    constructor(message: string, error: any) {
+    constructor(message: string) {
         super(
             JSON.stringify({
-                error: message,
-                details: error instanceof Error ? error.message : String(error)
+                error: message
             }),
             {
                 status: 500,

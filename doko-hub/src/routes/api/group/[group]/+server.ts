@@ -1,7 +1,7 @@
 import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { playgroup } from "$lib/server/db/schema";
-import type { PlayGroup, PlayGroupMember } from "$lib/types";
+import type { PlayGroup } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
@@ -31,7 +31,7 @@ export const GET: RequestHandler = async({ params }) => {
         return new GETResponse(groupsFromDB[0] as PlayGroup);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse( `Database error while fetching group "${params.group}"`, error);
+        return new ErrorResponse( `Database error while fetching group "${params.group}"`);
     }
 };
 
@@ -58,10 +58,12 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .where(eq(playgroup.id, groupId))
             .returning();
 
+        // Gruppe existiert
+
         return new PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse(`Database error while updating group "${params.group}"`, error);
+        return new ErrorResponse(`Database error while updating group "${params.group}"`);
     }
 }
 
@@ -82,6 +84,6 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         
         return new PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
     } catch(error) {
-        return new ErrorResponse('Database error while deletig group', error);
+        return new ErrorResponse('Database error while deletig group');
     }
 }

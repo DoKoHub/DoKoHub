@@ -42,7 +42,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         return new GETResponse(member);
     } catch(error) {
-        return new ErrorResponse('Database error while fetching group member', error);
+        return new ErrorResponse('Database error while fetching group member');
     }
 };
 
@@ -90,7 +90,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         return new PUTOrDeleteResponse('Updated member', {name: 'playGroupMember', data: member});
     } catch(error) {
-        return new ErrorResponse('Database error while updating member', error);
+        return new ErrorResponse('Database error while updating member');
     }
 };
 
@@ -133,7 +133,7 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
 
         return new PUTOrDeleteResponse('Deleted member', {name: 'playGroupMember', data: member});
     } catch(error) {
-        return new ErrorResponse('Database error while deleting member', error);
+        return new ErrorResponse('Database error while deleting member');
     }
 };
 
