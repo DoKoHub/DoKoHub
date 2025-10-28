@@ -115,6 +115,6 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         
         return new PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
     } catch(error) {
-        return new ErrorResponse('Database error while deletig group');
+        return new ErrorResponse('Database error while deleting group');
     }
 }

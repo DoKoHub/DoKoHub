@@ -902,9 +902,196 @@ Blackbox-Templates:
 
 *\<(optional) Offene Punkte/Probleme/Risiken>*
 -->
-### \<Name Blackbox 2>
+### Backend
+Das Backend ist umgesetzt als REST API und ist umgesetzt mit Typescipt
 
-*\<Blackbox-Template>*
+#### REST Schnittstelle
+Warum REST?<br>
+Svelte bietet an Front und Backend innerhalb der gleichen Ordnerstruktur umzusetzen und die Erstellung einer REST Schnittstelle bietet sich daher perfekt an. Zudem ist REST ein weitverbreiteter Standard mit gutem tooling support.
+
+#### Endpoints
+Die Daten die das Backend annimmt und sendet sind im Format wie in der `types.ts` Datei beschrieben.
+
+##### api/player
+>`GET`:<br>
+>URL Parameter:<br> 
+>`Keine`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{Player}]`
+
+Gibt die Liste aller existierenden Spieler zurück.
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`Keine`<br>
+>Request Body: `{"name": string}`<br>
+>Response Body: `{"message": string, "player": Player}` 
+
+Erstellt einen neuen Spieler.
+
+##### api/player/[player]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{Player}`
+
+Gibt einen spezifischen Spieler zurück.
+
+>`PUT`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `{"name": string}`<br>
+>Response Body: `{"message": string, "player": Player}`
+
+Bearbeitet den Namen eines Spielers.
+
+>`DELETE`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{"message": string, "player": Player}`
+
+Löscht einen Spieler.
+
+##### api/player/[player]/identity
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{PlayerIdentity}`
+
+Gibt die Spieleridentität eines Spielers zurück.
+
+>`PUT`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `{"playerIdentity": PlayerIdentity}`<br>
+>Response Body: `{"message": string, "playerIdentity": PlayerIdentity}`
+
+Bearbeitet eine Spieleridentität.
+
+>`DELETE`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{"message": string, "playerIdentity": PlayerIdentity}`
+
+Löscht eine Spieleridentität.
+
+##### api/player/[player]/register
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[player]`: `UUID`<br>
+>Request Body: `{"playerIdentity": PlayerIdentity}`<br>
+>Response Body: `{"message": String, "playerIdentity": PlayerIdentity}`
+
+Verknüpft einen Spieler zu einer Spieleridentität.
+
+##### api/group
+>`GET`:<br>
+>URL Parameter:<br> 
+>`Keine`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{PlayGroup}]`
+
+Gibt alle existierenden Gruppen zurück.
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`Keine`<br>
+>Request Body: `{"name": string}`<br>
+>Response Body: `{"message": string, "playGroup": PlayGroup}`
+
+Erstellt eine neue Gruppe.
+
+##### api/group/[group]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{PlayGroup}`<br>
+
+Gibt eine spezifische Gruppe zurück.
+
+>`PUT`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>Request Body: `{"playGroup": PlayGroup}`<br>
+>Response Body: `{"message": string, "playGroup": PlayGroup}`<br>
+
+Bearbeitet eine Gruppe.
+
+>`DELETE`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{"message": string, "playGroup": PlayGroup}`
+
+Löscht eine Gruppe.
+
+##### api/group/[group]/invite
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>Request Body: `{"expiresAt": Date, "createdBy": UUID}`<br>
+>Response Body: `{GroupInvite}`
+
+Erstellt eine Einladung zu einer Gruppe.
+
+##### api/group/[group]/member
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{PlayGroupMember}]`<br>
+
+Gibt alle Mitglieder einer Gruppe zurück.
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>Request Body: `{"playerId": UUID, ?"nickname": string}`<br>
+>Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`
+
+Fügt einer Gruppe ein neues Mitglied hinzu.
+
+##### api/group/[group]/member/[member]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `UUID`<br>
+>`[member]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{PlayGroupMember}`<br>
+
+Gibt ein spezifisches Mitglied einer Gruppe zurück.
+
+>`PUT`:<br>
+>URL Parameter:<br>
+>`[group]`: `UUID`<br>
+>`[member]`: `UUID`<br>
+>Request Body: `{"playGroupMember": PlayGroupMember}`<br>
+>Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`<br>
+
+Bearbeitet ein Mitglied einer Gruppe.
+
+>`DELETE`:<br>
+>URL Parameter:<br>
+>`[group]`: `UUID`<br>
+>`[member]`: `UUID`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`
+
+Setzt den Status eines Mitgliedes einer Gruppe auf `"LEFT"`.
+
+##### api/group/join/[token]
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[token]`: `string`<br>
+>Request Body: `{"playerId": UUID, ?"nickname": string}`<br>
+>Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`<br>
+
+Ein Spieler wird über ein Invite Token zu einer Gruppe als Mitglied hinzugefügt. 
 
 ### \<Name Blackbox n>
 
