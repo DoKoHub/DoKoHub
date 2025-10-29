@@ -21,16 +21,16 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             return new BadResponse('Player ID needed!');
         }
 
-        const [invite] = await db
+        const invite = await db
             .select()
             .from(groupInvite)
             .where(eq(groupInvite.token, token));
 
-        if (!invite) {
+        if (!invite[0]) {
             return new BadResponse('Invite from token not found (expired?)');
         }
 
-        const groupInviteObj = invite as GroupInvite;
+        const groupInviteObj = invite[0] as GroupInvite;
         const group = (await(await fetch(`/api/group/${groupInviteObj.groupId}`)).json()) as PlayGroup;
 
         if (!group) {

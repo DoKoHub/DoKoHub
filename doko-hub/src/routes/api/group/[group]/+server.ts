@@ -52,6 +52,10 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return new BadResponse('Must send a valid PlayGroup');
         }
 
+        if (newGroup.name.trim().length === 0) {
+            return new BadResponse('Name is required and must be a string');
+        }
+
         const [updatedGroup] = await db
             .update(playgroup)
             .set({
@@ -62,7 +66,9 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .where(eq(playgroup.id, groupId))
             .returning();
 
-        // Gruppe existiert
+        if (!updatedGroup) {
+            return new BadResponse('Group not found');
+        }
 
         return new PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
     } catch(error) {
@@ -81,7 +87,12 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             return new BadResponse('Missing group id');
         }
 
-        const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
+        const groupResponse = await fetch(`/api/group/${groupId}`);
+        if (groupResponse.status == 400) {
+            return new BadResponse('Group not found');
+        }
+
+        const groupResponseBody = await groupResponse.json();
 
         if (Object.keys(groupResponseBody).length == 0) {
             return new BadResponse("Group not found");

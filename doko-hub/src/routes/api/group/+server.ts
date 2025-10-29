@@ -33,7 +33,7 @@ export const POST: RequestHandler = async({ request }) => {
         const name = body.name;
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             // Name ist nicht valide
-            return new BadResponse('name is required and must be a string.');
+            return new BadResponse('Name is required and must be a string');
         }
 
         const creationObj = {

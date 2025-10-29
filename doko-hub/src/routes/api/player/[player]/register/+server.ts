@@ -25,6 +25,10 @@ export const POST: RequestHandler = async({ request, params }) => {
             return new BadResponse('Valid PlayerIdentity required');
         }
 
+        /*if (!input.subject || input.subject === "") {
+            return new BadResponse('Subject is required');
+        }*/
+
         input.playerId = playerID;
 
         // Pruefen ob Spieler schon eine Identität hat
