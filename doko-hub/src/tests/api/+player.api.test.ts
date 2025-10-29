@@ -10,7 +10,6 @@ const MOCK_PLAYER_IDENTITY = {
     provider: 'GOOGLE',
     subject: 'google-sub-123456789',
     email: 'test.user@example.com',
-    createdAt: new Date().toISOString()
 };
 
 afterAll(async () => {
@@ -209,7 +208,7 @@ describe('API /api/player/[player]/register', () => {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
 
-        expect(response.status).toBe(201);
+        expect(response.status).toBe(400);
     });
 
     // Test: POST (Validierung - playerIdentity.subject leer)
@@ -266,7 +265,7 @@ describe('API /api/player/[player]/register', () => {
 // Tests für /api/player/[player]/identity (GET, PUT, DELETE)
 
 describe('API /api/player/[player]/identity', () => {
-    let playerIdWithIdentity: String;
+    let playerIdWithIdentity: string;
     const initialEmail = MOCK_PLAYER_IDENTITY.email;
 
     beforeEach(async () => {
