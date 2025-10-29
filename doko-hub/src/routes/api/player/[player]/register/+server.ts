@@ -6,13 +6,18 @@ import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
 
-export const POST: RequestHandler = async({ request, params }) => {
+export const POST: RequestHandler = async({ request, params, fetch }) => {
     try {
         // Player ID aus der URL
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
             return new BadResponse('Missing player id');
+        }
+
+        const identityResponse = await fetch(`api/player/${playerID}/identity`);
+        if (identityResponse.status == 200) {
+            return new BadResponse('Player already has an identity');
         }
 
         // Request body auslesen
