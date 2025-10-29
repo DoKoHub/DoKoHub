@@ -58,23 +58,15 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             groupId: groupId,
             playerId: player.id,
             nickname: body.nickname ? body.nickname : player.name,
-            status: "ACTIVE"
+            status: "ACTIVE" as PlayerStatus
         }
 
         const [playgroupMemberFromDB] = await db
             .insert(playgroupMember)
             .values(playgroupMemberObj)
             .returning();
-        
-        const mappedPlayGroupMember: PlayGroupMember = {
-            groupId: playgroupMemberFromDB.groupId,
-            playerId: playgroupMemberFromDB.playerId,
-            nickname: playgroupMemberFromDB.nickname,
-            status: playgroupMemberFromDB.status as PlayerStatus,
-            leftAt: playgroupMemberFromDB.leftAt?.toISOString()
-        }
 
-        return new POSTResponse('Created group member', {name: 'playGroupMember', data: mappedPlayGroupMember});
+        return new POSTResponse('Created group member', {name: 'playGroupMember', data: playgroupMemberFromDB as PlayGroupMember});
     } catch(error) {
         return new ErrorResponse('Database error while creating group member');
     }

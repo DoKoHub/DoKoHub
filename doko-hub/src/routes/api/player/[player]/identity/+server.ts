@@ -26,18 +26,8 @@ export const GET: RequestHandler = async({ params }) => {
             return new BadResponse('PlayerIdentity not found');
         }
 
-        // Mapping
-        const returningPlayerIdentity: PlayerIdentity = {
-            id: dbPlayerIdentity.id,
-            playerId: dbPlayerIdentity.playerId,
-            provider: dbPlayerIdentity.provider,
-            subject: dbPlayerIdentity.subject,
-            email: dbPlayerIdentity.email,
-            createdAt: dbPlayerIdentity.createdAt.toISOString()
-        };
-
         // OK und PlayerIdentity zurueckgeben
-        return new GETResponse(returningPlayerIdentity);
+        return new GETResponse(dbPlayerIdentity as PlayerIdentity);
     } catch(error) {
         // Falls die DB einen Fehler wirft
         return new ErrorResponse('Database error while getting PlayerIdentity');
@@ -75,18 +65,8 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return new BadResponse('PlayerIdentity not found');
         }
 
-        // Mapping
-        const returningPlayerIdentity: PlayerIdentity = {
-            id: updatedPlayerIdentity.id,
-            playerId: updatedPlayerIdentity.playerId,
-            provider: updatedPlayerIdentity.provider,
-            subject: updatedPlayerIdentity.subject,
-            email: updatedPlayerIdentity.email,
-            createdAt: updatedPlayerIdentity.createdAt.toISOString()
-        };
-
         // OK und aktualisierte PlayerIdentity zurueckgeben
-        return new PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${returningPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: returningPlayerIdentity});
+        return new PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${updatedPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: updatedPlayerIdentity as PlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
         return new ErrorResponse('Database error while updating PlayerIdentity');
@@ -113,18 +93,8 @@ export const DELETE: RequestHandler = async({ params }) => {
             return new BadResponse('PlayerIdentity not found');
         }
 
-        // Mapping
-        const returningPlayerIdentity: PlayerIdentity = {
-            id: dbPlayerIdentity.id,
-            playerId: dbPlayerIdentity.playerId,
-            provider: dbPlayerIdentity.provider,
-            subject: dbPlayerIdentity.subject,
-            email: dbPlayerIdentity.email,
-            createdAt: dbPlayerIdentity.createdAt.toISOString()
-        };
-
         // OK und geloeschte Identitaet zurueckgeben
-        return new PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: returningPlayerIdentity});
+        return new PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: dbPlayerIdentity as PlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
         return new ErrorResponse('Database error while deleting PlayerIdentity');

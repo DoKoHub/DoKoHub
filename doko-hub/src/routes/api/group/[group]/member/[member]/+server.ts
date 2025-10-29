@@ -32,15 +32,7 @@ export const GET: RequestHandler = async({ params }) => {
             return new BadResponse('Member not found');
         }
 
-        const member: PlayGroupMember = {
-            groupId: membersFromDB[0].groupId,
-            playerId: membersFromDB[0].playerId,
-            nickname: membersFromDB[0].nickname,
-            status: membersFromDB[0].status as PlayerStatus,
-            leftAt: membersFromDB[0].leftAt?.toISOString()
-        }
-
-        return new GETResponse(member);
+        return new GETResponse(membersFromDB[0] as PlayGroupMember);
     } catch(error) {
         return new ErrorResponse('Database error while fetching group member');
     }
@@ -80,15 +72,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return new BadResponse('Member not found');
         }
 
-        const member: PlayGroupMember = {
-            groupId: updatedMember.groupId,
-            playerId: updatedMember.playerId,
-            nickname: updatedMember.nickname,
-            status: updatedMember.status as PlayerStatus,
-            leftAt: updatedMember.leftAt?.toISOString()
-        }
-
-        return new PUTOrDeleteResponse('Updated member', {name: 'playGroupMember', data: member});
+        return new PUTOrDeleteResponse('Updated member', {name: 'playGroupMember', data: updatedMember as PlayGroupMember});
     } catch(error) {
         return new ErrorResponse('Database error while updating member');
     }
@@ -126,15 +110,7 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             return new BadResponse('Member not found');
         }
 
-        const member: PlayGroupMember = {
-            groupId: deletedMember.groupId,
-            playerId: deletedMember.playerId,
-            nickname: deletedMember.nickname,
-            status: deletedMember.status as PlayerStatus,
-            leftAt: deletedMember.leftAt?.toISOString()
-        }
-
-        return new PUTOrDeleteResponse('Deleted member', {name: 'playGroupMember', data: member});
+        return new PUTOrDeleteResponse('Deleted member', {name: 'playGroupMember', data: deletedMember as PlayGroupMember});
     } catch(error) {
         return new ErrorResponse('Database error while deleting member');
     }

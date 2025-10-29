@@ -1,6 +1,7 @@
 import { BadResponse, ErrorResponse, POSTResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { groupInvite } from "$lib/server/db/schema";
+import type { GroupInvite } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 
 
@@ -38,7 +39,7 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             .values(creationTemplate)
             .returning();
 
-        return new POSTResponse('Created Invite', {name: 'groupInvite', data: invite});
+        return new POSTResponse('Created Invite', {name: 'groupInvite', data: invite as GroupInvite});
     } catch (error) {
         return new ErrorResponse('Error while creating group invite')
     }
