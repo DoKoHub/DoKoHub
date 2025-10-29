@@ -66,15 +66,15 @@ export interface PlayerIdentity {
   provider: AuthProvider;
   subject: string;
   email?: string | null;
-  createdAt?: string | null;
+  createdAt?: Date | null;
 }
 
 
 export interface PlayGroup {
   id: UUID;
   name: string;
-  createdOn?: string | null;
-  lastPlayedOn?: string | null;
+  createdOn?: Date | null;
+  lastPlayedOn?: Date | null;
   note?: string | null;
 }
 
@@ -83,8 +83,8 @@ export interface GroupInvite {
   id: UUID;
   groupId: UUID;
   token: string;
-  expiresAt?: string | null;
-  createdBy?: UUID | null;
+  expiresAt?: Date | null;
+  createdBy?: Date | null;
 }
 
 
@@ -93,7 +93,7 @@ export interface PlayGroupMember {
   playerId: UUID;
   nickname?: string | null;
   status: PlayerStatus;
-  leftAt?: string | null;
+  leftAt?: Date | null;
 }
 
 export interface Session {
@@ -103,8 +103,8 @@ export interface Session {
   ruleset: Ruleset;  // default 'STANDARD'
   status?: SessionStatus | null;
   plannedRounds: number;         
-  startedAt?: string | null;     
-  endedAt?: string | null;   
+  startedAt?: Date | null;     
+  endedAt?: Date | null;   
 }
 
 export interface SessionMember {
