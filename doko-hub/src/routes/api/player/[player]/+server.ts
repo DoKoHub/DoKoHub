@@ -17,7 +17,7 @@ export const GET: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
         // Alle möglichen Spieler aus DB sammeln
@@ -33,7 +33,7 @@ export const GET: RequestHandler = async({ params }) => {
         // OK und Spieler zurueckgeben
         return new GETResponse(playersFromDB[0] as Player);
     } catch(error) {
-        return new ErrorResponse(`Database error while fetching player "${params.player}"`)
+        return new ErrorResponse('Database error while fetching Player')
     }
 
 };
@@ -44,7 +44,7 @@ export const PUT: RequestHandler = async({ request, params}) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
         // Request body auslesen
@@ -53,7 +53,7 @@ export const PUT: RequestHandler = async({ request, params}) => {
         const name = data.name;
         // Pruefen ob name valide ist
         if (!name || typeof name !== 'string' || name.trim().length == 0) {
-            return new BadResponse('name is required and must be a string.');
+            return new BadResponse('Name required and must be a string');
         }
 
         // Spieler namen in DB anpassen und geaendertes Objekt zurueckgeben
@@ -81,7 +81,7 @@ export const DELETE: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
         // Spieler loeschen und geloeschted Objekt zurueckgeben
@@ -96,9 +96,9 @@ export const DELETE: RequestHandler = async({ params }) => {
         }
 
         // OK und Spieler zurueckgeben
-        return new PUTOrDeleteResponse('Player deleted', {name: 'player', data: deletedPlayer as Player})
+        return new PUTOrDeleteResponse('Deleted Player', {name: 'player', data: deletedPlayer as Player})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while deleting player');
+        return new ErrorResponse('Database error while deleting Player');
     }
 }

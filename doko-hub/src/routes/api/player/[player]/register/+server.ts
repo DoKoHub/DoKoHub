@@ -4,8 +4,6 @@ import { playerIdentity } from "$lib/server/db/schema";
 import type { PlayerIdentity } from "$lib/types";
 import { validateEmail } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
-
 
 export const POST: RequestHandler = async({ request, params, fetch }) => {
     try {
@@ -13,12 +11,13 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
-        const identityResponse = await fetch(`api/player/${playerID}/identity`);
+        // TODO: rework
+        const identityResponse = await fetch(`/api/player/${playerID}/identity`);
         if (identityResponse.status == 200) {
-            return new BadResponse('Player already has an identity');
+            return new BadResponse('Player already has an PlayerIdentity');
         }
 
         // Request body auslesen
@@ -32,28 +31,18 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
         }
 
         if (!input.subject || input.subject.trim().length === 0) {
-            return new BadResponse('Subject is required');
+            return new BadResponse('Subject required');
         }
 
         if (!input.provider || input.provider.trim().length === 0) {
-            return new BadResponse('Provider is required');
+            return new BadResponse('Provider required');
         }
 
         if (!input.email || !validateEmail(input.email)) {
-            return new BadResponse('Valid formatted email is required');
+            return new BadResponse('Valid formatted email required');
         }
 
         input.playerId = playerID;
-
-        // Pruefen ob Spieler schon eine Identität hat
-        const [output] = await db
-            .select()
-            .from(playerIdentity)
-            .where(eq(playerIdentity.playerId, playerID));
-        
-        if (output) {
-            return new BadResponse('Player already has an identity');
-        }
 
         // Mapping v.1
         // id wird von db erstellt
@@ -72,7 +61,7 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             .returning();
 
         // OK und PlayerIdentity Objekt zurueckgeben
-        return new POSTResponse(`Linked Player "${playerID}" to given PlayerIdentity`, {name: 'playerIdentity', data: dbIdentity as PlayerIdentity})
+        return new POSTResponse('Linked Player to PlayerIdentity', {name: 'playerIdentity', data: dbIdentity as PlayerIdentity})
     } catch(error) {
         // Falls die DB einen Fehler wirft
         return new ErrorResponse('Database error while linking PlayerIdentity')

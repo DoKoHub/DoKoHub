@@ -13,7 +13,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         //Falls UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
 
         // Alle möglichen Spieler aus DB sammeln
@@ -24,14 +24,14 @@ export const GET: RequestHandler = async({ params }) => {
         
         // Pruefen ob Gruppen zurueckgegeben wurden
         if (!groupsFromDB[0]) {
-            return new BadResponse('Group not found');
+            return new BadResponse('PlayGroup not found');
         }
 
         // OK und Gruppe zurueckgeben
         return new GETResponse(groupsFromDB[0] as PlayGroup);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse( `Database error while fetching group "${params.group}"`);
+        return new ErrorResponse('Database error while fetching PlayGroup');
     }
 };
 
@@ -42,18 +42,18 @@ export const PUT: RequestHandler = async({ request, params }) => {
         
         //Falls UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
 
         const body = await request.json();
         const newGroup = body.playGroup;
         
         if (!newGroup) {
-            return new BadResponse('Must send a valid PlayGroup');
+            return new BadResponse('Valid PlayGroup required');
         }
 
         if (newGroup.name.trim().length === 0) {
-            return new BadResponse('Name is required and must be a string');
+            return new BadResponse('Name required and must be a string');
         }
 
         const [updatedGroup] = await db
@@ -67,13 +67,13 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .returning();
 
         if (!updatedGroup) {
-            return new BadResponse('Group not found');
+            return new BadResponse('PlayGroup not found');
         }
 
-        return new PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
+        return new PUTOrDeleteResponse('Updated PlayGroup', {name: 'playGroup', data: updatedGroup as PlayGroup})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse(`Database error while updating group "${params.group}"`);
+        return new ErrorResponse('Database error while updating PlayGroup');
     }
 }
 
@@ -84,18 +84,18 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
 
         //Falls UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
 
         const groupResponse = await fetch(`/api/group/${groupId}`);
         if (groupResponse.status == 400) {
-            return new BadResponse('Group not found');
+            return new BadResponse('PlayGroup not found');
         }
 
         const groupResponseBody = await groupResponse.json();
 
         if (Object.keys(groupResponseBody).length == 0) {
-            return new BadResponse("Group not found");
+            return new BadResponse("PlayGroup not found");
         }
 
 
@@ -124,8 +124,8 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             .where(eq(playgroup.id, groupId))
             .returning();
         
-        return new PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
+        return new PUTOrDeleteResponse('Deleted PlayGroup', {name: 'playGroup', data: deletedGroup as PlayGroup});
     } catch(error) {
-        return new ErrorResponse('Database error while deleting group');
+        return new ErrorResponse('Database error while deleting PlayGroup');
     }
 }

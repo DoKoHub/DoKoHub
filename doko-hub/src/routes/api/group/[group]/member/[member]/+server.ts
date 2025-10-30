@@ -13,11 +13,11 @@ export const GET: RequestHandler = async({ params }) => {
         
         //Falls Gruppen UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
         //Falls Mitglieds UUID leer ist
         if (!memberId) {
-            return new BadResponse('Missing member id');
+            return new BadResponse('PlayGroupMember (Player) ID required');
         }
 
         const membersFromDB = await db
@@ -29,12 +29,12 @@ export const GET: RequestHandler = async({ params }) => {
             ));
         
         if (!membersFromDB[0]) {
-            return new BadResponse('Member not found');
+            return new BadResponse('PlayGroupMember not found');
         }
 
         return new GETResponse(membersFromDB[0] as PlayGroupMember);
     } catch(error) {
-        return new ErrorResponse('Database error while fetching group member');
+        return new ErrorResponse('Database error while fetching PlayGroupMember');
     }
 };
 
@@ -45,18 +45,18 @@ export const PUT: RequestHandler = async({ request, params }) => {
         
         //Falls Gruppen UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
         //Falls Mitglieds UUID leer ist
         if (!memberId) {
-            return new BadResponse('Missing member id');
+            return new BadResponse('PlayGroupMember (Player) ID required');
         }
 
         const body = await request.json();
         const newMember = body.playGroupMember;
 
         if (!newMember) {
-            return new BadResponse('New playGroupMember Object needed');
+            return new BadResponse('Valid PlayGroupMember required');
         }
 
         const [updatedMember] = await db
@@ -69,27 +69,27 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .returning();
         
         if (!updatedMember) {
-            return new BadResponse('Member not found');
+            return new BadResponse('PlayGroupMember not found');
         }
 
-        return new PUTOrDeleteResponse('Updated member', {name: 'playGroupMember', data: updatedMember as PlayGroupMember});
+        return new PUTOrDeleteResponse('Updated PlayGroupMember', {name: 'playGroupMember', data: updatedMember as PlayGroupMember});
     } catch(error) {
-        return new ErrorResponse('Database error while updating member');
+        return new ErrorResponse('Database error while updating PlayGroupMember');
     }
 };
 
-export const DELETE: RequestHandler = async({ params, fetch }) => {
+export const DELETE: RequestHandler = async({ params }) => {
     try {
         const groupId = params.group;
         const memberId = params.member;
         
         //Falls Gruppen UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
         //Falls Mitglieds UUID leer ist
         if (!memberId) {
-            return new BadResponse('Missing member id');
+            return new BadResponse('PlayGroupMember (Player) ID required');
         }
 
         // Nicht loeschen, aber Member auf "LEFT" setzen 
@@ -107,11 +107,11 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             .returning();
         
         if (!deletedMember) {
-            return new BadResponse('Member not found');
+            return new BadResponse('PlayGroupMember not found');
         }
 
-        return new PUTOrDeleteResponse('Deleted member', {name: 'playGroupMember', data: deletedMember as PlayGroupMember});
+        return new PUTOrDeleteResponse('Deleted PlayGroupMember', {name: 'playGroupMember', data: deletedMember as PlayGroupMember});
     } catch(error) {
-        return new ErrorResponse('Database error while deleting member');
+        return new ErrorResponse('Database error while deleting PlayGroupMember');
     }
 };

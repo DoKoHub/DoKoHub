@@ -20,7 +20,7 @@ export const GET: RequestHandler = async() => {
         return new GETResponse(groups);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while fetching groups')
+        return new ErrorResponse('Database error while fetching PlayGroup[]')
     }
 }
 
@@ -33,7 +33,7 @@ export const POST: RequestHandler = async({ request }) => {
         const name = body.name;
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             // Name ist nicht valide
-            return new BadResponse('Name is required and must be a string');
+            return new BadResponse('Name required and must be a string');
         }
 
         const creationObj = {
@@ -46,9 +46,9 @@ export const POST: RequestHandler = async({ request }) => {
             .values(creationObj)
             .returning()
         
-        return new POSTResponse('Group created', {name: 'playGroup', data: insertedGroup as PlayGroup})
+        return new POSTResponse('Created PlayGroup', {name: 'playGroup', data: insertedGroup as PlayGroup})
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while creating group');
+        return new ErrorResponse('Database error while creating PlayGroup');
     }
 }

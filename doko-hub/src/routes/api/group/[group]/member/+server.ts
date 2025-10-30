@@ -13,7 +13,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         //Falls UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
 
         const members = await db
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async({ params }) => {
 
         return new GETResponse(members as PlayGroupMember[]);
     } catch(error) {
-        return new ErrorResponse('Database error while loading group members');
+        return new ErrorResponse('Database error while fetching PlayGroupMember[]');
     }
 }
 
@@ -34,12 +34,12 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
 
         //Falls UUID leer ist
         if (!groupId) {
-            return new BadResponse('Missing group id');
+            return new BadResponse('PlayGroup ID required');
         }
 
         const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
         if (!groupResponseBody) {
-            return new BadResponse('Group not found');
+            return new BadResponse('PlayGroup not found');
         }
 
         const body = await request.json();
@@ -66,8 +66,8 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             .values(playgroupMemberObj)
             .returning();
 
-        return new POSTResponse('Created group member', {name: 'playGroupMember', data: playgroupMemberFromDB as PlayGroupMember});
+        return new POSTResponse('Created PlayGroupMember', {name: 'playGroupMember', data: playgroupMemberFromDB as PlayGroupMember});
     } catch(error) {
-        return new ErrorResponse('Database error while creating group member');
+        return new ErrorResponse('Database error while creating PlayGroupMember');
     }
 };

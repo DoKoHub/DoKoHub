@@ -13,7 +13,7 @@ export const GET: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
         // PlayerIdentity aus der DB holen
@@ -31,7 +31,7 @@ export const GET: RequestHandler = async({ params }) => {
         return new GETResponse(dbPlayerIdentity as PlayerIdentity);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while getting PlayerIdentity');
+        return new ErrorResponse('Database error while fetching PlayerIdentity');
     }
 }
 
@@ -41,7 +41,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
         // Request body
@@ -55,7 +55,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
         const newPlayerIdentity: PlayerIdentity = body.playerIdentity as PlayerIdentity;
 
         if (!newPlayerIdentity.email || !validateEmail(newPlayerIdentity.email)) {
-            return new BadResponse('Valid formatted email is required');
+            return new BadResponse('Valid email required');
         }
 
         // PlayerIdentity updaten und als Objekt zurueckgeben   
@@ -71,7 +71,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
         }
 
         // OK und aktualisierte PlayerIdentity zurueckgeben
-        return new PUTOrDeleteResponse(`Updated PlayerIdentity for playerId: "${updatedPlayerIdentity.playerId}"`, {name: 'playerIdentity', data: updatedPlayerIdentity as PlayerIdentity});
+        return new PUTOrDeleteResponse('Updated PlayerIdentity', {name: 'playerIdentity', data: updatedPlayerIdentity as PlayerIdentity});
     } catch(error) {
         // Falls die DB einen Fehler wirft
         return new ErrorResponse('Database error while updating PlayerIdentity');
@@ -84,7 +84,7 @@ export const DELETE: RequestHandler = async({ params }) => {
         const playerID = params.player;
         //Falls UUID leer ist
         if (!playerID) {
-            return new BadResponse('Missing player id');
+            return new BadResponse('Player ID required');
         }
 
         // PlayerIdentity aus der DB loeschen und als Objekt speichern

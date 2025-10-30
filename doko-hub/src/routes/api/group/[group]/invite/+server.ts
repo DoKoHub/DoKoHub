@@ -10,12 +10,12 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
         const groupId = params.group;
 
         if (!groupId) {
-            return new BadResponse('Group ID needed');
+            return new BadResponse('PlayGroup ID Required');
         }
 
         const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
         if (!groupResponseBody) {
-            return new BadResponse('Group not found');
+            return new BadResponse('PlayGroup not found');
         }
 
         const body = await request.json();
@@ -24,7 +24,7 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
         const createdBy = body.createdBy;
 
         if (!expireDate || !createdBy) {
-            return new BadResponse('Expire date and creating player ID needed');
+            return new BadResponse('expiresAt Date and createdBy (Player) ID required');
         }
 
         const creationTemplate = {
@@ -39,9 +39,9 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             .values(creationTemplate)
             .returning();
 
-        return new POSTResponse('Created Invite', {name: 'groupInvite', data: invite as GroupInvite});
+        return new POSTResponse('Created GroupInvite', {name: 'groupInvite', data: invite as GroupInvite});
     } catch (error) {
-        return new ErrorResponse('Error while creating group invite')
+        return new ErrorResponse('Database error while creating GroupInvite')
     }
 }
 
