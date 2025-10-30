@@ -258,14 +258,14 @@ describe('API /api/group/member & /api/group/invite/join', () => {
     });
 
     // Test: DELETE (Löschen eines Spielers)
-    /*test('DELETE Member: Should successfully delete the PlayGroupMember (Status 200)', async () => {
-        const response = await api.delete(`/api/group/${groupId}/member/${memberId}`);
-        expect(response.status).toBe(200);
+    test('DELETE Member: Should successfully "delete" the PlayGroupMember (Status 200, Status LEFT)', async () => {
+    const response = await api.delete(`/api/group/${groupId}/member/${memberId}`);
+    expect(response.status).toBe(200);
 
-        // Überprüfen ob das Mitglied wirklich gelöscht wurde
-        const listResponse = await api.get(`/api/group/${groupId}/member`);
-        expect(listResponse.body.length).toBe(0);
-    });*/
+    const memberStatusResponse = await api.get(`/api/group/${groupId}/member/${memberId}`);
+
+    expect(memberStatusResponse.body.status).toBe('LEFT');
+    });
 
     // Tests für /api/group/[group]/invite & /api/group/join/[token]
 
