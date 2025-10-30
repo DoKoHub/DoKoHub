@@ -2,6 +2,7 @@ import { BadResponse, ErrorResponse, POSTResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { playerIdentity } from "$lib/server/db/schema";
 import type { PlayerIdentity } from "$lib/types";
+import { validateEmail } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
@@ -30,9 +31,17 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             return new BadResponse('Valid PlayerIdentity required');
         }
 
-        /*if (!input.subject || input.subject === "") {
+        if (!input.subject || input.subject.trim().length === 0) {
             return new BadResponse('Subject is required');
-        }*/
+        }
+
+        if (!input.provider || input.provider.trim().length === 0) {
+            return new BadResponse('Provider is required');
+        }
+
+        if (!input.email || !validateEmail(input.email)) {
+            return new BadResponse('Valid formatted email is required');
+        }
 
         input.playerId = playerID;
 

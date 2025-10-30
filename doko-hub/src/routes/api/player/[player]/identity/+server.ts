@@ -2,6 +2,7 @@ import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$l
 import { db } from "$lib/server/db";
 import { playerIdentity } from "$lib/server/db/schema";
 import type { PlayerIdentity } from "$lib/types";
+import { validateEmail } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
@@ -52,7 +53,11 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         //Mapping
         const newPlayerIdentity: PlayerIdentity = body.playerIdentity as PlayerIdentity;
-        
+
+        if (!newPlayerIdentity.email || !validateEmail(newPlayerIdentity.email)) {
+            return new BadResponse('Valid formatted email is required');
+        }
+
         // PlayerIdentity updaten und als Objekt zurueckgeben   
         const [updatedPlayerIdentity] = await db
             .update(playerIdentity)
