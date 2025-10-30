@@ -11,7 +11,6 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test:unit": "vitest",
-    "test": "npm run test:unit -- --run",
     "test:api": "cross-env node -r dotenv/config node_modules/jest/bin/jest.js --runInBand",
     "test:apisilent": "cross-env node -r dotenv/config node_modules/jest/bin/jest.js --runInBand --silent",
     "test": "npm run test:api",
@@ -51,14 +50,13 @@
     "svelte": "^5.39.5",
     "svelte-check": "^4.3.2",
     "svelte-preprocess": "^6.0.3",
-    "typescript": "^5.9.2",
     "vite": "^7.1.7",
     "vitest": "^3.2.4",
-    "vitest-browser-svelte": "^1.1.0"
+    "vitest-browser-svelte": "^1.1.0",
     "svelte-jester": "^5.0.0",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
