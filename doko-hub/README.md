@@ -68,3 +68,8 @@ Als nächstes die Anwendung `pgAdmin` starten.
 Projekt starten: `npm run dev`
 Änderungen der Datenbank: `npm run db:push`
 > Nicht für `INSERT`, sondern wenn zum Beispiel Tabellen angepasst/hinzugefügt/... werden.
+
+## Tests ausführen
+
+API Tests mit logs ausgeben: `npm run test:api`
+API Tests ohne logs ausgeben: `npm run test:apisilent`
