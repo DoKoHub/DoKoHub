@@ -1,6 +1,11 @@
 // Globale Interfaces basierend auf dem ER-Modell
 
+import * as zod from "zod";
+
 export type UUID = string;
+
+// TODO Name anpassen und altes Enum loeschen
+export const GameTypeEnum = zod.enum(['NORMAL', 'HOCHZEIT', 'SOLO_FARBE', 'SOLO_DAMEN' ,'SOLO_BUBEN', 'SOLO_NULL']);
 
 export type GameType =
   | 'NORMAL'
@@ -53,6 +58,11 @@ export type Ruleset =
 
 
 
+// TODO: Name anpassen und altes Objekt loeschen
+export const PlayerZod = zod.object({
+  id: zod.uuid(),
+  name: zod.string()
+});
 
 export interface Player {
   id: UUID;

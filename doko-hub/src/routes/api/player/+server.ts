@@ -1,8 +1,9 @@
 import { BadResponse, ErrorResponse, GETResponse, POSTResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { player } from "$lib/server/db/schema";
-import type { Player } from "$lib/types";
+import { PlayerZod, type Player } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
+import { ZodError } from "zod";
 
 /**
  * Schnittstelle die alle Spieler zurueckgibt
@@ -48,9 +49,19 @@ export const POST: RequestHandler = async({ request }) => {
             .values({ name })
             .returning();
 
+        const playerObj = PlayerZod.safeParse(insertedPlayer);
+
+        if (!playerObj.success) {
+            return new BadResponse('Could not parse Player');
+        }
+
         // OK und Spieler zurueckgeben
-        return new POSTResponse('Created Player', { name: 'player', data: insertedPlayer as Player })
+        return new POSTResponse('Created Player', { name: 'player', data: playerObj })
     } catch(error) {
+        if (error instanceof ZodError) {
+            return new ErrorResponse('Zod error while parsing Player')
+        }
+
         // Falls die DB einen Fehler wirft
         return new ErrorResponse('Database error while creating Player')
     }
