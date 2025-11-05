@@ -22,3 +22,5 @@ export const load: PageLoad = async () => {
     ] as Group[],
   };
 };
+export const ssr = false;
+export const csr = true;
