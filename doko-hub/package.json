@@ -31,6 +31,7 @@
     "@smui/circular-progress": "^8.0.3",
     "@smui/dialog": "^8.0.3",
     "@smui/fab": "^8.0.3",
+    "@smui/icon-button": "^8.0.3",
     "@smui/list": "^8.0.3",
     "@smui/textfield": "^8.0.3",
     "@smui/top-app-bar": "^8.0.3",
@@ -61,6 +62,7 @@
     "vitest-browser-svelte": "^1.1.0"
   },
   "dependencies": {
+    "@smui/common": "^8.0.3",
     "dotenv": "^17.2.3",
     "postgres": "^3.4.7",
     "svelte-time": "^2.0.2"
