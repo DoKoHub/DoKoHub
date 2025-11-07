@@ -11,6 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env for CI
+        run: |
+          cat <<EOF > doko-hub/.env
+          DATABASE_URL="postgres://postgres:simplepassword@db:5432/local"
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=simplepassword
+          POSTGRES_DB=local
+          EOF
+
       - name: Docker Compose version
         run: docker compose --version
 
@@ -47,6 +56,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env for CI
+        run: |
+          cat <<EOF > doko-hub/.env
+          DATABASE_URL="postgres://postgres:simplepassword@db:5432/local"
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=simplepassword
+          POSTGRES_DB=local
+          EOF
+      
       - name: Docker Compose version
         run: docker compose --version
 
