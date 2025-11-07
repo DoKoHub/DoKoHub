@@ -31,7 +31,6 @@ jobs:
       - name: Wait for app (healthcheck)
         working-directory: doko-hub
         run: |
-          docker compose exec app npm run dev
           for i in {1..30}; do
             if docker compose exec app curl -sf http://localhost:3000 > /dev/null; then
               echo "App is up!"
@@ -78,7 +77,6 @@ jobs:
       - name: Wait for app (healthcheck)
         working-directory: doko-hub
         run: |
-          docker compose exec app npm run dev
           for i in {1..30}; do
             if docker compose exec app curl -sf http://localhost:3000 > /dev/null; then
               echo "App is up!"
