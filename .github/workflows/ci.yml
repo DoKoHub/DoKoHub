@@ -19,12 +19,13 @@ jobs:
           POSTGRES_PASSWORD=simplepassword
           POSTGRES_DB=local
           EOF
-      -name: Prepare SMUI
-        run: npx smui-theme template src/theme
         
       - name: Docker Compose version
         run: docker compose --version
 
+      - name: Prepare SMUI
+        run: npx smui-theme template src/theme
+      
       - name: Build and start all containers
         run: |
           cd doko-hub
@@ -70,6 +71,9 @@ jobs:
       - name: Docker Compose version
         run: docker compose --version
 
+      - name: Prepare SMUI
+        run: npx smui-theme template src/theme
+      
       - name: Build and start all containers (again)
         run: |
           cd doko-hub
