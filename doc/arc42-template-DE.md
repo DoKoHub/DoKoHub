@@ -1,4 +1,4 @@
-# 
+#
 
 **Über arc42**
 
@@ -19,7 +19,7 @@ contributors. Siehe <https://arc42.org>.
 > [!NOTE]
 > Diese Version des Templates enthält Hilfen und Erläuterungen. Sie
 > dient der Einarbeitung in arc42 sowie dem Verständnis der Konzepte.
-> Für die Dokumentation eigener System verwenden Sie besser die *plain*
+> Für die Dokumentation eigener System verwenden Sie besser die _plain_
 > Version.
 
 </div>
@@ -293,14 +293,14 @@ bezüglich der Architektur und deren Dokumentation.
 </div>
 -->
 
-| Rolle                         | Kontakt                                                                                       | Erwartungshaltung                                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Rolle                         | Kontakt                                                                                       | Erwartungshaltung                                                                                                      |
+| ----------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Betreuende                    | `le.brauner@ostfalia.de`                                                                      | [Funktionale Anforderungen](#aufgabenstellung) sind erfüllt und klar dokumentiert; Häufige Rückmeldung der Entwickler. |
-| Entwickler                    | *siehe [github repo (github.com)](https://github.com/DoKoHub/DoKoHub)*                        | Klar definierte Anforderungen; Konstantes Feedback von anderen Stakeholdern; Aktuelle Dokumentation                 |
-| Verteilungsbeauftrage         | -                                                                                             | Klar definierte Verteilungsprozesse; Reproduzierbare Softwarebundles; Überwachungsmöglichkeiten                     |
+| Entwickler                    | _siehe [github repo (github.com)](https://github.com/DoKoHub/DoKoHub)_                        | Klar definierte Anforderungen; Konstantes Feedback von anderen Stakeholdern; Aktuelle Dokumentation                    |
+| Verteilungsbeauftrage         | -                                                                                             | Klar definierte Verteilungsprozesse; Reproduzierbare Softwarebundles; Überwachungsmöglichkeiten                        |
 | Endnutzer                     | -                                                                                             | [Funktionale Anforderungen](#aufgabenstellung) sind erfüllt; Intuitive Nutzerschnittstelle und flüssiges Appverhalten  |
-| Externe/Zukünftige Entwickler | Klare, aktuelle Dokumentation; Quick-Start-Anleitung und reproduzierbare Entwicklungsumgebung |                                                                                                                     |
-| Externe App-Frontends         | -                                                                                             | Klar dokumentierte, standartisierte Schnittstelle zum Backend                                                       |
+| Externe/Zukünftige Entwickler | Klare, aktuelle Dokumentation; Quick-Start-Anleitung und reproduzierbare Entwicklungsumgebung |                                                                                                                        |
+| Externe App-Frontends         | -                                                                                             | Klar dokumentierte, standartisierte Schnittstelle zum Backend                                                          |
 
 # Randbedingungen
 
@@ -373,10 +373,10 @@ online-Dokumentation (auf Englisch!).
 </div>
 -->
 
-| ID  | Beschreibung                              | Anmerkungen                                                                                                                                           |
-| --- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C01 | Primär von Studierenden entwickelt        | Architektur und Code müssen so simpel wie möglich gehalten werden. Komplexe Anforderungen müssen vereinfacht werden.                                  |
-| C02 | Kein Budget für Kostenpflichtige Services | DoKoHub muss auf quelloffener Software aufbauen und im Fall von Cloud-Hosting innerhalb der kostenfreien Grenzen bleiben                              |
+| ID  | Beschreibung                              | Anmerkungen                                                                                                                                              |
+| --- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C01 | Primär von Studierenden entwickelt        | Architektur und Code müssen so simpel wie möglich gehalten werden. Komplexe Anforderungen müssen vereinfacht werden.                                     |
+| C02 | Kein Budget für Kostenpflichtige Services | DoKoHub muss auf quelloffener Software aufbauen und im Fall von Cloud-Hosting innerhalb der kostenfreien Grenzen bleiben                                 |
 | C03 | Platformunabhängig                        | Sowohl Front- als auch Backend müssen mit Plattformunabhängigen Technologien aufgebaut sein. Siehe [Q03](#qualit%C3%A4tsziele), [F06](#aufgabenstellung) |
 
 # Kontextabgrenzung
@@ -671,7 +671,7 @@ online-Dokumentation (auf Englisch!).
 </div>
 
 </div>
---> 
+-->
 
 Um F06 und Q03 zu erfüllen, ist DoKoHub in [TypeScript (typescriptlang.org, englisch)](https://www.typescriptlang.org/)
 mit dem Framework [SvelteKit (svelte.dev, englisch)](https://svelte.dev) geschrieben.
@@ -824,7 +824,8 @@ des nachfolgenden Whitebox-Templates. Dieses enthält:
 </div>
 -->
 
-***\<Übersichtsdiagramm>***
+**_\<Übersichtsdiagramm>_**
+
 <!--
 
 Begründung\
@@ -902,13 +903,209 @@ Blackbox-Templates:
 
 *\<(optional) Offene Punkte/Probleme/Risiken>*
 -->
-### \<Name Blackbox 2>
 
-*\<Blackbox-Template>*
+### Backend
+
+Das Backend ist umgesetzt als REST API und ist umgesetzt mit Typescipt
+
+#### REST Schnittstelle
+
+Warum REST?<br>
+Svelte bietet an Front und Backend innerhalb der gleichen Ordnerstruktur umzusetzen und die Erstellung einer REST Schnittstelle bietet sich daher perfekt an. Zudem ist REST ein weitverbreiteter Standard mit gutem tooling support.
+
+#### Endpoints
+
+Die Daten die das Backend annimmt und sendet sind im Format wie in der `types.ts` Datei beschrieben.
+
+##### api/player
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `Keine`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{Player}]`
+
+Gibt die Liste aller existierenden Spieler zurück.
+
+> `POST`:<br>
+> URL Parameter:<br>
+> `Keine`<br>
+> Request Body: `{"name": string}`<br>
+> Response Body: `{"message": string, "player": Player}`
+
+Erstellt einen neuen Spieler.
+
+##### api/player/[player]
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{Player}`
+
+Gibt einen spezifischen Spieler zurück.
+
+> `PUT`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `{"name": string}`<br>
+> Response Body: `{"message": string, "player": Player}`
+
+Bearbeitet den Namen eines Spielers.
+
+> `DELETE`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{"message": string, "player": Player}`
+
+Löscht einen Spieler.
+
+##### api/player/[player]/identity
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{PlayerIdentity}`
+
+Gibt die Spieleridentität eines Spielers zurück.
+
+> `PUT`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `{"playerIdentity": PlayerIdentity}`<br>
+> Response Body: `{"message": string, "playerIdentity": PlayerIdentity}`
+
+Bearbeitet eine Spieleridentität.
+
+> `DELETE`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{"message": string, "playerIdentity": PlayerIdentity}`
+
+Löscht eine Spieleridentität.
+
+##### api/player/[player]/register
+
+> `POST`:<br>
+> URL Parameter:<br>
+> `[player]`: `UUID`<br>
+> Request Body: `{"playerIdentity": PlayerIdentity}`<br>
+> Response Body: `{"message": String, "playerIdentity": PlayerIdentity}`
+
+Verknüpft einen Spieler zu einer Spieleridentität.
+
+##### api/group
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `Keine`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{PlayGroup}]`
+
+Gibt alle existierenden Gruppen zurück.
+
+> `POST`:<br>
+> URL Parameter:<br>
+> `Keine`<br>
+> Request Body: `{"name": string}`<br>
+> Response Body: `{"message": string, "playGroup": PlayGroup}`
+
+Erstellt eine neue Gruppe.
+
+##### api/group/[group]
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{PlayGroup}`<br>
+
+Gibt eine spezifische Gruppe zurück.
+
+> `PUT`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br>
+> Request Body: `{"playGroup": PlayGroup}`<br>
+> Response Body: `{"message": string, "playGroup": PlayGroup}`<br>
+
+Bearbeitet eine Gruppe.
+
+> `DELETE`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{"message": string, "playGroup": PlayGroup}`
+
+Löscht eine Gruppe.
+
+##### api/group/[group]/invite
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br>
+> Request Body: `{"expiresAt": Date, "createdBy": UUID}`<br>
+> Response Body: `{GroupInvite}`
+
+Erstellt eine Einladung zu einer Gruppe.
+
+##### api/group/[group]/member
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{PlayGroupMember}]`<br>
+
+Gibt alle Mitglieder einer Gruppe zurück.
+
+> `POST`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br>
+> Request Body: `{"playerId": UUID, ?"nickname": string}`<br>
+> Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`
+
+Fügt einer Gruppe ein neues Mitglied hinzu.
+
+##### api/group/[group]/member/[member]
+
+> `GET`:<br>
+> URL Parameter:<br>
+> `[group]`: `UUID`<br> >`[member]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{PlayGroupMember}`<br>
+
+Gibt ein spezifisches Mitglied einer Gruppe zurück.
+
+> `PUT`:<br>
+> URL Parameter:<br> >`[group]`: `UUID`<br> >`[member]`: `UUID`<br>
+> Request Body: `{"playGroupMember": PlayGroupMember}`<br>
+> Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`<br>
+
+Bearbeitet ein Mitglied einer Gruppe.
+
+> `DELETE`:<br>
+> URL Parameter:<br> >`[group]`: `UUID`<br> >`[member]`: `UUID`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`
+
+Setzt den Status eines Mitgliedes einer Gruppe auf `"LEFT"`.
+
+##### api/group/join/[token]
+
+> `POST`:<br>
+> URL Parameter:<br>
+> `[token]`: `string`<br>
+> Request Body: `{"playerId": UUID, ?"nickname": string}`<br>
+> Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`<br>
+
+Ein Spieler wird über ein Invite Token zu einer Gruppe als Mitglied hinzugefügt.
 
 ### \<Name Blackbox n>
 
-*\<Blackbox-Template>*
+_\<Blackbox-Template>_
 
 ### \<Name Schnittstelle 1>
 
@@ -937,7 +1134,7 @@ Teile sollten Sie weglassen.
 </div>
 -->
 
-### Whitebox *\<Baustein 1>*
+### Whitebox _\<Baustein 1>_
 
 <!--
 <div class="sidebar">
@@ -951,17 +1148,17 @@ Teile sollten Sie weglassen.
 </div>
 -->
 
-*\<Whitebox-Template>*
+_\<Whitebox-Template>_
 
-### Whitebox *\<Baustein 2>*
+### Whitebox _\<Baustein 2>_
 
-*\<Whitebox-Template>*
+_\<Whitebox-Template>_
 
 ...
 
-### Whitebox *\<Baustein m>*
+### Whitebox _\<Baustein m>_
 
-*\<Whitebox-Template>*
+_\<Whitebox-Template>_
 
 ## Ebene 3
 
@@ -989,19 +1186,19 @@ arc42 für die weiteren Ebenen.
 
 </div>
 
-... zeigt das Innenleben von *Baustein x.1*.
+... zeigt das Innenleben von _Baustein x.1_.
 
 </div>
 
-*\<Whitebox-Template>*
+_\<Whitebox-Template>_
 
 ### Whitebox \<\_Baustein x.2\_>
 
-*\<Whitebox-Template>*
+_\<Whitebox-Template>_
 
 ### Whitebox \<\_Baustein y.1\_>
 
-*\<Whitebox-Template>*
+_\<Whitebox-Template>_
 
 # Laufzeitsicht
 
@@ -1101,18 +1298,18 @@ online-Dokumentation (auf Englisch!).
 </div>
 -->
 
-## *\<Bezeichnung Laufzeitszenario 1>*
+## _\<Bezeichnung Laufzeitszenario 1>_
 
 - \<hier Laufzeitdiagramm oder Ablaufbeschreibung einfügen>
 
 - \<hier Besonderheiten bei dem Zusammenspiel der Bausteine in diesem
   Szenario erläutern>
 
-## *\<Bezeichnung Laufzeitszenario 2>*
+## _\<Bezeichnung Laufzeitszenario 2>_
 
 …​
 
-## *\<Bezeichnung Laufzeitszenario n>*
+## _\<Bezeichnung Laufzeitszenario n>_
 
 …​
 
@@ -1235,16 +1432,16 @@ Teil von arc42 für alle wichtigen Umgebungen/Varianten.
 
 </div>
 
-***\<Übersichtsdiagramm>***
+**_\<Übersichtsdiagramm>_**
 
 Begründung\
-*\<Erläuternder Text>*
+_\<Erläuternder Text>_
 
 Qualitäts- und/oder Leistungsmerkmale\
-*\<Erläuternder Text>*
+_\<Erläuternder Text>_
 
 Zuordnung von Bausteinen zu Infrastruktur\
-*\<Beschreibung der Zuordnung>*
+_\<Beschreibung der Zuordnung>_
 
 ## Infrastruktur Ebene 2
 
@@ -1261,19 +1458,19 @@ Für jedes Infrastrukturelement kopieren Sie die Struktur aus Ebene 1.
 
 </div>
 
-### *\<Infrastrukturelement 1>*
+### _\<Infrastrukturelement 1>_
 
-*\<Diagramm + Erläuterungen>*
+_\<Diagramm + Erläuterungen>_
 
-### *\<Infrastrukturelement 2>*
+### _\<Infrastrukturelement 2>_
 
-*\<Diagramm + Erläuterungen>*
+_\<Diagramm + Erläuterungen>_
 
 …​
 
-### *\<Infrastrukturelement n>*
+### _\<Infrastrukturelement n>_
 
-*\<Diagramm + Erläuterungen>*
+_\<Diagramm + Erläuterungen>_
 
 # Querschnittliche Konzepte
 
@@ -1292,7 +1489,7 @@ Inhalt
 </div>
 
 Dieser Abschnitt beschreibt übergreifende, prinzipielle Regelungen und
-Lösungsansätze, die an mehreren Stellen (=*querschnittlich*) relevant
+Lösungsansätze, die an mehreren Stellen (=_querschnittlich_) relevant
 sind.
 
 </div>
@@ -1314,7 +1511,7 @@ Motivation
 
 </div>
 
-Konzepte bilden die Grundlage für *konzeptionelle Integrität*
+Konzepte bilden die Grundlage für _konzeptionelle Integrität_
 (Konsistenz, Homogenität) der Architektur und damit eine wesentliche
 Grundlage für die innere Qualität Ihrer Systeme.
 
@@ -1372,7 +1569,7 @@ Weiterführende Informationen
 
 Einige Themen innerhalb von Systemen betreffen oft mehrere Bausteine,
 Hardwareelemente oder Prozesse. Es könnte einfacher sein, solche
-*Querschnittsthemen* an einer zentralen Stelle zu kommunizieren oder zu
+_Querschnittsthemen_ an einer zentralen Stelle zu kommunizieren oder zu
 dokumentieren, anstatt sie in der Beschreibung der betreffenden
 Bausteine, Hardwareelemente oder Entwicklungsprozesse zu wiederholen.
 
@@ -1386,19 +1583,19 @@ der online-Dokumentation (auf Englisch).
 
 </div>
 
-## *\<Konzept 1>*
+## _\<Konzept 1>_
 
-*\<Erklärung>*
+_\<Erklärung>_
 
-## *\<Konzept 2>*
+## _\<Konzept 2>_
 
-*\<Erklärung>*
+_\<Erklärung>_
 
 …​
 
-## *\<Konzept n>*
+## _\<Konzept n>_
 
-*\<Erklärung>*
+_\<Erklärung>_
 
 # Architekturentscheidungen
 
@@ -1503,7 +1700,7 @@ Die wichtigsten davon haben Sie bereits in Abschnitt 1.2
 (Qualitätsziele) hervorgehoben, daher soll hier nur auf sie verwiesen
 werden. In diesem Abschnitt 10 sollten Sie auch Qualitätsanforderungen
 mit geringerer Bedeutung erfassen, deren Nichterfüllung keine großen
-Risiken birgt (die aber *nice-to-have* sein könnten).
+Risiken birgt (die aber _nice-to-have_ sein könnten).
 
 <div class="formalpara">
 
@@ -1589,8 +1786,8 @@ Verwenden Sie eine einfache Tabelle, in der jede Zeile eine Kategorie
 oder ein Thema und eine kurze Beschreibung der Qualitätsanforderung
 enthält. Alternativ können Sie auch eine Mindmap verwenden, um diese
 Qualitätsanforderungen zu strukturieren. In der Literatur (insb.
-[Bass+21]) ist die Idee eines *Quality Attribute Utility Tree* (auf
-Deutsch manchmal kurz als *Qualitätsbaum* bezeichnet) beschrieben
+[Bass+21]) ist die Idee eines _Quality Attribute Utility Tree_ (auf
+Deutsch manchmal kurz als _Qualitätsbaum_ bezeichnet) beschrieben
 worden, der den Oberbegriff „Qualität“ als Wurzel hat und eine
 baumartige Verfeinerung des Begriffs „Qualität“ verwendet.
 
@@ -1656,7 +1853,7 @@ In Kurzform (bevorzugt im Q42-Modell):
   eine Reaktion oder eine Aktion aus.
 
 - **Metrik/Akzeptanzkriterien**: Eine Reaktion einschließlich einer
-  *Maßnahme* oder *Metrik*
+  _Maßnahme_ oder _Metrik_
 
 Die Langform von Szenarien (die von der SEI und [Bass+21] bevorzugt
 wird) ist detaillierter und enthält die folgenden Informationen:
@@ -1851,5 +2048,5 @@ online-Dokumentation (auf Englisch!).
 
 | Begriff        | Definition        |
 | -------------- | ----------------- |
-| *\<Begriff-1>* | *\<Definition-1>* |
-| *\<Begriff-2*  | *\<Definition-2>* |
+| _\<Begriff-1>_ | _\<Definition-1>_ |
+| _\<Begriff-2_  | _\<Definition-2>_ |
