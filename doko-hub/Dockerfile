@@ -5,6 +5,8 @@ WORKDIR /app
 # Copy package manager files and .npmrc
 COPY package.json package-lock.json .npmrc ./
 
+RUN mkdir -p static
+
 # Install dependencies
 RUN npm install
 
@@ -40,3 +42,4 @@ EXPOSE 3000
 
 # Set the command to start the app
 CMD ["node", "build"]
+
