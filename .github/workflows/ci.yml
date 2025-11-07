@@ -19,7 +19,9 @@ jobs:
           POSTGRES_PASSWORD=simplepassword
           POSTGRES_DB=local
           EOF
-
+      -name: Prepare SMUI
+        run: npx smui-theme template src/theme
+        
       - name: Docker Compose version
         run: docker compose --version
 
