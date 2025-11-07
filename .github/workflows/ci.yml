@@ -32,7 +32,7 @@ jobs:
         working-directory: doko-hub
         run: |
           for i in {1..30}; do
-            if docker compose exec app curl -sf http://localhost:3000 > /dev/null; then
+            if docker compose exec app curl -sf http://localhost:3000/api/group > /dev/null; then
               echo "App is up!"
               exit 0
             fi
@@ -44,6 +44,7 @@ jobs:
 
       - name: Show logs if build fails
         if: failure()
+        working-directory: doko-hub
         run: docker compose logs
 
       - name: Shutdown after build
@@ -78,7 +79,7 @@ jobs:
         working-directory: doko-hub
         run: |
           for i in {1..30}; do
-            if docker compose exec app curl -sf http://localhost:3000 > /dev/null; then
+            if docker compose exec app curl -sf http://localhost:3000/api/group > /dev/null; then
               echo "App is up!"
               exit 0
             fi
@@ -93,6 +94,7 @@ jobs:
 
       - name: Show logs if tests fail
         if: failure()
+        working-directory: doko-hub
         run: docker compose logs
 
       - name: Shutdown after tests
