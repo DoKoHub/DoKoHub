@@ -1,42 +1,46 @@
-# Stage 1: Build the application
+#########################################
+# 1. Build-Stage
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package manager files and .npmrc
+# Dependencies und Theme vorbereiten
 COPY package.json package-lock.json .npmrc ./
+COPY src/theme ./src/theme
 
-# Install dependencies
+RUN mkdir -p static
+
+# Dev- und Build-Tools installieren
 RUN npm install
 
-# Copy the rest of the application source code
+# Restlichen Quellcode kopieren
 COPY . .
 
+# (Optional) Umgebungsvariablen für das Build festlegen
 ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
 
-# Build the SvelteKit application
+# Build/Prepare Schritt – devDependencies sind noch da!
 RUN npm run build
 
-# Stage 2: Create the production image
+#########################################
+# 2. Production-Stage
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Create a non-root user and group for security
+# Security: Setze Appuser
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy production dependencies definition
-COPY package.json .
-
-# Install only production dependencies
+# Nur production-deps installieren
+COPY package.json ./
+RUN npm pkg delete scripts.prepare
 RUN npm install --omit=dev
 
-# Copy the built application from the builder stage and set ownership
+# Build-Output & statische Assets übernehmen
 COPY --from=builder --chown=appuser:appgroup /app/build ./build
+COPY --from=builder --chown=appuser:appgroup /app/static ./static
 
-# Switch to the non-root user
 USER appuser
 
-# Expose the port the app will run on
 EXPOSE 3000
 
-# Set the command to start the app
+# Starte den SvelteKit-Node-Adapter (z.B. build/index.js, prüfe Adapter-Doku!)
 CMD ["node", "build"]
