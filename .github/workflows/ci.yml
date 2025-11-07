@@ -22,9 +22,6 @@ jobs:
         
       - name: Docker Compose version
         run: docker compose --version
-
-      - name: Prepare SMUI
-        run: npx smui-theme template src/theme
       
       - name: Build and start all containers
         run: |
@@ -70,9 +67,6 @@ jobs:
       
       - name: Docker Compose version
         run: docker compose --version
-
-      - name: Prepare SMUI
-        run: npx smui-theme template src/theme
       
       - name: Build and start all containers (again)
         run: |
