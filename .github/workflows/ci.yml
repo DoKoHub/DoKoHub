@@ -15,7 +15,9 @@ jobs:
         run: docker compose --version
 
       - name: Build and start all containers
-        run: docker compose up -d --build
+        run: |
+          cd doko-hub
+          docker compose up -d --build
 
       - name: Wait for app (healthcheck)
         run: |
@@ -49,7 +51,9 @@ jobs:
         run: docker compose --version
 
       - name: Build and start all containers (again)
-        run: docker compose up -d --build
+        run: |
+          cd doko-hub
+          docker compose up -d --build
 
       - name: Wait for app (healthcheck)
         run: |
