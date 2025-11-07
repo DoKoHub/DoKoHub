@@ -29,6 +29,7 @@ jobs:
           docker compose up -d --build
 
       - name: Wait for app (healthcheck)
+        working-directory: doko-hub
         run: |
           for i in {1..30}; do
             if docker compose exec app curl -sf http://localhost:3000 > /dev/null; then
@@ -74,6 +75,7 @@ jobs:
           docker compose up -d --build
 
       - name: Wait for app (healthcheck)
+        working-directory: doko-hub
         run: |
           for i in {1..30}; do
             if docker compose exec app curl -sf http://localhost:3000 > /dev/null; then
