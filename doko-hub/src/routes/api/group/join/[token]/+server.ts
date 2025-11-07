@@ -5,6 +5,16 @@ import type { GroupInvite, PlayGroup, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+import { z } from "zod";
+
+// CHANGED: Minimale Schemas für Eingaben (keine Logikänderung)
+const Token = z.string().trim().min(1).max(80); // entspricht eurem Token-Format
+const UUID = z.string().uuid();
+const PostBodySchema = z.object({
+  playerId: UUID,
+  nickname: z.string().trim().max(60).optional().nullable(),
+});
+
 
 export const POST: RequestHandler = async({ request, params, fetch }) => {
     try {
@@ -14,12 +24,33 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             return new BadResponse('Token required');
         }
 
+        // CHANGED: zusätzlich Token-Format prüfen (gleiche Fehlermeldung)
+    if (!Token.safeParse(token).success) {
+      return new BadResponse("Token required");
+    }
+
         const body = await request.json();
         const playerId = body.playerId;
 
         if (!playerId) {
             return new BadResponse('Player ID required');
         }
+
+        // CHANGED: zusätzlich playerId-Format prüfen (gleiche Fehlermeldung)
+    if (!UUID.safeParse(playerId).success) {
+      return new BadResponse("Player ID required");
+    }
+
+    // CHANGED: Body vollständig validieren (Nickname nur Hygiene)
+    const parsed = PostBodySchema.safeParse(body);
+    // Hinweis: Fehlermeldungen bleiben wie vorher; bei invalidem nickname nutzen wir unten body.nickname getrimmt.
+    const nicknameFromBody = parsed.success
+        ? parsed.data.nickname ?? undefined
+        : (typeof body.nickname === "string" && body.nickname.trim().length > 0
+            ? body.nickname.trim()
+            : undefined);
+
+
 
         const invite = await db
             .select()

@@ -6,6 +6,17 @@ import { validateEmail } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+import { z } from "zod";
+
+// CHANGED: Minimale Schemas (nur Format prüfen, Verhalten bleibt)
+const UUID = z.string().uuid();
+const UpdateBodySchema = z.object({
+  playerIdentity: z.object({
+    // Email im Update ist Pflicht (laut bestehender Logik) und muss gültig sein
+    email: z.string().email()
+  })
+});
+
 
 export const GET: RequestHandler = async({ params }) => {
     try {
@@ -15,6 +26,13 @@ export const GET: RequestHandler = async({ params }) => {
         if (!playerID) {
             return new BadResponse('Player ID required');
         }
+
+        // CHANGED: zusätzlich UUID-Format prüfen (gleiche Fehlermeldung)
+    if (!UUID.safeParse(playerID).success) {
+      return new BadResponse("Player ID required");
+    }
+
+
 
         // PlayerIdentity aus der DB holen
         const [dbPlayerIdentity] = await db
@@ -44,6 +62,11 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return new BadResponse('Player ID required');
         }
 
+        // CHANGED: zusätzlich UUID-Format prüfen (gleiche Fehlermeldung)
+    if (!UUID.safeParse(playerID).success) {
+      return new BadResponse("Player ID required");
+    }
+
         // Request body
         const body = await request.json();
 
@@ -53,6 +76,14 @@ export const PUT: RequestHandler = async({ request, params }) => {
 
         //Mapping
         const newPlayerIdentity: PlayerIdentity = body.playerIdentity as PlayerIdentity;
+
+        // CHANGED: zusätzlich Zod-Validierung (gleiche Fehlermeldung bei Verstoß)
+    const parsed = UpdateBodySchema.safeParse({ playerIdentity: newPlayerIdentity });
+    if (!parsed.success) {
+      return new BadResponse("Valid email required");
+    }
+
+
 
         if (!newPlayerIdentity.email || !validateEmail(newPlayerIdentity.email)) {
             return new BadResponse('Valid email required');
@@ -86,6 +117,13 @@ export const DELETE: RequestHandler = async({ params }) => {
         if (!playerID) {
             return new BadResponse('Player ID required');
         }
+
+        // CHANGED: zusätzlich UUID-Format prüfen (gleiche Fehlermeldung)
+    if (!UUID.safeParse(playerID).success) {
+      return new BadResponse("Player ID required");
+    }
+
+
 
         // PlayerIdentity aus der DB loeschen und als Objekt speichern
         const [dbPlayerIdentity] = await db

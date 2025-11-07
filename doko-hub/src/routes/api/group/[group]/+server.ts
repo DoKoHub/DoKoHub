@@ -4,6 +4,18 @@ import { groupInvite, playgroup } from "$lib/server/db/schema";
 import type { PlayGroup, PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
+
+
+
+// CHANGED: Minimale Schemas für Format-/Pflichtprüfungen
+const UUID = z.string().uuid();
+const UpdatePlayGroupSchema = z
+  .object({
+    // Name muss String, getrimmt, nicht leer
+    name: z.string().trim().min(1),
+  })
+  .passthrough(); // andere Felder (lastPlayedOn, note) unverändert durchlassen
 
 
 export const GET: RequestHandler = async({ params }) => {
@@ -15,6 +27,11 @@ export const GET: RequestHandler = async({ params }) => {
         if (!groupId) {
             return new BadResponse('PlayGroup ID required');
         }
+
+        // CHANGED: zusätzliches UUID-Format-Checking (gleiche Fehlermeldung)
+    if (!UUID.safeParse(groupId).success) {
+      return new BadResponse("PlayGroup ID required");
+    }
 
         // Alle möglichen Spieler aus DB sammeln
         const groupsFromDB = await db
@@ -45,6 +62,12 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return new BadResponse('PlayGroup ID required');
         }
 
+        // CHANGED: zusätzliches UUID-Format-Checking (gleiche Fehlermeldung)
+    if (!UUID.safeParse(groupId).success) {
+      return new BadResponse("PlayGroup ID required");
+    }
+
+
         const body = await request.json();
         const newGroup = body.playGroup;
         
@@ -52,9 +75,14 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return new BadResponse('Valid PlayGroup required');
         }
 
-        if (newGroup.name.trim().length === 0) {
-            return new BadResponse('Name required and must be a string');
-        }
+
+        // CHANGED: Validierung von name (String + nicht leer), andere Felder werden durchgelassen
+    const parsed = UpdatePlayGroupSchema.safeParse(newGroup);
+    if (!parsed.success) {
+      // gleiche Message wie vorher bei leerem/invalidem Namen
+      return new BadResponse("Name required and must be a string");
+    }
+
 
         const [updatedGroup] = await db
             .update(playgroup)
@@ -86,6 +114,12 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         if (!groupId) {
             return new BadResponse('PlayGroup ID required');
         }
+
+         // CHANGED: zusätzliches UUID-Format-Checking (gleiche Fehlermeldung)
+    if (!UUID.safeParse(groupId).success) {
+      return new BadResponse("PlayGroup ID required");
+    }
+
 
         const groupResponse = await fetch(`/api/group/${groupId}`);
         if (groupResponse.status == 400) {
