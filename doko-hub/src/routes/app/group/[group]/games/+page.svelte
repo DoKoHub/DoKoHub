@@ -1,6 +1,7 @@
 <script lang="ts">
   import AppBar from '$lib/components/AppBar.svelte';
   import Tabs from '$lib/components/Tabs.svelte';
+  import PlusButton from '$lib/components/PlusButton.svelte';
 
   // Dummy Daten / Funktionen 
   function getGroupName(): string {
@@ -26,10 +27,6 @@
   const tabs = ["Spiele", "Statistiken", "Spieler"];
   let activeTab = "Spiele";
 
-  function handleSelectTab(tab: string) {
-    activeTab = tab;
-    console.log("Tab gewechselt zu:", tab);
-  }
 </script>
 
 
@@ -39,12 +36,7 @@
   onSelectGroup={openGroupSelector}
 />
 
-
-<Tabs
-  {tabs}
-  {activeTab}
-  onSelectTab={handleSelectTab}
-/>
+<Tabs {tabs} bind:active={activeTab}/>
 
 <!-- Beispiel Ihhalt -->
 <main class="main-content">
@@ -65,14 +57,13 @@
   {/if}
 </main>
 
-<!-- Plus Button -->
-<button class="fab" on:click={addSomething}>+</button>
+<PlusButton {addSomething} />
 
 <style lang="scss">
 @use 'sass:color';
 @use '@material/theme/color-palette';
 @use '@material/theme/index' as theme with (
-  $primary: #955cff,
+  $primary: #ff3e00,
   $secondary: #676778,
   $surface: #fff,
   $background: #fff,
@@ -94,34 +85,6 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* === Plus Button === */
-.fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  background-color: #955cff,; /* theme.$primary */
-  color: #fff; /* theme.$on-primary */
-  font-size: 28px;
-  font-weight: 400;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s, transform 0.1s;
-
-  &:hover {
-    background-color: color.scale(theme.$primary, $lightness: -10%); /* leicht dunkler */
-  }
-
-  &:active {
-    transform: scale(0.96);
-  }
-}
 </style>
 
 

@@ -30,8 +30,4 @@
   onSelectGroup={openGroupSelector}
 />
 
-<Tabs 
-  {tabs}
-  {activeTab}
-  onSelectTab={handleSelectTab}
-/>
+<Tabs {tabs} bind:active={activeTab}/>

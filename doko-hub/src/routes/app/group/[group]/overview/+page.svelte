@@ -12,8 +12,6 @@
   import type { Group } from "./+page";
 
   const { data }: PageProps = $props();
-<<<<<<< HEAD
-=======
 
   import Dialog, {
     Title as DialogTitle,
@@ -31,7 +29,6 @@
     console.log("Neue Gruppe erstellt:", name);
     dialogOpen = false;
   }
->>>>>>> 1c661d32c8d54f58180eae02aba02fb67682d6d1
 </script>
 
 {#snippet GroupItem(group: Group)}
@@ -40,11 +37,7 @@
     <SecondaryText>Spieler: {group.players.join(", ")}</SecondaryText>
     <SecondaryText
       >Zuletzt gespielt am:
-<<<<<<< HEAD
-      <Time timestamp={group.last_played} format="dd.mm.YYYY"></Time>
-=======
       <Time timestamp={group.last_played} format="dd.MM.YYYY"></Time>
->>>>>>> 1c661d32c8d54f58180eae02aba02fb67682d6d1
     </SecondaryText>
   </Text>
 {/snippet}
@@ -65,8 +58,6 @@
       {/each}
     </List>
   </div>
-<<<<<<< HEAD
-=======
   <!-- FAB unten rechts -->
   <button
     class="fab"
@@ -112,7 +103,6 @@
       </Button>
     </DialogActions>
   </Dialog>
->>>>>>> 1c661d32c8d54f58180eae02aba02fb67682d6d1
 </div>
 
 <style>
@@ -131,8 +121,6 @@
     margin-top: 40px; /*HACK: The app bar is 40px tall and position:fixed so we need to move 40px down so we don't intersect it*/
     width: 100%;
   }
-<<<<<<< HEAD
-=======
   /* FAB unten rechts */
   .fab {
     position: fixed;
@@ -180,5 +168,4 @@
   :global(.mdc-button) {
     --mdc-theme-primary: #6750a4;
   }
->>>>>>> 1c661d32c8d54f58180eae02aba02fb67682d6d1
 </style>
