@@ -8,7 +8,7 @@
     Text,
   } from "@smui/list";
   import Time from "svelte-time";
-  import type { PageProps } from "./$types";
+  import type { PageProps } from "../../../group-overview/$types";
   import type { Group } from "./+page";
 
   const { data }: PageProps = $props();

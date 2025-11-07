@@ -1,4 +1,5 @@
 import type { PageLoad } from "./$types";
+
 //TODO: replace this with an actual DTO once the backend is ready
 export interface Group {
   name: string;
@@ -7,6 +8,7 @@ export interface Group {
 }
 
 export const load: PageLoad = async () => {
+  //TODO: blocked until api/player/[player]/groups endpoint is ready
   return {
     groups: [
       {
