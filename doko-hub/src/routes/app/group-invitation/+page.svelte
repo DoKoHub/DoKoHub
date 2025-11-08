@@ -1,7 +1,6 @@
 <script lang="ts">
   import BottomAppBar, { Section } from '@smui-extra/bottom-app-bar';
   import Button from '@smui/button';
-  import { goto } from '$app/navigation';
   import Card from '@smui/card';
   import TextField from '@smui/textfield';
   import FormField from '@smui/form-field';
@@ -102,9 +101,10 @@
     background: #fafafa;
   }
 
-  .join-card {
+  :global(.join-card) {
     width: 340px;
     padding: 1.25rem 1.5rem;
+    padding-left: 30px;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
@@ -140,10 +140,10 @@
     margin: 0.75rem 0;
     color: rgba(0, 0, 0, 0.6);
   }
-
+/*
   .new-name-field {
     width: 100%;
-  }
+  } 
 
   .join-button {
     margin-top: 1rem;
@@ -155,13 +155,14 @@
     transform: scale(0.9);
   }
 
-  /* Navigation unten */
+  /* Navigation unten 
   .nav-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-  }
+  } 
+  */
 
   .nav-item {
     flex: 1;

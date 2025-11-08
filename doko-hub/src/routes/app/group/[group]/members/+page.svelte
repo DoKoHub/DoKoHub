@@ -1,6 +1,7 @@
 <script lang="ts">
   import AppBar from "$lib/components/AppBar.svelte";
   import Tabs from "$lib/components/Tabs.svelte";
+  import PlusButton from '$lib/components/PlusButton.svelte';
 
   // === Dummy Daten / Funktionen ===
   function getGroupName(): string {
@@ -19,6 +20,7 @@
   }
   function addSomething() {
     console.log("Plus-Button gedrückt");
+    openAddDialog(); // Dialog öffnen
   }
 
   const groupName = getGroupName();
@@ -30,8 +32,8 @@
   let activeTab = $state("Spieler");
 
   function handleSelectTab(tab: string) {
-    activeTab = tab;
-    console.log("Tab gewechselt zu:", tab);
+  activeTab = tab;
+   console.log("Tab gewechselt zu:", tab);
   }
 
   // SMUI für den Dialog (falls noch nicht importiert) L
@@ -67,7 +69,9 @@
 
 <AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
 
-<Tabs {tabs} {activeTab} onSelectTab={handleSelectTab} />
+<Tabs {tabs} bind:active={activeTab}/>
+
+<PlusButton {addSomething} />
 
 <!-- Beispiel Inhalt -->
 <main class="main-content">
@@ -83,7 +87,7 @@
 <!-- Dialog_New_Person -->
 <Dialog
   bind:open={addOpen}
-  class="new-person-dialog"
+  class="new-person-dialog" 
   aria-labelledby="np-title"
   aria-describedby="np-desc"
 >
@@ -122,8 +126,6 @@
   </DialogActions>
 </Dialog>
 
-<!-- === Plus Button === -->
-<button class="fab" onclick={openAddDialog}>+</button>
 
 <style lang="scss">
   @use "sass:color";
@@ -149,42 +151,7 @@
     border-radius: 12px;
     font-size: 16px;
     color: theme.$on-surface;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  /* === Plus Button === */
-  .fab {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    background-color: theme.$primary;
-    color: theme.$on-primary;
-    font-size: 28px;
-    font-weight: 400;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition:
-      background-color 0.2s,
-      transform 0.1s;
-
-    &:hover {
-      background-color: color.scale(theme.$primary, $lightness: -10%);
-    }
-
-    &:active {
-      transform: scale(0.96);
-    }
-  }
-
-  .fab:hover {
-    background-color: #7c5ce2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
 
   /* === Dialog_New_Group – Figma-Styling === */
