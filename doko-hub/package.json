@@ -36,6 +36,7 @@
     "@smui/list": "^8.0.3",
     "@smui/menu": "^8.0.3",
     "@smui/radio": "^8.0.3",
+    "@smui/switch": "^8.0.3",
     "@smui/tab": "^8.0.3",
     "@smui/tab-bar": "^8.0.3",
     "@smui/textfield": "^8.0.3",
