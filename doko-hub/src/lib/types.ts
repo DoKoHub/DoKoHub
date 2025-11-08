@@ -1,64 +1,60 @@
 // Globale Interfaces basierend auf dem ER-Modell
 
-export type UUID = string;
+// UUID format: 8-4-4-4-12
+export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
 export type GameType =
-  | 'NORMAL'
-  | 'HOCHZEIT'
-  | 'SOLO_FARBE'
-  | 'SOLO_DAMEN'
-  | 'SOLO_BUBEN'
-  | 'SOLO_NULL';
+  | "NORMAL"
+  | "HOCHZEIT"
+  | "SOLO_FARBE"
+  | "SOLO_DAMEN"
+  | "SOLO_BUBEN"
+  | "SOLO_NULL";
 
-export type AuthProvider = 'GOOGLE' | 'APPLE' | 'META';
+export type AuthProvider = "GOOGLE" | "APPLE" | "META";
 
-export type SoloColor = 'CLUBS' | 'SPADES' | 'HEARTS' | 'DIAMONDS';
+export type SoloColor = "CLUBS" | "SPADES" | "HEARTS" | "DIAMONDS";
 
-export type Side = 'RE' | 'KONTRA';
+export type Side = "RE" | "KONTRA";
 
 export type Ruleset =
-  | 'STANDARD'
-  | 'HAUSREGEL_FLEISCHLOS'
-  | 'HAUSREGEL_KURZSPIEL'
-  | 'HAUSREGEL_KEINE_PFLICHTSOLO';
-  
-  export type CallType =
-  | 'RE'
-  | 'KONTRA'
-  | 'KEINE90'
-  | 'KEINE60'
-  | 'KEINE30'
-  | 'SCHWARZ';
+  | "STANDARD"
+  | "HAUSREGEL_FLEISCHLOS"
+  | "HAUSREGEL_KURZSPIEL"
+  | "HAUSREGEL_KEINE_PFLICHTSOLO";
 
-  export type BonusType =
-  | 'DOKO'
-  | 'FUCHS'
-  | 'KARLCHEN'
-  
-  | 'LAUFENDE'
-  | 'GEGEN_DIE_ALTEN'
-  | 'SCHWEINCHEN'
-  | 'HYPERSCHWEIN'
-  | 'DULLE_GEFANGEN'
-  | 'FUCHS_GEFANGEN'
-  | 'KARLCHEN_IM_LETZTEN';
+export type CallType =
+  | "RE"
+  | "KONTRA"
+  | "KEINE90"
+  | "KEINE60"
+  | "KEINE30"
+  | "SCHWARZ";
 
-  export type PointsKind = 'EYES' | 'STAGE' | 'BONUS' | 'MULT';
+export type BonusType =
+  | "DOKO"
+  | "FUCHS"
+  | "KARLCHEN"
+  | "LAUFENDE"
+  | "GEGEN_DIE_ALTEN"
+  | "SCHWEINCHEN"
+  | "HYPERSCHWEIN"
+  | "DULLE_GEFANGEN"
+  | "FUCHS_GEFANGEN"
+  | "KARLCHEN_IM_LETZTEN";
 
-  export type PlayerStatus = 'ACTIVE' | 'LEFT';
+export type PointsKind = "EYES" | "STAGE" | "BONUS" | "MULT";
 
-  export type SessionStatus = 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+export type PlayerStatus = "ACTIVE" | "LEFT";
 
-  export type SeatPos = 1 | 2 | 3 | 4;
+export type SessionStatus = "ACTIVE" | "COMPLETED" | "ABANDONED";
 
-
-
+export type SeatPos = 1 | 2 | 3 | 4;
 
 export interface Player {
   id: UUID;
   name: string;
 }
-
 
 export interface PlayerIdentity {
   id: UUID;
@@ -69,7 +65,6 @@ export interface PlayerIdentity {
   createdAt?: Date | null;
 }
 
-
 export interface PlayGroup {
   id: UUID;
   name: string;
@@ -78,7 +73,6 @@ export interface PlayGroup {
   note?: string | null;
 }
 
-
 export interface GroupInvite {
   id: UUID;
   groupId: UUID;
@@ -86,7 +80,6 @@ export interface GroupInvite {
   expiresAt?: Date | null;
   createdBy?: Date | null;
 }
-
 
 export interface PlayGroupMember {
   groupId: UUID;
@@ -98,69 +91,58 @@ export interface PlayGroupMember {
 
 export interface Session {
   id: UUID;
-  groupId: UUID;                
+  groupId: UUID;
   title?: string | null;
-  ruleset: Ruleset;  // default 'STANDARD'
+  ruleset: Ruleset; // default 'STANDARD'
   status?: SessionStatus | null;
-  plannedRounds: number;         
-  startedAt?: Date | null;     
-  endedAt?: Date | null;   
+  plannedRounds: number;
+  startedAt?: Date | null;
+  endedAt?: Date | null;
 }
 
 export interface SessionMember {
-  sessionId: UUID;               
-  playerId: UUID;                
+  sessionId: UUID;
+  playerId: UUID;
 }
-
 
 export interface Round {
   id: UUID;
-  sessionId: UUID;               
-  roundNum?: number | null;      
-  gameType: GameType;            
-  soloColor?: SoloColor | null;  // nur bei SOLO_FARBE
-
+  sessionId: UUID;
+  roundNum?: number | null;
+  gameType: GameType;
+  soloColor?: SoloColor | null; // nur bei SOLO_FARBE
 }
-
 
 export interface RoundParticipation {
-  roundId: UUID;                 
-  playerId: UUID;                
-  side: Side;                    
-  seatPos?: SeatPos | null ; 
-
+  roundId: UUID;
+  playerId: UUID;
+  side: Side;
+  seatPos?: SeatPos | null;
 }
 
-
 export interface RoundScore {
-  roundId: UUID;                 
-  playerId: UUID;                
+  roundId: UUID;
+  playerId: UUID;
   eyes: number; // Summe aller Spieler = 240
 }
 
-
 export interface RoundCall {
   id: UUID;
-  roundId: UUID;                 
-  playerId: UUID;                
+  roundId: UUID;
+  playerId: UUID;
   call: CallType;
-  
 }
-
 
 export interface RoundBonus {
   id: UUID;
-  roundId: UUID;                 
-  playerId: UUID;                
+  roundId: UUID;
+  playerId: UUID;
   bonus: BonusType;
-  count: number;   
-}               
-
-
-export interface RoundPoints {
-  roundId: UUID;                 
-  playerId: UUID;            
-  score: number; // Gewinner +X, Verlierer -X
+  count: number;
 }
 
-
+export interface RoundPoints {
+  roundId: UUID;
+  playerId: UUID;
+  score: number; // Gewinner +X, Verlierer -X
+}
