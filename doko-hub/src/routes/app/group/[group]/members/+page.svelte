@@ -1,7 +1,15 @@
 <script lang="ts">
   import AppBar from "$lib/components/AppBar.svelte";
   import Tabs from "$lib/components/Tabs.svelte";
-  import PlusButton from '$lib/components/PlusButton.svelte';
+  import PlusButton from "$lib/components/PlusButton.svelte";
+
+  import List, {
+    Item,
+    PrimaryText,
+    Graphic,
+    Meta,
+    Separator,
+  } from "@smui/list";
 
   // === Dummy Daten / Funktionen ===
   function getGroupName(): string {
@@ -32,8 +40,8 @@
   let activeTab = $state("Spieler");
 
   function handleSelectTab(tab: string) {
-  activeTab = tab;
-   console.log("Tab gewechselt zu:", tab);
+    activeTab = tab;
+    console.log("Tab gewechselt zu:", tab);
   }
 
   // SMUI für den Dialog (falls noch nicht importiert) L
@@ -51,6 +59,8 @@
   let newName = $state("");
 
   function openAddDialog() {
+    // NEU: Edit-Dialog sicher schließen
+    editOpen = false;
     newName = "";
     addOpen = true;
   }
@@ -65,29 +75,72 @@
     playerList = [...playerList, n];
     addOpen = false;
   }
+
+  // === Edit-Dialog: State ===
+  let editOpen = $state(false);
+  let editIndex = $state<number | null>(null);
+  let editName = $state("");
+
+  // Beim Klick auf einen Spieler öffnen (i = Index in playerList)
+  function openEdit(i: number) {
+    // NEU: Add-Dialog sicher schließen
+    addOpen = false;
+    editIndex = i;
+    editName = playerList[i];
+    editOpen = true;
+  }
+
+  function cancelEdit() {
+    editOpen = false;
+    editName = "";
+    editIndex = null;
+  }
+
+  function confirmEdit() {
+    const n = editName.trim();
+    if (!n || editIndex === null) return;
+    // Namen im Array ersetzen
+    playerList = playerList.map((p, idx) => (idx === editIndex ? n : p));
+    editOpen = false;
+    editName = "";
+    editIndex = null;
+  }
 </script>
 
 <AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
 
-<Tabs {tabs} bind:active={activeTab}/>
+<Tabs {tabs} bind:active={activeTab} />
 
 <PlusButton {addSomething} />
 
 <!-- Beispiel Inhalt -->
 <main class="main-content">
   {#if activeTab === "Spieler"}
-    <ul class="player-list">
-      {#each playerList as player}
-        <li>{player}</li>
+    <List class="player-list">
+      {#each playerList as player, i}
+        <Item
+          class="player-item-row"
+          tabindex={0}
+          role="button"
+          onclick={() => openEdit(i)}
+          onkeydown={(e: KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === " ") openEdit(i);
+          }}
+        >
+          <Graphic class="material-icons">groups</Graphic>
+          <PrimaryText>{player}</PrimaryText>
+          <Meta class="material-icons" aria-hidden="true">edit</Meta>
+        </Item>
+        <Separator />
       {/each}
-    </ul>
+    </List>
   {/if}
 </main>
 
 <!-- Dialog_New_Person -->
 <Dialog
   bind:open={addOpen}
-  class="new-person-dialog" 
+  class="new-person-dialog"
   aria-labelledby="np-title"
   aria-describedby="np-desc"
 >
@@ -126,6 +179,45 @@
   </DialogActions>
 </Dialog>
 
+<!-- Dialog_Edit_Player -->
+<Dialog
+  bind:open={editOpen}
+  class="edit-player-dialog"
+  aria-labelledby="ep-title"
+  aria-describedby="ep-desc"
+>
+  <DialogTitle id="ep-title">Spieler bearbeiten</DialogTitle>
+
+  <DialogContent>
+    <p id="ep-desc" class="hint">Gib den Namen des Spielers ein.</p>
+
+    <Textfield
+      label="Name"
+      variant="filled"
+      class="w-full has-x"
+      bind:value={editName}
+      withTrailingIcon
+    >
+      {#snippet trailingIcon()}
+        <Icon
+          class="material-icons tf-x"
+          role="button"
+          onclick={() => (editName = "")}
+          aria-label="Eingabe löschen"
+        >
+          close
+        </Icon>
+      {/snippet}
+    </Textfield>
+  </DialogContent>
+
+  <DialogActions class="dlg-actions-right">
+    <Button onclick={cancelEdit}><Label>Abbrechen</Label></Button>
+    <Button onclick={confirmEdit} disabled={!editName.trim()}>
+      <Label>Ok</Label>
+    </Button>
+  </DialogActions>
+</Dialog>
 
 <style lang="scss">
   @use "sass:color";
@@ -138,70 +230,142 @@
     $error: color-palette.$red-900
   );
 
-  .player-list {
-    list-style: none;
-    padding: 16px;
-    margin: 0;
-  }
-
-  .player-list li {
-    background-color: theme.$surface;
-    margin-bottom: 8px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 16px;
-    color: theme.$on-surface;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  /* === Dialog_New_Group – Figma-Styling === */
+  /* === Dialog_New_Person – Figma-Styling === */
 
   /* Grundfläche des Dialogs */
-  :global(.new-group-dialog .mdc-dialog__surface) {
+  :global(.new-person-dialog .mdc-dialog__surface) {
     border-radius: 24px;
     background: #f4eef9;
     color: #1b1b1f;
+    width: 332px;
+    max-width: calc(100vw - 32px);
   }
 
-  /* Buttons unten rechts */
-  :global(.new-group-dialog .mdc-dialog__actions) {
+  /* Inhalt (Abstände & Spaltenlayout) */
+  :global(.new-person-dialog .mdc-dialog__content) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 4px;
+  }
+
+  /* Hinweistext */
+  .hint {
+    margin: 0 0 8px;
+    color: #5f5f66;
+    line-height: 1.4;
+  }
+
+  /* Eingabefeld hell mit violetter Linie */
+  :global(.new-person-dialog .mdc-text-field--filled) {
+    background: #efe8f5;
+  }
+
+  :global(.new-person-dialog .mdc-text-field--filled .mdc-line-ripple) {
+    background-color: #6750a4;
+  }
+
+  /* kleines dunkles X (Eingabe löschen) */
+  :global(.new-person-dialog .material-icons.tf-x) {
+    font-size: 18px;
+    color: #333;
+    margin-right: 8px;
+  }
+
+  /* Aktionen unten rechts */
+  :global(.new-person-dialog .mdc-dialog__actions) {
     justify-content: flex-end;
     gap: 20px;
   }
 
-  /* Eingabefeld hellgrau + volle Breite */
-  :global(.new-group-dialog .mdc-text-field--filled) {
-    background: #e0e0e0; /* hellgrauer Hintergrund wie im Screenshot */
-    width: 100%;
-    max-width: none;
-    margin: 0;
-  }
-
-  /* Lila Linie unten (statt orange) */
-  :global(.new-group-dialog .mdc-text-field--filled .mdc-line-ripple) {
-    background-color: #6750a4;
-  }
-
-  /* Kleinere, dunkle X-Icon-Farbe */
-  :global(.new-group-dialog .material-icons.tf-x) {
-    font-size: 18px;
-    color: #333333; /* dunkles Grau/fast Schwarz */
-    margin-right: 8px;
-  }
-
-  /* Lila Theme-Farbe für aktive Buttons */
-  :global(.new-group-dialog .mdc-button) {
+  /* Farbthema Lila */
+  :global(.new-person-dialog) {
     --mdc-theme-primary: #6750a4;
   }
 
   /* OK-Button aktiv = Lila */
-  :global(.new-group-dialog .mdc-button:not(:disabled) .mdc-button__label) {
+  :global(.new-person-dialog .mdc-button:not(:disabled) .mdc-button__label) {
     color: #6750a4 !important;
   }
 
   /* OK-Button deaktiviert = hell-lila */
-  :global(.new-group-dialog .mdc-button:disabled .mdc-button__label) {
+  :global(.new-person-dialog .mdc-button:disabled .mdc-button__label) {
     color: #b9aee3 !important;
     opacity: 1;
+  }
+
+  /* === Dialog_Edit_Player – Figma-Styling === */
+
+  /* Grundfläche */
+  :global(.edit-player-dialog .mdc-dialog__surface) {
+    border-radius: 24px;
+    background: #f4eef9;
+    color: #1b1b1f;
+    width: 332px;
+    max-width: calc(100vw - 32px);
+  }
+
+  /* Inhalt */
+  :global(.edit-player-dialog .mdc-dialog__content) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 4px;
+  }
+
+  /* Hinweistext */
+  .hint {
+    margin: 0 0 8px;
+    color: #5f5f66;
+    line-height: 1.4;
+  }
+
+  /* Eingabefeld hell + Akzentlinie */
+  :global(.edit-player-dialog .mdc-text-field--filled) {
+    background: #efe8f5;
+  }
+
+  :global(.edit-player-dialog .mdc-text-field--filled .mdc-line-ripple) {
+    background-color: #6750a4;
+  }
+
+  /* kleines dunkles X */
+  :global(.edit-player-dialog .material-icons.tf-x) {
+    font-size: 18px;
+    color: #333;
+    margin-right: 8px;
+  }
+
+  /* Aktionen unten rechts */
+  :global(.dlg-actions-right .mdc-dialog__actions),
+  :global(.edit-player-dialog .mdc-dialog__actions) {
+    justify-content: flex-end;
+    gap: 20px;
+  }
+
+  /* Primärfarbe (Buttons) */
+  :global(.edit-player-dialog) {
+    --mdc-theme-primary: #6750a4;
+  }
+
+  /* OK-Button aktiv */
+  :global(.edit-player-dialog .mdc-button:not(:disabled) .mdc-button__label) {
+    color: #6750a4;
+  }
+
+  /* OK-Button deaktiviert */
+  :global(.edit-player-dialog .mdc-button:disabled .mdc-button__label) {
+    color: #b9aee3;
+    opacity: 1;
+  }
+
+  /* hinzufügen */
+  :global(.player-item-row:hover) {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  :global(.player-item-row:focus-visible) {
+    outline: 3px solid #6750a4;
+    border-radius: 12px;
   }
 </style>
