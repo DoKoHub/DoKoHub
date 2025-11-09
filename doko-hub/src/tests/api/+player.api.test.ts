@@ -58,7 +58,7 @@ describe('API /api/player', () => {
     test('POST: Should fail if "name" is not a string (Status 400)', async () => {
         let response = await api.post('/api/player', { name: 12345 });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('name is required and must be a string.');
+        expect(response.body.error).toBe('Name required and must be a string');
     });
 
     // Test: POST (Erfolgreiches Anlegen)
@@ -67,7 +67,7 @@ describe('API /api/player', () => {
         const response = await api.post('/api/player', { name: playerName });
 
         expect(response.status).toBe(201);
-        expect(response.body.message).toBe('Player created');
+        expect(response.body.message).toBe('Created Player');
         expect(response.body.player.name).toBe(playerName);
     });
 
@@ -75,7 +75,7 @@ describe('API /api/player', () => {
     test('POST: Should fail if "name" is missing or empty (Status 400)', async () => {
         let response = await api.post('/api/player', {});
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('name is required and must be a string.');
+        expect(response.body.error).toBe('Name required and must be a string');
     });
 });
 
@@ -94,7 +94,7 @@ describe('API /api/player/[player]', () => {
     test('GET: Should return 500 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.get('/api/player/not-a-valid-uuid');
         expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while fetching player \"not-a-valid-uuid\"');
+        expect(response.body.error).toBe('Database error while fetching Player');
     });
 
     // Test: GET (Erfolgreich)
@@ -115,7 +115,7 @@ describe('API /api/player/[player]', () => {
     test('PUT: Should fail if "name" is not a string in the update body (Status 400)', async () => {
         const response = await api.put(`/api/player/${createdPlayerId}`, { name: 99999 });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('name is required and must be a string.');
+        expect(response.body.error).toBe('Name required and must be a string');
     });
 
     // Test: PUT (Erfolgreiche Aktualisierung des Namens)
@@ -132,14 +132,14 @@ describe('API /api/player/[player]', () => {
     test('PUT: Should fail if "name" is missing in the update body (Status 400)', async () => {
         const response = await api.put(`/api/player/${createdPlayerId}`, {});
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('name is required and must be a string.');
+        expect(response.body.error).toBe('Name required and must be a string');
     });
 
     // TEST: PUT (Validierung - Name leer)
     test('PUT: Should fail if "name" is an empty string (Status 400)', async () => {
         const response = await api.put(`/api/player/${createdPlayerId}`, { name: '  ' });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('name is required and must be a string.');
+        expect(response.body.error).toBe('Name required and must be a string');
     });
 
     // Test: DELETE (Spieler existiert nicht)
@@ -153,14 +153,14 @@ describe('API /api/player/[player]', () => {
     test('DELETE: Should return 500 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.delete('/api/player/not-a-valid-uuid-on-delete');
         expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while deleting player');
+        expect(response.body.error).toBe('Database error while deleting Player');
     });
 
     // Test: DELETE (Erfolgreiches Löschen)
     test('DELETE: Should successfully delete the player (Status 200)', async () => {
         const response = await api.delete(`/api/player/${createdPlayerId}`);
         expect(response.status).toBe(200);
-        expect(response.body.message).toBe('Player deleted');
+        expect(response.body.message).toBe('Deleted Player');
 
         // Überprüfen ob der Player wirklich gelöscht wurde
         const getResponse = await api.get(`/api/player/${createdPlayerId}`);
@@ -194,7 +194,7 @@ describe('API /api/player/[player]/register', () => {
             playerIdentity: { subject: 's', email: 'e' }
         });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Provider is required');
+        expect(response.body.error).toBe('Provider required');
     });
 
     // TODO: Ueberarbeiten wenn Identity angepasst ist
@@ -221,7 +221,7 @@ describe('API /api/player/[player]/register', () => {
             playerIdentity: { ...MOCK_PLAYER_IDENTITY, subject: ' ' }
         });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Subject is required');
+        expect(response.body.error).toBe('Subject required');
     });
 
     // Test: POST (Validierung - Ungültiges Player-ID-Format)
@@ -262,7 +262,7 @@ describe('API /api/player/[player]/register', () => {
         });
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Player already has an identity');
+        expect(response.body.error).toBe('Player already has an PlayerIdentity');
     });
 });
 
@@ -323,8 +323,6 @@ describe('API /api/player/[player]/identity', () => {
         const response = await api.put(`/api/player/${playerIdWithIdentity}/identity`, {
             playerIdentity: { email: newEmail }
         });
-
-        console.log(response);
 
         expect(response.status).toBe(200);
         expect(response.body.playerIdentity.email).toBe(newEmail);

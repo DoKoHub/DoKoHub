@@ -90,9 +90,7 @@ export const playgroupMember = pgTable('playgroup_member', {
 export const session = pgTable('session', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	groupId: uuid('group_id').references(() => playgroup.id).notNull(),
-	title: varchar('title', { length: 35 }).notNull(),
 	ruleset: ruleset('ruleset').notNull(),
-	status: sessionstatus('status'),
 	plannedRounds: integer('planned_rounds').notNull(),
 	startedAt: timestamp('started_at'),
 	endedAt: timestamp('ended_at')
