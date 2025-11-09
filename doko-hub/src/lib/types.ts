@@ -137,9 +137,7 @@ export type PlayGroupMember = z.infer<typeof PlayGroupMember>;
 export const Session = z.object({
     id: UUID,
     groupId: UUID,
-    title: z.string().trim().max(120).optional().nullable(),
     ruleset: Ruleset.default("STANDARD"),
-    status: SessionStatus.optional().nullable(),
     plannedRounds: z.number().int().min(1),
     startedAt: ISODate.optional().nullable(),
     endedAt: ISODate.optional().nullable(),
