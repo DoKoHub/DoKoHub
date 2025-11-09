@@ -3,7 +3,7 @@
   import Card, { Content } from "@smui/card";
   import Textfield from "@smui/textfield";
 
-  import { first_time_login } from "$lib/frontend/auth.svelte";
+  import { first_time_login } from "$lib/frontend/auth";
 
   let user_name: string = $state("");
 

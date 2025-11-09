@@ -8,11 +8,6 @@
     Text,
   } from "@smui/list";
   import Time from "svelte-time";
-  import type { PageProps } from "../../../group-overview/$types";
-  import type { Group } from "./+page";
-
-  const { data }: PageProps = $props();
-
   import Dialog, {
     Title as DialogTitle,
     Content as DialogContent,
@@ -21,23 +16,72 @@
   import Button, { Label } from "@smui/button";
   import Textfield from "@smui/textfield";
   import Icon from "@smui/textfield/icon"; // für das "X"-Symbol rechts im Textfeld
+  import type { PageProps } from "./$types";
+  import { PlayGroup } from "$lib/types";
+  import { post } from "$lib/frontend/fetch";
+  import { get_user } from "$lib/frontend/auth";
+  import z from "zod";
+  import { goto } from "$app/navigation";
+
+  const { data }: PageProps = $props();
+  const user = get_user();
 
   let dialogOpen = $state(false);
   let groupName = $state("New Group");
+  let groups = $state(data.groups);
 
-  function handleCreate(name: string) {
+  async function handleCreate(name: string) {
     console.log("Neue Gruppe erstellt:", name);
+
+    try {
+      /*
+        Backend informieren: POST-Request sendet die Daten an das Backend
+        Erster Parameter: Route
+        Zweiter Parameter: Daten, die gesendet werden (siehe Tarons Dokumentation)
+        Dritter Parameter: Gerade kacke, Typ der vom Backend zurückgegeben wird
+      */
+      const response = await post(
+        "/api/group",
+        { name },
+        z.object({ message: z.string(), playGroup: PlayGroup })
+      );
+
+      const new_group = response.playGroup;
+
+      // Spieler der neuen Gruppe hinzufügen
+      await post(
+        `/api/group/${new_group.id}/member`,
+        { playerId: user.id },
+        z.any()
+      );
+
+      // Lokalen Zustand ändern, die angezeigte Liste ändert sich sofort hier nach
+      // Sollte man immer als letztes machen falls einer der Aufrufe zum Backend fehlschlägt
+      groups.push(new_group);
+    } catch (e) {
+      //TODO: Notify user about error
+      console.error(e);
+    }
+
     dialogOpen = false;
   }
 </script>
 
-{#snippet GroupItem(group: Group)}
+{#snippet GroupItem(group: PlayGroup)}
   <Text>
     <PrimaryText>{group.name}</PrimaryText>
+    <!--TODO: load group members as well
     <SecondaryText>Spieler: {group.players.join(", ")}</SecondaryText>
-    <SecondaryText
-      >Zuletzt gespielt am:
-      <Time timestamp={group.last_played} format="dd.MM.YYYY"></Time>
+    -->
+    <SecondaryText>
+      {#if group.lastPlayedOn}
+        Zuletzt gespielt am: <Time
+          timestamp={group.lastPlayedOn}
+          format="dd.MM.YYYY"
+        ></Time>
+      {:else}
+        Noch nicht gespielt
+      {/if}
     </SecondaryText>
   </Text>
 {/snippet}
@@ -50,8 +94,8 @@
   </TopAppBar>
   <div class="app-main">
     <List threeLine>
-      {#each data.groups as group}
-        <Item>
+      {#each groups as group}
+        <Item onclick={() => goto(`/app/group/${group.id}/games`)}>
           {@render GroupItem(group)}
         </Item>
         <Separator />

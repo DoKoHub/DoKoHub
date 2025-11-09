@@ -1,28 +1,32 @@
 import type { PageLoad } from "./$types";
+import { PlayGroup } from "$lib/types";
+import { get } from "$lib/frontend/fetch";
+import { get_user } from "$lib/frontend/auth";
+import z from "zod";
 
-//TODO: replace this with an actual DTO once the backend is ready
-export interface Group {
-  name: string;
-  players: string[];
-  last_played: Date;
-}
+/* Wird von svelte aufgerufen, wenn die Seite geladen wird.
+  Hier machen wir die erste API-Anfrage, um die Seite überhaupt mit Daten zu füllen
+ */
+export const load: PageLoad = async ({ fetch }) => {
+  // ID des momentanen Nutzers holen
+  const user = get_user();
 
-export const load: PageLoad = async () => {
-  //TODO: blocked until api/player/[player]/groups endpoint is ready
+  /*
+    Hier nutzen wir die `get`-Funktion, um Daten vom backend zu holen.
+    Der erste Parameter gibt den API-Endpoint an (man kann keine falschen angeben!).
+    Der zweite Parameter gibt den Typen an, den wir als Rückgabe erwarten.
+    Der dritte parameter hat mit sveltekit zu tun. In +page.ts-Dateien sollte man ihn mit angeben
+  */
+  //FIXME: Will show generic 500 if the request fails
+  const groups = await get(
+    `/api/player/${user.id}/groups`,
+    z.array(PlayGroup),
+    fetch
+  );
+
   return {
-    groups: [
-      {
-        name: "Die Chaoten",
-        players: ["Fabian", "Maurice", "Nick", "Marcel"],
-        last_played: new Date("2025-10-28"),
-      },
-      {
-        name: "Familie",
-        players: ["Helga", "Manfred", "Nick", "Tony"],
-        last_played: new Date(0),
-      },
-    ] as Group[],
+    groups,
   };
 };
+
 export const ssr = false;
-export const csr = true;
