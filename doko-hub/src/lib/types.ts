@@ -62,12 +62,12 @@ export const BonusType = z.enum([
   "FUCHS",
   "KARLCHEN",
   "LAUFENDE",
-  "GEGEN_DIE_ALTEN",
+  "GEGEN_DIE_ALTEN"/*,
   "SCHWEINCHEN",
-  "HYPERSCHWEIN",
+  "HYPERSCHWEIN",           Auskommentiert, weil die in der ER Modellierung nicht vorhanden sind.
   "DULLE_GEFANGEN",
   "FUCHS_GEFANGEN",
-  "KARLCHEN_IM_LETZTEN",
+  "KARLCHEN_IM_LETZTEN",*/
 ]);
 export type BonusType = z.infer<typeof BonusType>;
 
