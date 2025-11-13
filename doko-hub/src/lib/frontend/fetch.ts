@@ -1,5 +1,4 @@
 import type { APIRoute } from "$lib/server/routes";
-import { SingleStoreColumnBuilderWithAutoIncrement } from "drizzle-orm/singlestore-core";
 import type z from "zod";
 
 export async function get<T extends z.ZodType>(

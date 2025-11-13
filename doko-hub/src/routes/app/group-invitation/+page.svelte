@@ -1,25 +1,25 @@
 <script lang="ts">
-  import BottomAppBar, { Section } from '@smui-extra/bottom-app-bar';
-  import Button from '@smui/button';
-  import Card from '@smui/card';
-  import TextField from '@smui/textfield';
-  import FormField from '@smui/form-field';
-  import Radio from '@smui/radio';
+  import BottomAppBar, { Section } from "@smui-extra/bottom-app-bar";
+  import Button from "@smui/button";
+  import Card from "@smui/card";
+  import TextField from "@smui/textfield";
+  import FormField from "@smui/form-field";
+  import Radio from "@smui/radio";
 
   export function getExistingPlayers(): string[] {
-    return ['Fabian', 'Nick'];
+    return ["Fabian", "Nick"];
   }
 
   function joinGroup() {
     const name = selected || newName;
-    console.log('Beitritt mit Name:', name);
+    console.log("Beitritt mit Name:", name);
     // später: API-Aufruf oder Navigation
   }
 
-  let active: 'groups' | 'stats' | 'profile' = 'groups';
+  let active: "groups" | "stats" | "profile" = "groups";
   const existingPlayers = getExistingPlayers();
-  let selected = '';
-  let newName = '';
+  let selected = ""; // erstmal leer
+  let newName = "";
 </script>
 
 <main class="page">
@@ -64,27 +64,27 @@
 </main>
 
 <BottomAppBar variant="fixed" color="primary" class="bottom-bar">
- <Section class="nav-section">
+  <Section class="nav-section">
     <button
       class="nav-item"
-      class:active={active === 'groups'}
-      on:click={() => active = 'groups'}
+      class:active={active === "groups"}
+      on:click={() => (active = "groups")}
     >
       Gruppen
     </button>
 
     <button
       class="nav-item"
-      class:active={active === 'stats'}
-      on:click={() => active = 'stats'}
+      class:active={active === "stats"}
+      on:click={() => (active = "stats")}
     >
       Meine Statistiken
     </button>
 
     <button
       class="nav-item"
-      class:active={active === 'profile'}
-      on:click={() => active = 'profile'}
+      class:active={active === "profile"}
+      on:click={() => (active = "profile")}
     >
       Profil
     </button>
@@ -106,9 +106,9 @@
     padding: 1.25rem 1.5rem;
     padding-left: 30px;
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-
+  /* Überschrift in card */
   .title {
     margin-bottom: 0.5rem;
     font-size: 1.5rem;
@@ -135,35 +135,14 @@
     padding: 0.3rem 0;
   }
 
+  /* divider oder */
   .divider {
     text-align: center;
     margin: 0.75rem 0;
     color: rgba(0, 0, 0, 0.6);
   }
-/*
-  .new-name-field {
-    width: 100%;
-  } 
 
-  .join-button {
-    margin-top: 1rem;
-    width: 100%;
-    border-radius: 25px;
-  }
-
-  .mdc-radio {
-    transform: scale(0.9);
-  }
-
-  /* Navigation unten 
-  .nav-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  } 
-  */
-
+  /* bottom bar */
   .nav-item {
     flex: 1;
     text-align: center;
