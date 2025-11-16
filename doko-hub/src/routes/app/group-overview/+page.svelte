@@ -17,47 +17,59 @@
   import Textfield from "@smui/textfield";
   import Icon from "@smui/textfield/icon"; // für das "X"-Symbol rechts im Textfeld
   import type { PageProps } from "./$types";
-  import { PlayGroup } from "$lib/types";
+  import { PlayGroup, PlayGroupMember } from "$lib/types";
   import { post } from "$lib/frontend/fetch";
   import { get_user } from "$lib/frontend/auth";
   import z from "zod";
   import { goto } from "$app/navigation";
 
   const { data }: PageProps = $props();
-  const user = get_user();
+  try {
+    var user = get_user();
+  } catch (e) {
+    goto("/app/first-time-login");
+  }
 
   let dialogOpen = $state(false);
   let groupName = $state("New Group");
   let groups = $state(data.groups);
+  let members = $state(data.group_members);
 
   async function handleCreate(name: string) {
     console.log("Neue Gruppe erstellt:", name);
 
     try {
+      //FIXME: Diese beiden Anfragen müssen zu einer zusammengeführt werden, um
+      // gegen Netzwerkfehler zwischen den beiden Anfragen resistent zu sein!
+
       /*
         Backend informieren: POST-Request sendet die Daten an das Backend
         Erster Parameter: Route
         Zweiter Parameter: Daten, die gesendet werden (siehe Tarons Dokumentation)
         Dritter Parameter: Gerade kacke, Typ der vom Backend zurückgegeben wird
       */
-      const response = await post(
+      const { playGroup } = await post(
         "/api/group",
         { name },
         z.object({ message: z.string(), playGroup: PlayGroup })
       );
 
-      const new_group = response.playGroup;
-
       // Spieler der neuen Gruppe hinzufügen
-      await post(
-        `/api/group/${new_group.id}/member`,
+      const { playGroupMember } = await post(
+        `/api/group/${playGroup.id}/member`,
         { playerId: user.id },
-        z.any()
+        z.object({ message: z.string(), playGroupMember: PlayGroupMember })
       );
 
       // Lokalen Zustand ändern, die angezeigte Liste ändert sich sofort hier nach
       // Sollte man immer als letztes machen falls einer der Aufrufe zum Backend fehlschlägt
-      groups.push(new_group);
+      const { id } = playGroup;
+      groups.push(playGroup);
+      if (members.has(id)) {
+        members.get(id)?.push(playGroupMember);
+      } else {
+        members.set(id, [playGroupMember]);
+      }
     } catch (e) {
       //TODO: Notify user about error
       console.error(e);
@@ -70,9 +82,12 @@
 {#snippet GroupItem(group: PlayGroup)}
   <Text>
     <PrimaryText>{group.name}</PrimaryText>
-    <!--TODO: load group members as well
-    <SecondaryText>Spieler: {group.players.join(", ")}</SecondaryText>
-    -->
+    <SecondaryText
+      >Spieler: {members
+        .get(group.id)
+        ?.map(({ nickname }) => nickname ?? "???")
+        .join(", ") ?? ""}</SecondaryText
+    >
     <SecondaryText>
       {#if group.lastPlayedOn}
         Zuletzt gespielt am: <Time
@@ -95,7 +110,7 @@
   <div class="app-main">
     <List threeLine>
       {#each groups as group}
-        <Item onclick={() => goto(`/app/group/${group.id}/games`)}>
+        <Item onclick={async () => await goto(`/app/group/${group.id}/games`)}>
           {@render GroupItem(group)}
         </Item>
         <Separator />
