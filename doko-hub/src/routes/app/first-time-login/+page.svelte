@@ -4,6 +4,7 @@
   import Textfield from "@smui/textfield";
 
   import { first_time_login } from "$lib/frontend/auth";
+  import { goto } from "$app/navigation";
 
   let user_name: string = $state("");
 
@@ -12,7 +13,7 @@
     if (event.key === "Enter") {
       console.log(`Got name "${user_name}"`);
       first_time_login(user_name);
-      //TODO: redirect to home page on successful login
+      await goto("/app/group-overview");
     }
   }
 </script>
