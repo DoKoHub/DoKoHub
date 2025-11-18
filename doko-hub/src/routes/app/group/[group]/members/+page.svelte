@@ -11,40 +11,6 @@
     Separator,
   } from "@smui/list";
 
-  // === Dummy Daten / Funktionen ===
-  function getGroupName(): string {
-    return "Die Chaoten";
-  }
-
-  function getPlayerList(): string[] {
-    return ["Marcel", "Fabian", "Maurice", "Nick"];
-  }
-
-  function goBack() {
-    console.log("Zurück-Button gedrückt");
-  }
-  function openGroupSelector() {
-    console.log("Gruppen-Auswahl öffnen");
-  }
-  function addSomething() {
-    console.log("Plus-Button gedrückt");
-    openAddDialog(); // Dialog öffnen
-  }
-
-  const groupName = getGroupName();
-  //let playerList = getPlayerList();
-  let playerList: string[] = $state(getPlayerList());
-
-  const tabs = ["Spiele", "Statistiken", "Spieler"];
-  //let activeTab = "Spieler";
-  let activeTab = $state("Spieler");
-
-  function handleSelectTab(tab: string) {
-    activeTab = tab;
-    console.log("Tab gewechselt zu:", tab);
-  }
-
-  // SMUI für den Dialog (falls noch nicht importiert) L
   import Dialog, {
     Title as DialogTitle,
     Content as DialogContent,
@@ -54,39 +20,144 @@
   import Textfield from "@smui/textfield";
   import Icon from "@smui/textfield/icon";
 
-  // State & Handler für „Spieler hinzufügen“
+  // ==== Daten aus +page.ts ====
+  import type { PageProps } from "./$types";
+  import { PlayGroupMember } from "$lib/types";
+  import { get, post } from "$lib/frontend/fetch";
+  import z from "zod";
+  import { get_user } from "$lib/frontend/auth";
+  import type { APIRoute } from "$lib/server/routes";
+
+  const MAX_PLAYERS = 4;
+
+  const { data } = $props() as PageProps & {
+    data: {
+      groupId: string;
+      members: PlayGroupMember[];
+    };
+  };
+
+  // Gruppen-ID und Mitglieder aus dem load()
+  const groupId = data.groupId;
+  let members = $state<PlayGroupMember[]>(data.members);
+
+  // aktueller Spieler (für playerId beim POST)
+  const user = get_user();
+
+  // ==== UI: Tabs, AppBar, Buttons ====
+
+  const tabs = ["Spiele", "Statistiken", "Spieler"];
+  let activeTab = $state("Spieler");
+
+  // TODO: später echten Namen der Gruppe aus Backend laden
+  const groupName = "Gruppe";
+
+  function goBack() {
+    console.log("Zurück-Button gedrückt");
+  }
+
+  function openGroupSelector() {
+    console.log("Gruppen-Auswahl öffnen");
+  }
+
+  function addSomething() {
+    console.log("Plus-Button gedrückt");
+
+    // Wenn schon 4 Spieler: keinen Dialog mehr öffnen
+    if (members.length >= MAX_PLAYERS) {
+      console.log("Maximal 4 Spieler erlaubt");
+      // optional:
+      // alert("Du kannst maximal 4 Spieler in einer Gruppe haben.");
+      return;
+    }
+
+    // Plus-Button öffnet den "Neuer Spieler"-Dialog
+    openAddDialog();
+  }
+
+  // ==== Dialog "Spieler hinzufügen" ====
+
   let addOpen = $state(false);
   let newName = $state("");
 
   function openAddDialog() {
-    // NEU: Edit-Dialog sicher schließen
+    // sicherheitshalber Edit-Dialog schließen
     editOpen = false;
     newName = "";
     addOpen = true;
   }
+
   function cancelAdd() {
     addOpen = false;
     newName = "";
   }
-  function confirmAdd() {
-    const n = newName.trim();
-    if (!n) return;
-    // Spieler zur Liste hinzufügen (Dummy – später API/Store)
-    playerList = [...playerList, n];
-    addOpen = false;
+  // Fehler ist Backend mit neue Id Spieler, um neue Speler hinzufügen
+  // POST /api/group/[group]/member
+  async function confirmAdd() {
+    // 1. Sicherheit: Max 4 Spieler
+    if (members.length >= MAX_PLAYERS) {
+      console.log("Maximal 4 Spieler – neuer Spieler wird nicht hinzugefügt");
+      addOpen = false;
+      newName = "";
+      return;
+    }
+    const nickname = newName.trim();
+    if (!nickname) return;
+
+    try {
+      console.log("confirmAdd START", {
+        nickname,
+        currentCount: members.length,
+      });
+
+      // 1️.Spieler im Backend anlegen
+      const response = await post(
+        `/api/group/${groupId}/member` as APIRoute,
+        {
+          playerId: user.id, // aktueller Spieler
+          nickname,
+        },
+        z.object({
+          message: z.string(),
+          playGroupMember: PlayGroupMember,
+        })
+      );
+
+      console.log(
+        "POST OK, neuer Spieler vom Backend:",
+        response.playGroupMember
+      );
+
+      // 2️.Mitgliederliste danach NEU vom Backend laden
+      const updatedMembers = await get(
+        `/api/group/${groupId}/member` as APIRoute,
+        z.array(PlayGroupMember)
+      );
+
+      console.log("GET OK, aktualisierte Mitgliederliste:", updatedMembers);
+
+      // 3. Neue Liste in State schreiben → UI aktualisiert sich
+      members = updatedMembers;
+
+      // 4️. Dialog schließen + Eingabe leeren
+      addOpen = false;
+      newName = "";
+    } catch (e) {
+      console.error("Fehler beim Hinzufügen oder Neuladen der Mitglieder", e);
+    }
   }
 
-  // === Edit-Dialog: State ===
+  // ==== Dialog "Spieler bearbeiten" ====
+
   let editOpen = $state(false);
   let editIndex = $state<number | null>(null);
   let editName = $state("");
 
-  // Beim Klick auf einen Spieler öffnen (i = Index in playerList)
+  // beim Klick auf einen Listeneintrag
   function openEdit(i: number) {
-    // NEU: Add-Dialog sicher schließen
     addOpen = false;
     editIndex = i;
-    editName = playerList[i];
+    editName = members[i]?.nickname ?? "";
     editOpen = true;
   }
 
@@ -96,14 +167,51 @@
     editIndex = null;
   }
 
-  function confirmEdit() {
-    const n = editName.trim();
-    if (!n || editIndex === null) return;
-    // Namen im Array ersetzen
-    playerList = playerList.map((p, idx) => (idx === editIndex ? n : p));
-    editOpen = false;
-    editName = "";
-    editIndex = null;
+  // PUT /api/group/[group]/member/[member]
+  async function confirmEdit() {
+    const nickname = editName.trim();
+    if (!nickname || editIndex === null) return;
+
+    const current = members[editIndex];
+
+    // Body laut API-Doku
+    const bodyToSend = {
+      playGroupMember: {
+        ...current,
+        nickname,
+      },
+    };
+
+    try {
+      const res = await fetch(`/api/group/${groupId}/member/${current.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyToSend),
+      });
+
+      if (!res.ok) {
+        console.error("Fehler beim Bearbeiten", await res.text());
+        return;
+      }
+
+      const parsed = z
+        .object({
+          message: z.string(),
+          playGroupMember: PlayGroupMember,
+        })
+        .parse(await res.json());
+
+      const updated = parsed.playGroupMember;
+
+      // Mitglied in der Liste ersetzen
+      members = members.map((m) => (m.id === updated.id ? updated : m));
+
+      editOpen = false;
+      editName = "";
+      editIndex = null;
+    } catch (e) {
+      console.error("PUT fehlgeschlagen", e);
+    }
   }
 </script>
 
@@ -114,6 +222,7 @@
 <PlusButton {addSomething} />
 
 <!-- Beispiel Inhalt -->
+<!--
 <main class="main-content">
   {#if activeTab === "Spieler"}
     <List class="player-list">
@@ -129,6 +238,31 @@
         >
           <Graphic class="material-icons">groups</Graphic>
           <PrimaryText>{player}</PrimaryText>
+          <Meta class="material-icons" aria-hidden="true">edit</Meta>
+        </Item>
+        <Separator />
+      {/each}
+    </List>
+  {/if}
+</main>
+
+-->
+
+<main class="main-content">
+  {#if activeTab === "Spieler"}
+    <List class="player-list">
+      {#each members as member, i}
+        <Item
+          class="player-item-row"
+          tabindex={0}
+          role="button"
+          onclick={() => openEdit(i)}
+          onkeydown={(e: KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === " ") openEdit(i);
+          }}
+        >
+          <Graphic class="material-icons">groups</Graphic>
+          <PrimaryText>{member.nickname ?? "Ohne Namen"}</PrimaryText>
           <Meta class="material-icons" aria-hidden="true">edit</Meta>
         </Item>
         <Separator />
