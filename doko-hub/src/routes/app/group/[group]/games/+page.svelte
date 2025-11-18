@@ -1,6 +1,6 @@
 <script lang="ts">
-  import AppBar from "$lib/components/AppBar.svelte";
-  import Tabs from "$lib/components/Tabs.svelte";
+  //import AppBar from "$lib/components/AppBar.svelte";
+  //import Tabs from "$lib/components/Tabs.svelte";
   import PlusButton from "$lib/components/PlusButton.svelte";
 
   import Dialog, {
@@ -19,28 +19,6 @@
   // false, erstmal nicht anzeigen
   let newGameOpen = false;
 
-  /* Dummy Daten / Funktionen
-  function getGroupName(): string {
-    return "Die Chaoten";
-  }
-
-  function getGameList() {
-    return [
-      {
-        date: "01.06.2025",
-        status: "Aktives Spiel",
-        note: "Spiel muss noch beendet werden",
-      },
-      { date: "14.05.2025", winner: "Marcel" },
-      { date: "05.05.2025", winner: "Fabian" },
-    ];
-  }
-
-  const groupName = getGroupName();
-  let gameList = getGameList(); */
-
-  // ersetzen durch
-
   // Dynamische Daten vom Backend
   let groupName = "";
   let gameList: any[] = [];
@@ -54,15 +32,13 @@
       const groupId = $page.params.group as string; // const = fest
 
       // Gruppe abrufen
-      const resGroup = await fetch(`/api/group/${groupId}`); // Anfrage Gruppe an server
-      if (!resGroup.ok) throw new Error("Fehler beim Abrufen der Gruppendaten"); // wenn keine Daten da sind
+      const resGroup = await fetch(`/api/group/${groupId}`); // Anfrage Gruppe an server, get
       const group = await resGroup.json(); // Serverantwort in JavaScript-Objekt
 
       // Daten übernehmen
-      groupName = group.name; // Name für frontend speichern
+      groupName = group.name;
       gameList = group.games ?? []; // falls Spiele im Gruppenobj enthalten sind speichern, sonst leeres Array
     } catch (err: any) {
-      // any für jeden Datentyp
       error = err.message;
     } finally {
       loading = false;
@@ -85,39 +61,15 @@
   let activeTab = "Spiele";
 </script>
 
-<AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
+<!--<AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
 
 <Tabs {tabs} bind:active={activeTab} />
-
-<!-- Beispiel Ihhalt 
-<main class="main-content">
-  {#if activeTab === "Spiele"}
-    <ul class="game-list">
-      {#each gameList as game}
-        <li>
-          <strong>{game.date}</strong>
-          {#if game.status}
-            <div>{game.status}</div>
-            <small>{game.note}</small>
-          {:else}
-            <div>Sieger: {game.winner}</div>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  {/if}
-</main> 
 -->
 
 <!-- dynamischer Inhalt-->
 <main class="main-content">
-  {#if loading}
-    <p>Lade Spieldaten ...</p>
-  {:else if error}
-    <!-- Fehler / keine Daten  -->
-    <p style="color:red">{error}</p>
-    <!-- wenn tab = Spiele ist -->
-  {:else if activeTab === "Spiele"}
+  <!-- wenn tab = Spiele ist -->
+  {#if activeTab === "Spiele"}
     <ul class="game-list">
       <!-- Spielliste aus dyn. Array erstellen -->
       {#each gameList as game}

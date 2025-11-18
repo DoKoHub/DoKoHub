@@ -1,6 +1,4 @@
 <script lang="ts">
-  import AppBar from "$lib/components/AppBar.svelte";
-  import Tabs from "$lib/components/Tabs.svelte";
   import PlusButton from "$lib/components/PlusButton.svelte";
 
   import List, {
@@ -214,10 +212,6 @@
     }
   }
 </script>
-
-<AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
-
-<Tabs {tabs} bind:active={activeTab} />
 
 <PlusButton {addSomething} />
 

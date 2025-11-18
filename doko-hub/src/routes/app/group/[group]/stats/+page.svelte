@@ -1,6 +1,6 @@
 <script lang="ts">
-  import AppBar from "$lib/components/AppBar.svelte";
-  import Tabs from "$lib/components/Tabs.svelte";
+  //import AppBar from "$lib/components/AppBar.svelte";
+  //import Tabs from "$lib/components/Tabs.svelte";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
 
@@ -52,6 +52,8 @@
   //const groupName = getGroupName();
 </script>
 
+<!--
 <AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
 
 <Tabs {tabs} bind:active={activeTab} />
+-->
