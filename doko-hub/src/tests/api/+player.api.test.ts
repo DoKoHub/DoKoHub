@@ -91,10 +91,10 @@ describe('API /api/player/[player]', () => {
     });
 
     // Test: GET (Ungültiges ID-Format)
-    test('GET: Should return 500 (Error Response) if player ID has an invalid format', async () => {
+    test('GET: Should return 400 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.get('/api/player/not-a-valid-uuid');
-        expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while fetching Player');
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('Player ID required');
     });
 
     // Test: GET (Erfolgreich)
@@ -150,10 +150,10 @@ describe('API /api/player/[player]', () => {
     });
 
     // Test: DELETE (Ungültiges ID-Format)
-    test('DELETE: Should return 500 (Error Response) if player ID has an invalid format', async () => {
+    test('DELETE: Should return 400 (Error Response) if player ID has an invalid format', async () => {
         const response = await api.delete('/api/player/not-a-valid-uuid-on-delete');
-        expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while deleting Player');
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('Player ID required');
     });
 
     // Test: DELETE (Erfolgreiches Löschen)
@@ -225,12 +225,12 @@ describe('API /api/player/[player]/register', () => {
     });
 
     // Test: POST (Validierung - Ungültiges Player-ID-Format)
-    test('POST: Should return 500 if player ID has an invalid format', async () => {
+    test('POST: Should return 400 if player ID has an invalid format', async () => {
         const response = await api.post('/api/player/invalid-player-id/register', {
             playerIdentity: MOCK_PLAYER_IDENTITY
         });
-        expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while linking PlayerIdentity');
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('Player ID required');
     });
 
     // Test: POST (Erfolgreiche Verknüpfung)
