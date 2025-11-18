@@ -1093,6 +1093,200 @@ Setzt den Status eines Mitgliedes einer Gruppe auf `"LEFT"`.
 
 Ein Spieler wird über ein Invite Token zu einer Gruppe als Mitglied hinzugefügt. 
 
+##### api/group/[group]/session
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{Session}]`<br>
+
+Alle Sessions einer Gruppe
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>Request Body: `{"ruleset": RuleSet, "plannedRounds": number, "startedAt": ISODate}`<br>
+>Response Body: `["message": string, "session": Session]`<br>
+
+Neue Session erstellen
+
+##### api/group/[group]/session/[session]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{Session}`<br>
+
+Spezifische Session einer Gruppe
+
+>`PUT`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>Request Body: `{"session": Session}`<br>
+>Response Body: `{"message": string, "session": Session}`<br>
+
+Spezifische Session einer Gruppe bearbeiten
+
+##### api/group/[group]/session/[session]/sessionmember
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{SessionMember}]`<br>
+
+Alle member einer Session
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>Request Body: `{"playerId": UUID}`<br>
+>Response Body: `[{SessionMember}]`<br>
+
+Neues Session member erstellen
+
+##### api/group/[group]/session/[session]/round
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{Round}]`<br>
+
+Alle Runden einer Session
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>Request Body: `{"roundNum": number, "gameType": GameType, ?"soloColor": SoloColor}`<br>
+>Response Body: `{"message": string, "round": Round}`<br>
+
+Neue Runde erstellen
+
+##### api/group/[group]/session/[session]/round/[round]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `{Round}`<br>
+
+Spezifische Runde einer Session
+
+>`PUT`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `{"round": Round}`<br>
+>Response Body: `{"message": string, "round": Round}`<br>
+
+Runde bearbeiten
+
+##### api/group/[group]/session/[session]/round/[round]/bonus
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{RoundBonus}]`<br>
+
+Alle Runden Boni einer Runde
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `{"playerId": UUID, "bonus": BonusType, "count": number}`<br>
+>Response Body: `{"message": string, "roundBonus": RoundBonus}`<br>
+
+Neuen Bonus erstellen
+
+##### api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>`[bonus]`: `string` (Player ID)<br>
+>Request Body: `Leer`<br>
+>Response Body: `{RoundBonus}`<br>
+
+Spezifischer Bonus einer Runde
+
+##### api/group/[group]/session/[session]/round/[round]/call
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{RoundCall}]`<br>
+
+Alle Calls einer Runde
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `{"playerId": UUID, "call": CallType}`<br>
+>Response Body: `{"message": string, "roundCall": RoundCall}`<br>
+
+Neuen call erstellen
+
+##### api/group/[group]/session/[session]/round/[round]/call/[call]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>`[call]`: `string` (Player ID)<br>
+>Request Body: `Leer`<br>
+>Response Body: `{RoundCall}`<br>
+
+Spezifischer Call einer Runde
+
+##### api/group/[group]/session/[session]/round/[round]/participation
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `Leer`<br>
+>Response Body: `[{RoundParticipation}]`<br>
+
+Alle Participations einer Runde
+
+>`POST`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>Request Body: `{"playerId": UUID, "side": Side, "seatPos": SeatPos}`<br>
+>Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
+
+Neue Participation erstellen
+
+##### api/group/[group]/session/[session]/round/[round]/participation/[participation]
+>`GET`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>`[participation]`: `string` (Player ID)<br>
+>Request Body: `Leer`<br>
+>Response Body: `{RoundParticipation}`<br>
+
+Spezifische Participation einer Runde
+
 ### \<Name Blackbox n>
 
 *\<Blackbox-Template>*
