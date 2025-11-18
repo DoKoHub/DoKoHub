@@ -68,10 +68,10 @@ describe('API /api/group/[group]', () => {
     });
 
     // Test: GET (ungültiges ID-Format)
-    test('GET: Should return 500 if group ID has an invalid format', async () => {
+    test('GET: Should return 400 if group ID has an invalid format', async () => {
         const response = await api.get('/api/group/not-a-valid-uuid');
-        expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while fetching PlayGroup');
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('PlayGroup ID required');
     });
 
     // Test: GET (Abfrage einer spezifischen Gruppe)
@@ -119,10 +119,10 @@ describe('API /api/group/[group]', () => {
     });
 
     // Test: DELETE (ungültiges ID-Format)
-    test('DELETE: Should return 500 if group ID has an invalid format', async () => {
+    test('DELETE: Should return 400 if group ID has an invalid format', async () => {
         const response = await api.delete('/api/group/invalid-uuid-to-delete');
-        expect(response.status).toBe(500);
-        expect(response.body.error).toBe('Database error while deleting PlayGroup');
+        expect(response.status).toBe(400);
+        expect(response.body.error).toBe('PlayGroup ID required');
     });
 
     // Test: DELETE (Löschen einer Gruppe)

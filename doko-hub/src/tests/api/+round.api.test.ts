@@ -14,7 +14,7 @@ const MOCK_SESSION_DATA = {
 };
 
 const MOCK_ROUND_DATA = {
-    roundNum: 1, 
+    roundNum: 12, 
     gameType: 'SOLO_FARBE', 
     soloColor: 'CLUBS', 
 };
@@ -108,6 +108,7 @@ describe('API /api/group/[group]/session/[session]/round (Round)', () => {
 
     // Test: POST (Erfolgreiches Erstellen einer neuen Runde)
     test('POST: Should successfully create a new Round (Status 200/201)', async () => {
+        console.log("Request: ",`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
 
         expect(response.status).toBe(200); 

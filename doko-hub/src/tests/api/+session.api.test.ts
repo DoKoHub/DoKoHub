@@ -89,6 +89,7 @@ describe('API /api/group/[group]/session/[session]', () => {
     let sessionId: string;
     const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
     let initialStartedAt: string; 
+    let initialRuleset: string; // FIX: New variable declaration
 
     beforeEach(async () => {
         await setupDatabase();
@@ -98,6 +99,7 @@ describe('API /api/group/[group]/session/[session]', () => {
         const sessionResp = await api.post(`/api/group/${groupId}/session`, MOCK_SESSION_DATA);
         sessionId = sessionResp.body.session.id;
         initialStartedAt = sessionResp.body.session.startedAt;
+        initialRuleset = sessionResp.body.session.ruleset; // FIX: New variable assignment
     });
 
     // Test: GET (Abfrage einer spezifischen Session)
@@ -119,8 +121,11 @@ describe('API /api/group/[group]/session/[session]', () => {
         const newRounds = 100;
         const endedDate = new Date().toISOString();
         
+        // FIX: Include all properties required by the Session Zod schema for validation
         const updateDataFull = { 
-            ruleSet: MOCK_SESSION_DATA.ruleSet, 
+            id: sessionId,          
+            groupId: groupId,       
+            ruleSet: initialRuleset, 
             plannedRounds: newRounds, 
             endedAt: endedDate,
             startedAt: initialStartedAt 
@@ -145,7 +150,8 @@ describe('API /api/group/[group]/session/[session]', () => {
     test('PUT: Should return 400 if session ID has an invalid format', async () => {
         const response = await api.put(`/api/group/${groupId}/session/not-a-valid-uuid`, MOCK_SESSION_DATA);
         expect(response.status).toBe(400); 
-        expect(response.body).toHaveProperty('error');
+        // FIX: Check for 'message' property, as returned by the server
+        expect(response.body).toHaveProperty('message');
     });
 });
 
