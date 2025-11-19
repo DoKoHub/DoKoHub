@@ -1,6 +1,4 @@
 <script lang="ts">
-  //import AppBar from "$lib/components/AppBar.svelte";
-  //import Tabs from "$lib/components/Tabs.svelte";
   import PlusButton from "$lib/components/PlusButton.svelte";
 
   import Dialog, {
@@ -12,80 +10,40 @@
   import Switch from "@smui/switch";
   import IconButton from "@smui/icon-button";
   import { mdiRefresh } from "@mdi/js"; // refresh Symbol
+  import type { PageProps } from "./$types";
 
-  import { onMount } from "svelte"; // Code automatisch ausführen, wenn Seite / Komp. geladen werden
-  import { page } from "$app/stores"; // Infos aktueller Seite
+  const { data }: PageProps = $props();
 
   // false, erstmal nicht anzeigen
-  let newGameOpen = false;
+  let newGameOpen = $state(false);
 
   // Dynamische Daten vom Backend
-  let groupName = "";
-  let gameList: any[] = [];
-  let loading = true;
-  let error = "";
-
-  // fetch() Logik um Spiele, Gruppennamen dyn. vom backend zu holen
-
-  onMount(async () => {
-    try {
-      const groupId = $page.params.group as string; // const = fest
-
-      // Gruppe abrufen
-      const resGroup = await fetch(`/api/group/${groupId}`); // Anfrage Gruppe an server, get
-      const group = await resGroup.json(); // Serverantwort in JavaScript-Objekt
-
-      // Daten übernehmen
-      groupName = group.name;
-      gameList = group.games ?? []; // falls Spiele im Gruppenobj enthalten sind speichern, sonst leeres Array
-    } catch (err: any) {
-      error = err.message;
-    } finally {
-      loading = false;
-    }
-  });
-
-  function goBack() {
-    console.log("Zurück-Button gedrückt");
-  }
-  function openGroupSelector() {
-    console.log("Gruppen-Auswahl öffnen");
-  }
+  let games = $state(data.sessions);
 
   function addSomething() {
     console.log("Neues Spiel hinzufügen");
     newGameOpen = true; // Dialog anzeigen
   }
-
-  const tabs = ["Spiele", "Statistiken", "Spieler"];
-  let activeTab = "Spiele";
 </script>
-
-<!--<AppBar {groupName} onBack={goBack} onSelectGroup={openGroupSelector} />
-
-<Tabs {tabs} bind:active={activeTab} />
--->
 
 <!-- dynamischer Inhalt-->
 <main class="main-content">
   <!-- wenn tab = Spiele ist -->
-  {#if activeTab === "Spiele"}
-    <ul class="game-list">
-      <!-- Spielliste aus dyn. Array erstellen -->
-      {#each gameList as game}
-        <!-- Listenpunkt -->
-        <li>
-          <strong>{game.date}</strong>
-          {#if game.status}
-            <div>{game.status}</div>
-            <small>{game.note}</small>
-          {:else}
-            <div>Sieger: {game.winner ?? "offen"}</div>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  {/if}
+  <ul class="game-list">
+    <!-- Spielliste aus dyn. Array erstellen -->
+    {#each games as game}
+      <!-- Listenpunkt -->
+      <li>
+        <strong>{game.startedAt}</strong>
+        {#if game.endedAt}
+          <!--TODO: How to determine the winner of a game? Should that be part of DTO?-->
+          <small>Sieger: TBD</small>
+        {:else}
+          <small>{"Spiel muss noch beendet werden"}</small>
+        {/if}
+      </li>
+    {/each}
+  </ul>
 </main>
 
 <PlusButton {addSomething} />
