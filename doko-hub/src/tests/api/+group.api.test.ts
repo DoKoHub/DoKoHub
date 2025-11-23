@@ -7,6 +7,11 @@ import { cleanupExpiredInvites } from '$lib/server/cleanup-invites';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
+const MOCK_PLAYER_DATA_FULL = {
+    provider: 'GOOGLE',
+    subject: 'group-test-sub',
+    email: 'group.test@example.com',
+};
 
 afterAll(async () => {
     const rawClient = (db as PostgresJsDatabase<any> & { $client: Sql<any> }).$client;
@@ -35,7 +40,7 @@ describe('API /api/group', () => {
     test('POST: Should fail if "name" is not a string (Status 400)', async () => {
         const response = await api.post('/api/group', { name: 1001 });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Name required and must be a string');
+        expect(response.body.message).toBe('Validation failed');
     });
 
     // Test: POST (Anlegen einer neuen Gruppe)
@@ -52,7 +57,7 @@ describe('API /api/group', () => {
     test('POST: Should fail if "name" is empty (Status 400)', async () => {
         const response = await api.post('/api/group', { name: '  ' });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Name required and must be a string');
+        expect(response.body.message).toBe('Validation failed');
     });
 });
 
@@ -71,7 +76,7 @@ describe('API /api/group/[group]', () => {
     test('GET: Should return 400 if group ID has an invalid format', async () => {
         const response = await api.get('/api/group/not-a-valid-uuid');
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroup ID required');
+        expect(response.body.message).toBe('PlayGroup ID required');
     });
 
     // Test: GET (Abfrage einer spezifischen Gruppe)
@@ -84,30 +89,30 @@ describe('API /api/group/[group]', () => {
     test('GET: Should return 400 if group ID is not found', async () => {
         const response = await api.get(`/api/group/${NON_EXISTENT_ID}`);
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroup not found');
+        expect(response.body.message).toBe('PlayGroup not found');
     });
 
     // Test: PUT (PlayGroup-Objekt fehlt)
-    test('PUT: Should fail if playGroup object is missing in body (Status 400)', async () => {
-        const response = await api.put(`/api/group/${createdGroupId}`, { name: 'Directly in body' });
+    test('PUT: Should fail if "name" is missing in body (Status 400)', async () => {
+        const response = await api.put(`/api/group/${createdGroupId}`, {});
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Valid PlayGroup required');
+        expect(response.body.message).toBe('Valid PlayGroup required'); 
     });
 
-    // Test: PUT (Leerer Name im PlayGroup-Objekt)
-    test('PUT: Should fail if "name" is an empty string in playGroup (Status 400)', async () => {
-        const updateData = { name: '  ' };
-        const response = await api.put(`/api/group/${createdGroupId}`, { playGroup: updateData });
+    // Test: PUT (Leerer Name)
+    test('PUT: Should fail if "name" is an empty string (Status 400)', async () => {
+        const response = await api.put(`/api/group/${createdGroupId}`, { name: '  ' });
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Name required and must be a string');
+        expect(response.body.message).toBe('Valid PlayGroup required');
     });
 
-    // Test: PUT (Aktualisierung des Gruppennamens und der Notiz)
-    test('PUT: Should successfully update name, lastPlayedOn and note (Status 200)', async () => {
-        const updateData = { name: 'RenamedGroup', note: 'New note' };
-        const response = await api.put(`/api/group/${createdGroupId}`, { playGroup: updateData });
+    // Test: PUT (Aktualisierung des Gruppennamens)
+    test('PUT: Should successfully update name (Status 200)', async () => {
+        const updateData = { name: 'RenamedGroup'};
+        const response = await api.put(`/api/group/${createdGroupId}`, updateData);
 
         expect(response.status).toBe(200);
+        expect(response.body.message).toBe('Updated PlayGroup');
         expect(response.body.playGroup.name).toBe(updateData.name);
     });
 
@@ -115,14 +120,14 @@ describe('API /api/group/[group]', () => {
     test('DELETE: Should return 400 if group ID is not found', async () => {
         const response = await api.delete(`/api/group/${NON_EXISTENT_ID}`);
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroup not found');
+        expect(response.body.message).toBe('PlayGroup not found');
     });
 
     // Test: DELETE (ungültiges ID-Format)
     test('DELETE: Should return 400 if group ID has an invalid format', async () => {
         const response = await api.delete('/api/group/invalid-uuid-to-delete');
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroup ID required');
+        expect(response.body.message).toBe('PlayGroup ID required');
     });
 
     // Test: DELETE (Löschen einer Gruppe)
@@ -130,17 +135,9 @@ describe('API /api/group/[group]', () => {
         const response = await api.delete(`/api/group/${createdGroupId}`);
         expect(response.status).toBe(200);
 
-        // Überprüfen ob die Gruppe wirklich gelöscht wurde
         const getResponse = await api.get(`/api/group/${createdGroupId}`);
         expect(getResponse.status).toBe(400);
-        expect(getResponse.body.error).toBe('PlayGroup not found');
-    });
-
-    // Test: DELETE (Gruppe existiert nicht)
-    test('DELETE: Should return 400 if group ID is not found', async () => {
-        const response = await api.delete(`/api/group/${NON_EXISTENT_ID}`);
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroup not found');
+        expect(getResponse.body.message).toBe('PlayGroup not found');
     });
 });
 
@@ -157,11 +154,14 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         const groupResp = await api.post('/api/group', { name: 'MemberTestGroup' });
         groupId = groupResp.body.playGroup.id;
 
-        const playerResp = await api.post('/api/player', { name: 'Player1' });
+        const playerResp = await api.post('/api/player', { name: 'Player1', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-p1' });
         playerId = playerResp.body.player.id;
 
         const memberResp = await api.post(`/api/group/${groupId}/member`, { playerId: playerId });
-        memberId = memberResp.body.playGroupMember.playerId;
+        if (memberResp.status !== 201) {
+            throw new Error(`Failed to create initial member: Status ${memberResp.status}. Body: ${JSON.stringify(memberResp.body)}`);
+        }
+        memberId = memberResp.body.playGroupMember.id;
     });
 
     // Tests für /api/group/[group]/member
@@ -179,7 +179,7 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         const response = await api.post(`/api/group/${groupId}/member`, {});
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Player ID required');
+        expect(response.body.message).toBe('Player ID required');
     });
 
     // Test: POST Member (Gruppe existiert nicht)
@@ -200,7 +200,7 @@ describe('API /api/group/member & /api/group/invite/join', () => {
 
     // Test: POST (Hinzufügen eines Spielers)
     test('POST Member: Should successfully add a Player to the group (Status 201)', async () => {
-        const player2Resp = await api.post('/api/player', { name: 'NewMember' });
+        const player2Resp = await api.post('/api/player', { name: 'NewMember', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-p2' });
         const player2Id = player2Resp.body.player.id;
 
         const response = await api.post(`/api/group/${groupId}/member`, { playerId: player2Id });
@@ -222,28 +222,24 @@ describe('API /api/group/member & /api/group/invite/join', () => {
     // Test: PUT Member (Mitglied existiert nicht)
     test('PUT Member: Should fail if the member ID to update does not exist (Status 400)', async () => {
         const newNickname = 'GhostMember';
-        const response = await api.put(`/api/group/${groupId}/member/${NON_EXISTENT_ID}`, {
-            playGroupMember: { nickname: newNickname }
-        });
+        const response = await api.put(`/api/group/${groupId}/member/${NON_EXISTENT_ID}`, { nickname: newNickname });
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroupMember not found');
+        expect(response.body.message).toBe('PlayGroupMember not found');
     });
 
     // Test: PUT (playGroupMember-Objekt fehlt)
-    test('PUT Member: Should fail if playGroupMember object is missing (Status 400)', async () => {
+    test('PUT Member: Should fail if required update field "nickname" is missing (Status 400)', async () => {
         const response = await api.put(`/api/group/${groupId}/member/${memberId}`, {});
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Valid PlayGroupMember required');
+        expect(response.body.message).toBe('Nickname required and must be a string'); 
     });
 
     // Test: PUT (Aktualisieren des Nicknames)
     test('PUT Member: Should successfully update nickname (Status 200)', async () => {
         const newNickname = 'TheLeader';
-        const response = await api.put(`/api/group/${groupId}/member/${memberId}`, {
-            playGroupMember: { nickname: newNickname }
-        });
+        const response = await api.put(`/api/group/${groupId}/member/${memberId}`, { nickname: newNickname });
 
         expect(response.status).toBe(200);
         expect(response.body.playGroupMember.nickname).toBe(newNickname);
@@ -254,17 +250,16 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         const response = await api.delete(`/api/group/${groupId}/member/${NON_EXISTENT_ID}`);
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('PlayGroupMember not found');
+        expect(response.body.message).toBe('PlayGroupMember not found');
     });
 
     // Test: DELETE (Löschen eines Spielers)
     test('DELETE Member: Should successfully "delete" the PlayGroupMember (Status 200, Status LEFT)', async () => {
-    const response = await api.delete(`/api/group/${groupId}/member/${memberId}`);
-    expect(response.status).toBe(200);
+        const response = await api.delete(`/api/group/${groupId}/member/${memberId}`);
+        expect(response.status).toBe(200);
 
-    const memberStatusResponse = await api.get(`/api/group/${groupId}/member/${memberId}`);
-
-    expect(memberStatusResponse.body.status).toBe('LEFT');
+        const memberStatusResponse = await api.get(`/api/group/${groupId}/member/${memberId}`);
+        expect(memberStatusResponse.body.status).toBe('LEFT');
     });
 
     // Tests für /api/group/[group]/invite & /api/group/join/[token]
@@ -276,18 +271,18 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         });
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('expiresAt Date and createdBy (Player) ID required');
+        expect(response.body.message).toBe('createdBy (Player) ID required');
     });
 
     // Test: POST (ungültiges Tokenformat)
     test('POST Join Token: Should fail with invalid token format (Status 400)', async () => {
-        const player2Resp = await api.post('/api/player', { name: 'JoiningPlayer2' });
+        const player2Resp = await api.post('/api/player', { name: 'JoiningPlayer2', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-p3' });
         const player2Id = player2Resp.body.player.id;
 
         const response = await api.post('/api/group/join/not-a-valid-token-format', { playerId: player2Id });
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('GroupInvite not found');
+        expect(response.body.message).toBe('GroupInvite not found');
     });
 
     // Test: POST (playerId im Body fehlt)
@@ -301,7 +296,7 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         const response = await api.post(`/api/group/join/${token}`, {});
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Player ID required');
+        expect(response.body.message).toBe('Player ID required');
     });
 
     // Test: POST (Erstellen eines Invite-Tokens)
@@ -325,13 +320,13 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         const token = inviteResp.body.groupInvite.token;
         await cleanupExpiredInvites();
 
-        const player2Resp = await api.post('/api/player', { name: 'JoiningPlayerExpired' });
+        const player2Resp = await api.post('/api/player', { name: 'JoiningPlayerExpired', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-p4' });
         const player2Id = player2Resp.body.player.id;
 
         const response = await api.post(`/api/group/join/${token}`, { playerId: player2Id });
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('GroupInvite not found');
+        expect(response.body.message).toBe('GroupInvite not found');
     });
 
     // Test: POST (Beitreten über Token)
@@ -342,7 +337,7 @@ describe('API /api/group/member & /api/group/invite/join', () => {
         });
         const token = inviteResp.body.groupInvite.token;
 
-        const player2Resp = await api.post('/api/player', { name: 'JoiningPlayer' });
+        const player2Resp = await api.post('/api/player', { name: 'JoiningPlayer', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-p5' });
         const player2Id = player2Resp.body.player.id;
 
         const response = await api.post(`/api/group/join/${token}`, { playerId: player2Id });
