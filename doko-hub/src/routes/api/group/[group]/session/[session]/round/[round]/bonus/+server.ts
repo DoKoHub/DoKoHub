@@ -54,12 +54,11 @@ export const GET: RequestHandler = async({ params, fetch }) => {
 
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
-        playerId: UUID,
-        bonus: BonusType,
-        count: z.number().int().min(0).max(10)
+        memberId: UUID,
+        bonus: BonusType
     });
 
-    const { playerId, bonus, count } = await readValidatedBody(event, bodySchema);
+    const { memberId, bonus } = await readValidatedBody(event, bodySchema);
 
     try {
 
@@ -98,9 +97,8 @@ export const POST: RequestHandler = async(event) => {
             .insert(roundBonus)
             .values({
                 roundId: roundId,
-                playerId: playerId,
-                bonus: bonus,
-                count: count
+                memberId: memberId,
+                bonus: bonus
             })
             .returning();
         

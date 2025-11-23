@@ -32,7 +32,7 @@ export const gameType = pgEnum('game_type', [
 	'SOLO_NULL'
 ]);
 
-export const soloColor = pgEnum('solo_color', ['CLUBS', 'SPADES', 'HEARTS', 'DIAMONDS']);
+export const soloKind = pgEnum('solo_kind', ['CLUBS', 'SPADES', 'HEARTS', 'DIAMONDS']);
 
 export const side = pgEnum('side', ['RE', 'KONTRA']);
 
@@ -43,25 +43,19 @@ export const bonusType = pgEnum('bonus_type', ['DOKO', 'FUCHS', 'KARLCHEN', 'LAU
 
 export const player = pgTable('player', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	name: varchar('name', { length: 35 }).notNull()
+	name: varchar('name', { length: 35 }).notNull(),
+	provider: authProvider('provider').notNull(),
+	subject: varchar('subject', { length: 100 }).notNull(),
+	email: varchar('email', { length: 255 }),
+	createdAt: timestamp('created_at')
 });
 
 export const playgroup = pgTable('playgroup', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: varchar('name', { length: 35 }).notNull(),
 	createdOn: date('created_on'),
-	lastPlayedOn: date('last_played_on'),
-	note: text('note')
+	lastPlayedOn: date('last_played_on')
 });
-
-export const playerIdentity = pgTable('player_identity', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
-	provider: authProvider('provider').notNull(),
-	subject: varchar('subject', { length: 100 }).notNull(),
-	email: varchar('email', { length: 255 }),
-	createdAt: timestamp('created_at')
-})
 
 export const groupInvite = pgTable('group_invite', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -72,20 +66,13 @@ export const groupInvite = pgTable('group_invite', {
 })
 
 export const playgroupMember = pgTable('playgroup_member', {
+	id: uuid('id').primaryKey().defaultRandom(),
 	groupId: uuid('group_id').references(() => playgroup.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
+	playerId: uuid('player_id').references(() => player.id),
 	nickname: varchar('nickname', { length: 35 }),
 	status: memberstatus('status'),
 	leftAt: timestamp('left_at')
-},
-	(table) => {
-		return {
-			playgroupMemberId: primaryKey({
-				name: 'playgroup_member_id',
-				columns: [table.groupId, table.playerId]
-			})
-		}
-	})
+})
 
 export const session = pgTable('session', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -98,12 +85,13 @@ export const session = pgTable('session', {
 
 export const sessionMember = pgTable('session_member', {
 	sessionId: uuid('session_id').references(() => session.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
+	memberId: uuid('member_id').references(() => playgroupMember.id).notNull(),
+	seatPos: integer('seat_pos')
 }, (table) => {
 	return {
 		sessionMemberPk: primaryKey({
 			name: 'session_member_pk',
-			columns: [table.sessionId, table.playerId]
+			columns: [table.sessionId, table.memberId]
 		})
 	};
 });
@@ -113,32 +101,19 @@ export const round = pgTable('round', {
 	sessionId: uuid('session_id').references(() => session.id).notNull(),
 	roundNum: integer('round_num'),
 	gameType: gameType('game_type').notNull(),
-	soloColor: soloColor('solo_color')
+	soloKind: soloKind('solo_kind'),
+	eyesRe: integer('eyes_re').notNull()
 });
 
 export const roundParticipation = pgTable('round_participation', {
 	roundId: uuid('round_id').references(() => round.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
-	side: side('side').notNull(),      // 'RE' | 'KONTRA'
-	seatPos: integer('seat_pos').notNull() // 1..4
+	memberId: uuid('member_id').references(() => playgroupMember.id).notNull(),
+	side: side('side').notNull()
 }, (table) => {
 	return {
 		roundParticipationPk: primaryKey({
 			name: 'round_participation_pk',
-			columns: [table.roundId, table.playerId]
-		})
-	};
-});
-
-export const roundScore = pgTable('round_score', {
-	roundId: uuid('round_id').references(() => round.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
-	eyes: integer('eyes').notNull().default(0)
-}, (table) => {
-	return {
-		roundScorePk: primaryKey({
-			name: 'round_score_pk',
-			columns: [table.roundId, table.playerId]
+			columns: [table.roundId, table.memberId]
 		})
 	};
 });
@@ -146,28 +121,14 @@ export const roundScore = pgTable('round_score', {
 export const roundCall = pgTable('round_call', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	roundId: uuid('round_id').references(() => round.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
+	memberId: uuid('member_id').references(() => playgroupMember.id).notNull(),
 	call: callType('call').notNull()
 });
 
 export const roundBonus = pgTable('round_bonus', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	roundId: uuid('round_id').references(() => round.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
-	bonus: bonusType('bonus').notNull(),
-	count: integer('count').notNull().default(0)
-});
-
-export const roundPoints = pgTable('round_points', {
-	roundId: uuid('round_id').references(() => round.id).notNull(),
-	playerId: uuid('player_id').references(() => player.id).notNull(),
-	score: integer('score').notNull()
-}, (table) => {
-	return {
-		roundPointsPk: primaryKey({
-			name: 'round_points_pk',
-			columns: [table.roundId, table.playerId]
-		})
-	};
+	memberId: uuid('member_id').references(() => playgroupMember.id).notNull(),
+	bonus: bonusType('bonus').notNull()
 });
 

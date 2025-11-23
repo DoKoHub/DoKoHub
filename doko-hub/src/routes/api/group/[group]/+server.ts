@@ -1,5 +1,4 @@
 import { badRequest, ok, serverError } from "$lib/http";
-import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { groupInvite, playgroup } from "$lib/server/db/schema";
 import { PlayGroup, UUID, type PlayGroupMember } from "$lib/types";
@@ -25,6 +24,17 @@ export const GET: RequestHandler = async({ params }) => {
         // Pruefen ob Gruppen zurueckgegeben wurden
         if (!groupsFromDB[0]) {
             return badRequest({ message: 'PlayGroup not found' });
+        }
+
+        const response = await fetch(`api/group/${groupsFromDB[0].id}/member`);
+        const body = await response.json();
+
+        const finalGroup: PlayGroup = {
+            id: groupsFromDB[0].id as UUID,
+            name: groupsFromDB[0].name,
+            createdOn: groupsFromDB[0].createdOn ? new Date(groupsFromDB[0].createdOn) : null,
+            lastPlayedOn: groupsFromDB[0].lastPlayedOn ? new Date(groupsFromDB[0].lastPlayedOn) : null,
+            members: body as PlayGroupMember[]
         }
 
         // OK und Gruppe zurueckgeben
@@ -57,7 +67,6 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .set({
                 name: newGroup.name,
                 lastPlayedOn: newGroup.lastPlayedOn,
-                note: newGroup.note
             })
             .where(eq(playgroup.id, groupId))
             .returning();

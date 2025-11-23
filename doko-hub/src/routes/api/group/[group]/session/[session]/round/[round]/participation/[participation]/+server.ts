@@ -1,10 +1,9 @@
-import { badRequest, serverError } from "$lib/http";
+import { badRequest, serverError, ok } from "$lib/http";
 import { db } from "$lib/server/db";
 import { roundParticipation, sessionMember } from "$lib/server/db/schema";
 import { RoundParticipation, UUID } from "$lib/types";
 import { isSessionMember } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
-import { ok } from "assert";
 import { and, eq } from "drizzle-orm";
 
 
@@ -13,7 +12,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
         const groupId = params.group;
         const sessionId = params.session;
         const roundId = params.round;
-        const playerId = params.participation;
+        const memberId = params.participation;
 
         if (!groupId || !(UUID.safeParse(groupId)).success) {
             return badRequest({ message: 'PlayGroup ID required' });
@@ -27,7 +26,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Round ID required' });
         }
 
-        if (!playerId || !(UUID.safeParse(playerId)).success) {
+        if (!memberId || !(UUID.safeParse(memberId)).success) {
             return badRequest({ message: 'Player ID required' });
         }
 
@@ -46,7 +45,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Round not found' });
         }
 
-        if (!isSessionMember(sessionId, playerId)) {
+        if (!isSessionMember(sessionId, memberId)) {
             return badRequest({ message: 'SessionMember not found' });
         }
 
@@ -55,7 +54,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             .from(roundParticipation)
             .where(and(
                 eq(roundParticipation.roundId, roundId),
-                eq(roundParticipation.playerId, playerId)
+                eq(roundParticipation.memberId, memberId)
             ));
         
         if (!participation) {

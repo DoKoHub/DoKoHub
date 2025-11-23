@@ -17,7 +17,7 @@ export const GET: RequestHandler = async({ params }) => {
         }
         
         if (!memberId || !(UUID.safeParse(memberId).success)) {
-            return badRequest({ message: 'PlayGroupMember (Player) ID required' });
+            return badRequest({ message: 'PlayGroupMember ID required' });
         }
 
         const membersFromDB = await db
@@ -25,7 +25,7 @@ export const GET: RequestHandler = async({ params }) => {
             .from(playgroupMember)
             .where(and(
                 eq(playgroupMember.groupId, groupId),
-                eq(playgroupMember.playerId, memberId)
+                eq(playgroupMember.id, memberId)
             ));
         
         if (!membersFromDB[0]) {
@@ -48,7 +48,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
         }
         
         if (!memberId || !(UUID.safeParse(memberId).success)) {
-            return badRequest({ message: 'PlayGroupMember (Player) ID required' });
+            return badRequest({ message: 'PlayGroupMember ID required' });
         }
 
         const body = await request.json();
@@ -87,7 +87,7 @@ export const DELETE: RequestHandler = async({ params }) => {
         }
         
         if (!memberId || !(UUID.safeParse(memberId).success)) {
-            return badRequest({ message: 'PlayGroupMember (Player) ID required' });
+            return badRequest({ message: 'PlayGroupMember ID required' });
         }
 
         const [deletedMember] = await db

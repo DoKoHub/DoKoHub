@@ -1,6 +1,6 @@
 import { badRequest, created, ok, serverError } from "$lib/http";
 import type { RequestHandler } from "@sveltejs/kit";
-import { UUID as UUIDSchema, Session, Ruleset, ISODate } from "$lib/types";
+import { UUID as UUIDSchema, Session, Ruleset, ISODate, UUID, SessionMember } from "$lib/types";
 import { db } from "$lib/server/db";
 import { session } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -29,7 +29,25 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             .from(session)
             .where(eq(session.groupId, groupId));
 
-        const sessions: Session[] = sessionsFromDB as Session[];
+        const sessions: Session[] = [];
+        for (let i = 0; i < sessionsFromDB.length; i++) {
+            const session = sessionsFromDB[i];
+            
+            const response = await fetch(`api/group/${groupId}/session/${session.id}/sessionmember`)
+            const body = await response.json();
+
+            sessions.push({
+                id: session.id as UUID,
+                groupId: session.groupId as UUID,
+                ruleset: session.ruleset,
+                plannedRounds: session.plannedRounds,
+                startedAt: session.startedAt,
+                endedAt: session.endedAt,
+                members: body as SessionMember[]
+            });
+        }
+
+        
         return ok(sessions);
     } catch(error) {
         return serverError({ message: 'Database error while fetching Session[]' })

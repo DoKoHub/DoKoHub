@@ -1,10 +1,10 @@
 import { badRequest, created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { player } from "$lib/server/db/schema";
-import { Name, type Player } from "$lib/types";
+import { AuthProvider, Name, NonEmpty, type Player } from "$lib/types";
+import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
-
-import { z } from "zod";
+import z from "zod";
 
 /**
  * Schnittstelle die alle Spieler zurueckgibt
@@ -29,28 +29,31 @@ export const GET: RequestHandler = async () => {
  * @param request 
  * @returns Response
  */
-export const POST: RequestHandler = async ({ request }) => {
-  try {
-    // Request body
-    const body = await request.json();
-    const name = body.name;
+export const POST: RequestHandler = async (event) => {
+  const bodySchema = z.object({
+    name: Name,
+    provider: AuthProvider,
+    subject: NonEmpty.max(200),
+    email: z.email()
+  });
+  const { name, provider, subject, email } = await readValidatedBody(event, bodySchema)
 
-    const nameParse = Name.safeParse(name);
-    if (!nameParse.success) {
-      return badRequest({ message: 'Name required and must be a string' });
-    }
+  try {
 
     // Spieler in DB schreiben und erstelltes Objekt speichern
     const [insertedPlayer] = await db
       .insert(player)
-      .values({ name }) // bewusst: originaler Name; kein Auto-Trim im Storage
+      .values({
+        name: name,
+        provider: provider,
+        subject: subject,
+        email: email,
+        createdAt: new Date()
+      })
       .returning();
 
-    // CHANGED: keine Zod-Validierung der DB-Ausgabe, kein ZodError-Catch – wie bei den anderen
-    // OK und Spieler zurueckgeben
     return created({ message: 'Created Player', player: insertedPlayer as Player });
   } catch (error) {
-    // CHANGED: kein spezieller ZodError-Block – einheitliches Error-Handling
     return serverError({ message: 'Database error while creating Player' })
   }
 }

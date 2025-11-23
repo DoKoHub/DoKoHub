@@ -13,13 +13,13 @@ export function validateEmail(email: string): boolean {
         .test(email.toLowerCase());
 }
 
-export async function isSessionMember(sessionId: string, playerId: string) {
+export async function isSessionMember(sessionId: string, memberId: string) {
     const member = await db
         .select()
         .from(sessionMember)
         .where(and(
             eq(sessionMember.sessionId, sessionId),
-            eq(sessionMember.playerId, playerId)
+            eq(sessionMember.memberId, memberId)
         ));
     
     if (member.length == 0) {

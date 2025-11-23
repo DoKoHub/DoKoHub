@@ -1,7 +1,7 @@
 import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { round } from "$lib/server/db/schema";
-import { GameType, Round, SoloColor, UUID } from "$lib/types";
+import { GameType, Round, SoloKind, UUID } from "$lib/types";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -46,10 +46,11 @@ export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
         roundNum: z.number().int().min(1),
         gameType: GameType,
-        soloColor: SoloColor.optional().nullable()
+        soloKind: SoloKind.optional().nullable(),
+        eyesRe: z.number().int()
     });
     
-    const { roundNum, gameType, soloColor } = await readValidatedBody(event, bodySchema);
+    const { roundNum, gameType, soloKind, eyesRe } = await readValidatedBody(event, bodySchema);
 
     try {
         const groupId = event.params.group;
@@ -79,7 +80,8 @@ export const POST: RequestHandler = async(event) => {
                 sessionId: sessionId,
                 roundNum: roundNum,
                 gameType: gameType,
-                soloColor: soloColor
+                soloKind: soloKind,
+                eyesRe: eyesRe
             })
             .returning(); 
 

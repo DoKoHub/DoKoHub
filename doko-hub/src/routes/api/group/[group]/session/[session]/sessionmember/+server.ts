@@ -1,7 +1,7 @@
 import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { sessionMember } from "$lib/server/db/schema";
-import { SessionMember, UUID } from "$lib/types";
+import { SeatPos, SessionMember, UUID } from "$lib/types";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -44,9 +44,10 @@ export const GET: RequestHandler = async({ params }) => {
 
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
-        playerId: UUID
+        memberId: UUID,
+        seatPos: SeatPos.nullable()
     });
-    const {playerId} = await readValidatedBody(event, bodySchema);
+    const { memberId, seatPos } = await readValidatedBody(event, bodySchema);
 
     try {
         const groupId = event.params.group;
@@ -74,7 +75,8 @@ export const POST: RequestHandler = async(event) => {
             .insert(sessionMember)
             .values({
                 sessionId: sessionId,
-                playerId: playerId
+                memberId: memberId,
+                seatPos: seatPos
             })
             .returning();
         
