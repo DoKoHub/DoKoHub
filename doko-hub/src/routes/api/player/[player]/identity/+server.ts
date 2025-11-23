@@ -1,38 +1,19 @@
-import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
+import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playerIdentity } from "$lib/server/db/schema";
-import type { PlayerIdentity } from "$lib/types";
+import { PlayerIdentity, UUID } from "$lib/types";
 import { validateEmail } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-
-import { z } from "zod";
-
-// CHANGED: Minimale Schemas (nur Format prüfen, Verhalten bleibt)
-const UUID = z.string().uuid();
-const UpdateBodySchema = z.object({
-  playerIdentity: z.object({
-    // Email im Update ist Pflicht (laut bestehender Logik) und muss gültig sein
-    email: z.string().email()
-  })
-});
-
 
 export const GET: RequestHandler = async({ params }) => {
     try {
         // Player ID aus der URL
         const playerID = params.player;
         //Falls UUID leer ist
-        if (!playerID) {
-            return new BadResponse('Player ID required');
+        if (!playerID || !(UUID.safeParse(playerID).success)) {
+            return badRequest({ message: 'Player ID required' });
         }
-
-        // CHANGED: zusätzlich UUID-Format prüfen (gleiche Fehlermeldung)
-    if (!UUID.safeParse(playerID).success) {
-      return new BadResponse("Player ID required");
-    }
-
-
 
         // PlayerIdentity aus der DB holen
         const [dbPlayerIdentity] = await db
@@ -42,14 +23,14 @@ export const GET: RequestHandler = async({ params }) => {
 
         // Pruefen ob die identitset null ist
         if (!dbPlayerIdentity) {
-            return new BadResponse('PlayerIdentity not found');
+            return badRequest({ message: 'PlayerIdentity not found' });
         }
 
         // OK und PlayerIdentity zurueckgeben
-        return new GETResponse(dbPlayerIdentity as PlayerIdentity);
+        return ok(dbPlayerIdentity as PlayerIdentity);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while fetching PlayerIdentity');
+        return serverError({message: 'Database error while fetching PlayerIdentity'})
     }
 }
 
@@ -58,54 +39,38 @@ export const PUT: RequestHandler = async({ request, params }) => {
         // Player ID aus der URL
         const playerID = params.player;
         //Falls UUID leer ist
-        if (!playerID) {
-            return new BadResponse('Player ID required');
+        if (!playerID || !(UUID.safeParse(playerID).success)) {
+            return badRequest({ message: 'Player ID required' });
         }
-
-        // CHANGED: zusätzlich UUID-Format prüfen (gleiche Fehlermeldung)
-    if (!UUID.safeParse(playerID).success) {
-      return new BadResponse("Player ID required");
-    }
 
         // Request body
         const body = await request.json();
 
-        if (!body.playerIdentity) {
-            return new BadResponse('Valid PlayerIdentity required');
+        if (!body.playerIdentity || !(PlayerIdentity.safeParse(body.playerIdentity).success)) {
+            return badRequest({ message: 'PlayerIdentity required' });
         }
 
-        //Mapping
-        const newPlayerIdentity: PlayerIdentity = body.playerIdentity as PlayerIdentity;
-
-        // CHANGED: zusätzlich Zod-Validierung (gleiche Fehlermeldung bei Verstoß)
-    const parsed = UpdateBodySchema.safeParse({ playerIdentity: newPlayerIdentity });
-    if (!parsed.success) {
-      return new BadResponse("Valid email required");
-    }
-
-
-
-        if (!newPlayerIdentity.email || !validateEmail(newPlayerIdentity.email)) {
-            return new BadResponse('Valid email required');
+        if (!validateEmail(body.playerIdentity.email)) {
+            return badRequest({ message: 'Valid Email required' });
         }
 
         // PlayerIdentity updaten und als Objekt zurueckgeben   
         const [updatedPlayerIdentity] = await db
             .update(playerIdentity)
-            .set({ email: newPlayerIdentity.email })
+            .set({ email: body.playerIdentity.email })
             .where(eq(playerIdentity.playerId, playerID))
             .returning();
 
         // Pruefen ob Identität null ist
         if (!updatedPlayerIdentity) {
-            return new BadResponse('PlayerIdentity not found');
+            return badRequest({ message: 'PlayerIdentity not found' });
         }
 
         // OK und aktualisierte PlayerIdentity zurueckgeben
-        return new PUTOrDeleteResponse('Updated PlayerIdentity', {name: 'playerIdentity', data: updatedPlayerIdentity as PlayerIdentity});
+        return ok({ message: 'Updated PlayerIdentity', playerIdentity: updatedPlayerIdentity as PlayerIdentity });
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while updating PlayerIdentity');
+        return serverError({ message: 'Database error while updating PlayerIdentity' });
     }
 }
 
@@ -114,16 +79,9 @@ export const DELETE: RequestHandler = async({ params }) => {
         // Player ID aus der URL
         const playerID = params.player;
         //Falls UUID leer ist
-        if (!playerID) {
-            return new BadResponse('Player ID required');
+        if (!playerID || !(UUID.safeParse(playerID).success)) {
+            return badRequest('Player ID required');
         }
-
-        // CHANGED: zusätzlich UUID-Format prüfen (gleiche Fehlermeldung)
-    if (!UUID.safeParse(playerID).success) {
-      return new BadResponse("Player ID required");
-    }
-
-
 
         // PlayerIdentity aus der DB loeschen und als Objekt speichern
         const [dbPlayerIdentity] = await db
@@ -133,13 +91,13 @@ export const DELETE: RequestHandler = async({ params }) => {
 
         // Pruefen ob geloeschtes Objekt null ist
         if (!dbPlayerIdentity) {
-            return new BadResponse('PlayerIdentity not found');
+            return badRequest({ message: 'PlayerIdentity not found' });
         }
 
         // OK und geloeschte Identitaet zurueckgeben
-        return new PUTOrDeleteResponse('Deleted PlayerIdentity', {name: 'playerIdentity', data: dbPlayerIdentity as PlayerIdentity});
+        return ok({ message: 'Deleted PlayerIdentity', playerIdentity: dbPlayerIdentity as PlayerIdentity });
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while deleting PlayerIdentity');
+        return serverError({ message: 'Database error while deleting PlayerIdentity' });
     }
 }

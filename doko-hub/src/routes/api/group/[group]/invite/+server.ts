@@ -1,57 +1,35 @@
-import { BadResponse, ErrorResponse, POSTResponse } from "$lib/responses";
+import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { groupInvite } from "$lib/server/db/schema";
-import type { GroupInvite } from "$lib/types";
+import { UUID, type GroupInvite } from "$lib/types";
+import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { z } from "zod";
 
+export const POST: RequestHandler = async(event) => {
+    const bodySchema = z.object({
+      expiresAt: z.coerce.date(),
+      createdBy: UUID,
+    });
+    const { expiresAt, createdBy } = await readValidatedBody(event, bodySchema);
 
-// CHANGED: Lokale Schemas nur zur Formatprüfung (UUID/Date)
-const UUID = z.string().uuid();
-const BodySchema = z.object({
-  expiresAt: z.coerce.date(), // akzeptiert ISO-String/Date → Date
-  createdBy: UUID,
-});
-
-
-export const POST: RequestHandler = async({ request, params, fetch }) => {
     try {
-        const groupId = params.group;
+        const groupId = event.params.group;
 
-        if (!groupId) {
-            return new BadResponse('PlayGroup ID Required');
-        }
-        // CHANGED: zusätzliches Format-Check für UUID (gleiche Fehlermeldung)
-    if (!UUID.safeParse(groupId).success) {
-      return new BadResponse("PlayGroup ID Required");
-    }
-
-        const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
-        if (!groupResponseBody) {
-            return new BadResponse('PlayGroup not found');
+        if (!groupId || !(UUID.safeParse(groupId)).success) {
+            return badRequest({ message: 'PlayGroup ID Required' });
         }
 
-        const body = await request.json();
-
-        const expireDate = body.expiresAt;
-        const createdBy = body.createdBy;
-
-        if (!expireDate || !createdBy) {
-            return new BadResponse('expiresAt Date and createdBy (Player) ID required');
+        const groupResponse = await event.fetch(`/api/group/${groupId}`);
+        if (groupResponse.status != 200) {
+            return badRequest({ message: 'PlayGroup not found' });
         }
-         // CHANGED: zusätzliches Validieren der Typen/Formate (gleiche Fehlermeldung)
-    const parsed = BodySchema.safeParse({ expiresAt: expireDate, createdBy });
-    if (!parsed.success) {
-      return new BadResponse("expiresAt Date and createdBy (Player) ID required");
-    }
 
-        
         const creationTemplate = {
             groupId: groupId,
             token: createToken(),
-             // CHANGED: wir nutzen das bereits geparste Datum; fallback bleibt identisch
-      expiresAt: parsed.data.expiresAt ?? (expireDate ? new Date(expireDate) : undefined),
-      createdBy: parsed.data.createdBy,
+            expiresAt: expiresAt ?? (expiresAt ? new Date(expiresAt) : undefined),
+            createdBy: createdBy,
     };
 
         const [invite] = await db
@@ -59,9 +37,9 @@ export const POST: RequestHandler = async({ request, params, fetch }) => {
             .values(creationTemplate)
             .returning();
 
-        return new POSTResponse('Created GroupInvite', {name: 'groupInvite', data: invite as GroupInvite});
+        return ok({ message: 'Created GroupInvite', groupInvite: invite as GroupInvite });
     } catch (error) {
-        return new ErrorResponse('Database error while creating GroupInvite')
+        return serverError({ message: 'Database error while creating GroupInvite' });
     }
 }
 

@@ -1,7 +1,7 @@
-import { BadResponse, ErrorResponse, GETResponse, POSTResponse } from "$lib/responses";
+import { badRequest, created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { player } from "$lib/server/db/schema";
-import type { Player } from "$lib/types";
+import { Name, type Player } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 
 import { z } from "zod";
@@ -17,9 +17,9 @@ export const GET: RequestHandler = async () => {
     const playersFromDB = await db.select().from(player);
 
     // Liste zurueckgeben
-    return new GETResponse(playersFromDB as Player[]);
+    return ok(playersFromDB as Player[])
   } catch (error) {
-    return new ErrorResponse("Database error while fetching Player[]");
+    return serverError({ message: 'Database error while fetching Player[]' });
   }
 };
 
@@ -33,19 +33,11 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     // Request body
     const body = await request.json();
-
-    // Name ueberpruefen (originale Checks bleiben)
     const name = body.name;
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
-      // Name ist nicht valide
-      return new BadResponse("Name required and must be a string");
-    }
 
-    // CHANGED: lokales, minimales Schema – genau wie bei den anderen Endpoints
-    const NameSchema = z.string().trim().min(1);
-    const nameParse = NameSchema.safeParse(name);
+    const nameParse = Name.safeParse(name);
     if (!nameParse.success) {
-      return new BadResponse("Name required and must be a string");
+      return badRequest({ message: 'Name required and must be a string' });
     }
 
     // Spieler in DB schreiben und erstelltes Objekt speichern
@@ -56,9 +48,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // CHANGED: keine Zod-Validierung der DB-Ausgabe, kein ZodError-Catch – wie bei den anderen
     // OK und Spieler zurueckgeben
-    return new POSTResponse("Created Player", { name: "player", data: insertedPlayer as Player });
+    return created({ message: 'Created Player', player: insertedPlayer as Player });
   } catch (error) {
     // CHANGED: kein spezieller ZodError-Block – einheitliches Error-Handling
-    return new ErrorResponse("Database error while creating Player");
+    return serverError({ message: 'Database error while creating Player' })
   }
 }

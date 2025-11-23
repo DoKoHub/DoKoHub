@@ -36,6 +36,7 @@ export function validateParams<T>(
   schema: ZodSchema<T>
 ): T {
   const r = schema.safeParse(event.params);
+  console.log(event.params);
   if (!r.success) throw error(400, zodErrorToResponse(r.error));
   return r.data;
 }

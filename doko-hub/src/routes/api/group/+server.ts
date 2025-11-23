@@ -1,18 +1,8 @@
-import { BadResponse, ErrorResponse, GETResponse, POSTResponse } from "$lib/responses";
+import { badRequest, created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playgroup } from "$lib/server/db/schema";
-import type { PlayGroup } from "$lib/types";
+import { Name, type PlayGroup } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
-
-import { z } from "zod";
-
-
-// CHANGED: Minimales Body-Schema (validiert nur: String, getrimmt, nicht leer)
-// Wichtig: Wir benutzen das Schema NUR zur Prüfung; gespeichert wird der Original-Name .
-const CreateBodySchema = z.object({
-  name: z.string().trim().min(1) // kein max-Limit, damit Verhalten exakt wie vorher bleibt
-});
-
 
 export const GET: RequestHandler = async() => {
     try {
@@ -22,14 +12,10 @@ export const GET: RequestHandler = async() => {
             .select()
             .from(playgroup);
         
-        // mapping
-        const groups: PlayGroup[] = groupsFromDB as PlayGroup[];
-
-        // OK und Gruppen zurueckgeben
-        return new GETResponse(groups);
+        return ok(groupsFromDB as PlayGroup[])
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while fetching PlayGroup[]')
+        return serverError({ message: 'Database error while fetching PlayGroup[]' });
     }
 }
 
@@ -40,16 +26,10 @@ export const POST: RequestHandler = async({ request }) => {
 
         // Name ueberpruefen
         const name = body.name;
-        if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        if (!name || !(Name.safeParse(name).success)) {
             // Name ist nicht valide
-            return new BadResponse('Name required and must be a string');
+            return badRequest({ message: 'Name required and must be a string' });
         }
-
-        // CHANGED: Zusätzliches Format-Checking via Zod (gleiche Fehlermeldung bei Fehler)
-    const parsed = CreateBodySchema.safeParse({ name });
-    if (!parsed.success) {
-      return new BadResponse("Name required and must be a string");
-    }
 
         const creationObj = {
             name: name,
@@ -61,9 +41,9 @@ export const POST: RequestHandler = async({ request }) => {
             .values(creationObj)
             .returning()
         
-        return new POSTResponse('Created PlayGroup', {name: 'playGroup', data: insertedGroup as PlayGroup})
+        return created({ message: 'Created PlayGroup', playGroup: insertedGroup as PlayGroup });
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while creating PlayGroup');
+        return serverError({ message: 'Database error while creating PlayGroup' })
     }
 }

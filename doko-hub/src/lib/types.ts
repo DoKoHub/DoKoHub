@@ -8,6 +8,12 @@ import { z } from "zod";
 export const UUID = z.string().uuid().brand<"UUID">();
 export type UUID = z.infer<typeof UUID>;
 
+export const Name = z.string().trim().min(1);
+export type Name = z.infer<typeof Name>;
+
+export const Token = z.string().trim().min(1).max(80);
+export type Token = z.infer<typeof Token>
+
 /** Dates: erlauben String/Date → geben Date zurück */
 export const ISODate = z.coerce.date();
 
