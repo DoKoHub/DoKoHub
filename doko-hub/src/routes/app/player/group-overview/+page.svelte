@@ -1,5 +1,4 @@
 <script lang="ts">
-  import TopAppBar, { Title, Section } from "@smui/top-app-bar";
   import List, {
     Item,
     PrimaryText,
@@ -101,85 +100,61 @@
   </Text>
 {/snippet}
 
-<div class="app-container">
-  <TopAppBar variant="fixed" class="top-bar">
-    <Section>
-      <Title>DoKoHub</Title>
-    </Section>
-  </TopAppBar>
-  <div class="app-main">
-    <List threeLine>
-      {#each groups as group}
-        <Item onclick={async () => await goto(`/app/group/${group.id}/games`)}>
-          {@render GroupItem(group)}
-        </Item>
-        <Separator />
-      {/each}
-    </List>
-  </div>
-  <!-- FAB unten rechts -->
-  <button
-    class="fab"
-    aria-label="Neue Gruppe erstellen"
-    onclick={() => (dialogOpen = true)}
-  >
-    <span class="material-icons">add</span>
-  </button>
+<List threeLine>
+  {#each groups as group}
+    <Item onclick={async () => await goto(`/app/group/${group.id}/games`)}>
+      {@render GroupItem(group)}
+    </Item>
+    <Separator />
+  {/each}
+</List>
+<!-- FAB unten rechts -->
+<button
+  class="fab"
+  aria-label="Neue Gruppe erstellen"
+  onclick={() => (dialogOpen = true)}
+>
+  <span class="material-icons">add</span>
+</button>
 
-  <!-- Dialog -->
-  <Dialog bind:open={dialogOpen} class="new-group-dialog">
-    <DialogTitle>Neue Gruppe erstellen</DialogTitle>
+<!-- Dialog -->
+<Dialog bind:open={dialogOpen} class="new-group-dialog">
+  <DialogTitle>Neue Gruppe erstellen</DialogTitle>
 
-    <DialogContent>
-      <Textfield
-        label="Name"
-        variant="filled"
-        class="w-full"
-        bind:value={groupName}
-        withTrailingIcon
-      >
-        {#snippet trailingIcon()}
-          <Icon
-            class="material-icons"
-            role="button"
-            onclick={() => (groupName = "")}
-          >
-            close
-          </Icon>
-        {/snippet}
-      </Textfield>
-    </DialogContent>
+  <DialogContent>
+    <Textfield
+      label="Name"
+      variant="filled"
+      class="w-full"
+      bind:value={groupName}
+      withTrailingIcon
+    >
+      {#snippet trailingIcon()}
+        <Icon
+          class="material-icons"
+          role="button"
+          onclick={() => (groupName = "")}
+        >
+          close
+        </Icon>
+      {/snippet}
+    </Textfield>
+  </DialogContent>
 
-    <DialogActions class="dlg-actions-right">
-      <Button onclick={() => (dialogOpen = false)}>
-        <Label>Abbrechen</Label>
-      </Button>
-      <Button
-        onclick={() => handleCreate(groupName)}
-        disabled={!groupName.trim()}
-      >
-        <Label>Ok</Label>
-      </Button>
-    </DialogActions>
-  </Dialog>
-</div>
+  <DialogActions class="dlg-actions-right">
+    <Button onclick={() => (dialogOpen = false)}>
+      <Label>Abbrechen</Label>
+    </Button>
+    <Button
+      onclick={() => handleCreate(groupName)}
+      disabled={!groupName.trim()}
+    >
+      <Label>Ok</Label>
+    </Button>
+  </DialogActions>
+</Dialog>
 
 <style>
-  :global(body) {
-    margin: 0;
-    width: 100vw;
-  }
-
-  .app-container {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .app-main {
-    margin-top: 40px; /*HACK: The app bar is 40px tall and position:fixed so we need to move 40px down so we don't intersect it*/
-    width: 100%;
-  }
   /* FAB unten rechts */
   .fab {
     position: fixed;
