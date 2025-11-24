@@ -6,6 +6,7 @@
   import { PlayGroup, UUID } from "$lib/types";
   import type { LayoutProps } from "./$types";
   import { goto } from "$app/navigation";
+  import { StaticRoute } from "$lib/frontend/routes";
 
   type Data =
     | { tag: "loading" }
@@ -17,25 +18,25 @@
         tag: "error";
         error: string;
       };
-  type Tab = "games" | "stats" | "members";
+  type Tab = "spiele" | "statistiken" | "mitglieder";
 
   const { children, params }: LayoutProps = $props();
   const groupId = UUID.parse(params.group);
-  const tabs: Tab[] = ["games", "stats", "members"];
+  const tabs: Tab[] = ["spiele", "statistiken", "mitglieder"];
 
   let page_data: Data = $state({ tag: "loading" });
-  let active: Tab = $state("games");
+  let active: Tab = $state("spiele");
 
   // Navigation bei Tab-Wechsel
   function handleTabChange(tab: Tab) {
-    if (tab === "games") goto(`/app/group/${groupId}/games`);
-    if (tab === "stats") goto(`/app/group/${groupId}/stats`);
-    if (tab === "members") goto(`/app/group/${groupId}/members`);
+    if (tab === "spiele") goto(`/app/group/${groupId}/games`);
+    if (tab === "statistiken") goto(`/app/group/${groupId}/stats`);
+    if (tab === "mitglieder") goto(`/app/group/${groupId}/members`);
   }
 
   async function goBack() {
     console.log("Zurück-Button gedrückt");
-    await goto("/app/player/group-overview");
+    await goto(StaticRoute.GROUP_OVERVIEW);
   }
 
   function openGroupSelector() {
@@ -72,7 +73,7 @@
     />
     <div class="app-main">
       <Tabs {tabs} {active} on:change={(e) => handleTabChange(e.detail)} />
-      {@render children?.()}
+      {@render children()}
     </div>
   {:else}
     Error: {page_data.error}

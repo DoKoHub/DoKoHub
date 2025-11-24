@@ -5,6 +5,7 @@
 
   import { first_time_login } from "$lib/frontend/auth";
   import { goto } from "$app/navigation";
+  import { StaticRoute } from "$lib/frontend/routes";
 
   let user_name: string = $state("");
 
@@ -13,7 +14,7 @@
     if (event.key === "Enter") {
       console.log(`Got name "${user_name}"`);
       first_time_login(user_name);
-      await goto("/app/group-overview");
+      await goto(StaticRoute.GROUP_OVERVIEW);
     }
   }
 </script>

@@ -3,21 +3,13 @@
   import TopAppBar, { Title, Section } from "@smui/top-app-bar";
   import Button, { Label } from "@smui/button";
   import { goto } from "$app/navigation";
+  import { StaticRoute } from "$lib/frontend/routes";
 
   type Tab = "groups" | "stats" | "profile";
 
   const { children }: LayoutProps = $props();
 
   let activeTab = $state<Tab>("groups");
-
-  function goTo(tab: Tab) {
-    activeTab = tab;
-
-    if (tab === "groups") {
-    } else if (tab === "stats") {
-    } else if (tab === "profile") {
-    }
-  }
 </script>
 
 <!-- Obere AppBar -->
@@ -37,7 +29,7 @@
   <Button
     class="bottom-nav-button"
     variant="text"
-    onclick={() => goto("/app/player/group-overview")}
+    onclick={() => goto(StaticRoute.GROUP_OVERVIEW)}
   >
     <div class="icon-wrapper" class:active={activeTab === "groups"}>
       <span class="material-icons nav-icon">groups</span>
@@ -49,7 +41,7 @@
   <Button
     class="bottom-nav-button"
     variant="text"
-    onclick={() => goto("/app/player/stats_overview")}
+    onclick={() => goto(StaticRoute.PLAYER_STATS)}
   >
     <div class="icon-wrapper" class:active={activeTab === "stats"}>
       <span class="material-icons nav-icon">insert_chart</span>
@@ -61,7 +53,7 @@
   <Button
     class="bottom-nav-button"
     variant="text"
-    onclick={() => goto("/app/player/profile")}
+    onclick={() => goto(StaticRoute.PLAYER_PROFILE)}
   >
     <div class="icon-wrapper" class:active={activeTab === "profile"}>
       <span class="material-icons nav-icon">person</span>
