@@ -44,20 +44,6 @@
 
   // ==== UI: Tabs, AppBar, Buttons ====
 
-  const tabs = ["Spiele", "Statistiken", "Spieler"];
-  let activeTab = $state("Spieler");
-
-  // TODO: später echten Namen der Gruppe aus Backend laden
-  const groupName = "Gruppe";
-
-  function goBack() {
-    console.log("Zurück-Button gedrückt");
-  }
-
-  function openGroupSelector() {
-    console.log("Gruppen-Auswahl öffnen");
-  }
-
   function addSomething() {
     console.log("Plus-Button gedrückt");
 
@@ -94,7 +80,7 @@
   async function confirmAdd() {
     // 1. Sicherheit: Max 4 Spieler
     if (members.length >= MAX_PLAYERS) {
-      console.log("Maximal 4 Spieler – neuer Spieler wird nicht hinzugefügt");
+      console.log("Maximal 4 Spieler - neuer Spieler wird nicht hinzugefügt");
       addOpen = false;
       newName = "";
       return;
@@ -243,26 +229,24 @@
 -->
 
 <main class="main-content">
-  {#if activeTab === "Spieler"}
-    <List class="player-list">
-      {#each members as member, i}
-        <Item
-          class="player-item-row"
-          tabindex={0}
-          role="button"
-          onclick={() => openEdit(i)}
-          onkeydown={(e: KeyboardEvent) => {
-            if (e.key === "Enter" || e.key === " ") openEdit(i);
-          }}
-        >
-          <Graphic class="material-icons">groups</Graphic>
-          <PrimaryText>{member.nickname ?? "Ohne Namen"}</PrimaryText>
-          <Meta class="material-icons" aria-hidden="true">edit</Meta>
-        </Item>
-        <Separator />
-      {/each}
-    </List>
-  {/if}
+  <List class="player-list">
+    {#each members as member, i}
+      <Item
+        class="player-item-row"
+        tabindex={0}
+        role="button"
+        onclick={() => openEdit(i)}
+        onkeydown={(e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") openEdit(i);
+        }}
+      >
+        <Graphic class="material-icons">groups</Graphic>
+        <PrimaryText>{member.nickname ?? "Ohne Namen"}</PrimaryText>
+        <Meta class="material-icons" aria-hidden="true">edit</Meta>
+      </Item>
+      <Separator />
+    {/each}
+  </List>
 </main>
 
 <!-- Dialog_New_Person -->
