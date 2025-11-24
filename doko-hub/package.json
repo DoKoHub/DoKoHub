@@ -29,6 +29,7 @@
     "@smui/banner": "^8.0.3",
     "@smui/button": "^8.0.3",
     "@smui/card": "^8.0.3",
+    "@smui/chips": "^8.0.3",
     "@smui/circular-progress": "^8.0.3",
     "@smui/dialog": "^8.0.3",
     "@smui/fab": "^8.0.3",
