@@ -33,9 +33,11 @@
     if (tab === "members") goto(`/app/group/${groupId}/members`);
   }
 
-  function goBack() {
+  async function goBack() {
     console.log("Zurück-Button gedrückt");
+    await goto("/app/player/group-overview");
   }
+
   function openGroupSelector() {
     console.log("Gruppen-Auswahl öffnen");
   }
