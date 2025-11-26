@@ -160,8 +160,6 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    background-color: #6750a4; /* Lila wie im Figma */
-    color: white;
     border: none;
     border-radius: 50%;
     width: 56px;
@@ -170,36 +168,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     cursor: pointer;
-    transition: background-color 0.2s;
+
+    /* Material Design default shadows */
+    box-shadow: var(--mdc-elevation--z6);
   }
 
-  .fab:hover {
-    background-color: #7c5ce2;
-  }
-
-  /* Dialog-Styling wie Figma */
+  /* Dialog surface: nur Radius, KEINE Farbe */
   :global(.mdc-dialog__surface) {
     border-radius: 24px;
-    background: #f4eef9;
-    color: #1b1b1f;
   }
 
-  /* Buttons unten rechts ausrichten */
+  /* Actions im Dialog rechts ausrichten */
   :global(.mdc-dialog__actions) {
     justify-content: flex-end;
-    gap: 20px;
+    gap: 16px;
   }
 
-  /* Textfield hell + Lila Akzent */
-  :global(.mdc-text-field--filled) {
-    background: #efe8f5;
+  /* Textfield: keine Farben setzen → SMUI default */
+  :global(.mdc-text-field) {
+    width: 100%;
   }
-  :global(.mdc-text-field--filled .mdc-line-ripple) {
-    background-color: #6750a4;
-  }
-  :global(.mdc-button) {
-    --mdc-theme-primary: #6750a4;
+
+  :global(.dlg-actions-right) {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
   }
 </style>
