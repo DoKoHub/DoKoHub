@@ -70,7 +70,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return badRequest({ message: 'PlayGroupMember not found'  });
         }
 
-        return ok({ message: 'Updated PlayGroupMember', playgroupMember: updatedMember as PlayGroupMember });
+        return ok({ message: 'Updated PlayGroupMember', playGroupMember: updatedMember as PlayGroupMember });
     } catch(error) {
         return serverError({ message: 'Database error while updating PlayGroupMember' });
     }

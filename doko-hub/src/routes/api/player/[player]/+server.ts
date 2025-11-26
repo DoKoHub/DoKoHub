@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db";
 import { player } from "$lib/server/db/schema";
-import type { Player } from "$lib/types";
+import { Player } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import { UUID, Name } from "$lib/types";
@@ -49,18 +49,21 @@ export const PUT: RequestHandler = async({ request, params}) => {
         }
 
         // Request body auslesen
-        const data = await request.json();
+        const body = await request.json();
         // Name aus body nehmen
-        const name = data.name;
+        const newPlayer = body.player;
         // Pruefen ob name valide ist
-        if (!name || !(Name.safeParse(name).success)) {
-            return badRequest({ message: 'Name required and must be a string' });
+        if (!newPlayer || !(Player.safeParse(newPlayer).success)) {
+            return badRequest({ message: 'Valid Player required' });
         }
 
         // Spieler namen in DB anpassen und geaendertes Objekt zurueckgeben
         const [updatedPlayer] = await db
             .update(player)
-            .set({ name: name })
+            .set({
+                name: newPlayer.name,
+                email: newPlayer.email
+            })
             .where(eq(player.id, playerID))
             .returning();
         

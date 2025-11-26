@@ -75,7 +75,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
-        return ok({ message: 'Updated PlayGroup', playgroup: updatedGroup as PlayGroup });
+        return ok({ message: 'Updated PlayGroup', playGroup: updatedGroup as PlayGroup });
     } catch(error) {
         // Falls die DB einen Fehler wirft
         console.log(error);

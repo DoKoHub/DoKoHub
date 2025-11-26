@@ -3,6 +3,8 @@ import { setupDatabase } from '../setup/+setup';
 import { db } from '$lib/server/db';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
+import { Name, Player } from '$lib/types';
+import { player } from '$lib/server/db/schema';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
@@ -118,23 +120,32 @@ describe('API /api/player/[player]', () => {
 
     // Test: PUT (Validierung - Name falscher Typ)
     test('PUT: Should fail if "name" is not a string in the update body (Status 400)', async () => {
-        const response = await api.put(`/api/player/${createdPlayerId}`, { name: 99999 });
+        const playerResponse = await api.get(`/api/player/${createdPlayerId}`);
+        let player: Player = Player.parse(playerResponse.body);
+
+        const response = await api.put(`/api/player/${createdPlayerId}`, {player: {
+            id: player.id,
+            name: 9999,
+            provider: player.provider,
+            subject: player.subject,
+            email: player.email,
+            createdAt: player.createdAt
+        }});
+
         expect(response.status).toBe(400);
-        expect(response.body.message).toBe('Name required and must be a string');
+        expect(response.body.message).toBe('Valid Player required');
     });
 
     // Test: PUT (Erfolgreiche Aktualisierung des Namens und der E-Mail)
     test('PUT: Should successfully update the player name and email (Status 200)', async () => {
+        const playerResponse = await api.get(`/api/player/${createdPlayerId}`);
+        let player: Player = Player.parse(playerResponse.body);
         const newName = 'UpdatedName';
         const newEmail = 'new.email@updated.com';
-        const updateData = { 
-            name: newName, 
-            email: newEmail, 
-            provider: MOCK_PLAYER_DATA_FULL.provider,
-            subject: MOCK_PLAYER_DATA_FULL.subject
-        };
+        player.name = newName;
+        player.email = newEmail;
 
-        const response = await api.put(`/api/player/${createdPlayerId}`, updateData);
+        const response = await api.put(`/api/player/${createdPlayerId}`, {player: player});
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Updated Player');
@@ -146,14 +157,20 @@ describe('API /api/player/[player]', () => {
     test('PUT: Should fail if "name" is missing in the update body (Status 400)', async () => {
         const response = await api.put(`/api/player/${createdPlayerId}`, {});
         expect(response.status).toBe(400);
-        expect(response.body.message).toBe('Name required and must be a string');
+        expect(response.body.message).toBe('Valid Player required');
     });
 
     // TEST: PUT (Validierung - Name leer)
     test('PUT: Should fail if "name" is an empty string (Status 400)', async () => {
-        const response = await api.put(`/api/player/${createdPlayerId}`, { name: '  ' });
+        const playerResponse = await api.get(`/api/player/${createdPlayerId}`);
+        let player: Player = Player.parse(playerResponse.body);
+        const newName = ' ';
+        player.name = newName;
+
+        const response = await api.put(`/api/player/${createdPlayerId}`, {player: player});
+
         expect(response.status).toBe(400);
-        expect(response.body.message).toBe('Name required and must be a string');
+        expect(response.body.message).toBe('Valid Player required');
     });
 
     // Test: DELETE (Spieler existiert nicht)
