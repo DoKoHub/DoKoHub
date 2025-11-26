@@ -1,5 +1,4 @@
 import { badRequest, ok, serverError } from "$lib/http";
-import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
 import { db } from "$lib/server/db";
 import { playgroupMember } from "$lib/server/db/schema";
 import { PlayGroupMember, UUID, type PlayerStatus } from "$lib/types";
@@ -63,7 +62,7 @@ export const PUT: RequestHandler = async({ request, params }) => {
             .set(newMember)
             .where(and(
                 eq(playgroupMember.groupId, groupId),
-                eq(playgroupMember.playerId, memberId)
+                eq(playgroupMember.id, memberId)
             ))
             .returning();
         
@@ -98,7 +97,7 @@ export const DELETE: RequestHandler = async({ params }) => {
             })
             .where(and(
                 eq(playgroupMember.groupId, groupId),
-                eq(playgroupMember.playerId, memberId)
+                eq(playgroupMember.id, memberId)
             ))
             .returning();
         

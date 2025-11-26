@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "./server/db";
-import { sessionMember } from "./server/db/schema";
+import { playgroupMember, sessionMember } from "./server/db/schema";
 
 export function validateEmail(email: string): boolean {
     // Entferne umschließende einfache oder doppelte Anführungszeichen
@@ -22,6 +22,22 @@ export async function isSessionMember(sessionId: string, memberId: string) {
             eq(sessionMember.memberId, memberId)
         ));
     
+    if (member.length == 0) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+export async function isPlayGroupMember(groupId: string, playerId: string) {
+    const member = await db
+        .select()
+        .from(playgroupMember)
+        .where(and(
+            eq(playgroupMember.groupId, groupId),
+            eq(playgroupMember.playerId, playerId)
+        ));
+
     if (member.length == 0) {
         return false;
     } else {

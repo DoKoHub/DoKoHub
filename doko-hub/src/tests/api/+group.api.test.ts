@@ -10,7 +10,7 @@ const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 const MOCK_PLAYER_DATA_FULL = {
     provider: 'GOOGLE',
     subject: 'group-test-sub',
-    email: 'group.test@example.com',
+    email: 'group.test@example.com'
 };
 
 afterAll(async () => {
@@ -24,38 +24,76 @@ afterAll(async () => {
 // Tests für /api/group (GET & POST)
 
 describe('API /api/group', () => {
-    beforeEach(setupDatabase);
+    let mockCreatorId: string;
+    const mockNickname = 'GroupCreatorNick';
 
-    // Test: GET (Liste von allen Gruppen)
-    test('GET: Should return a list of all PlayGroup objects (Status 200)', async () => {
-        await api.post('/api/group', { name: 'GroupA' });
-        await api.post('/api/group', { name: 'GroupB' });
+    beforeEach(async () => {
+        await setupDatabase();
+        const playerResp = await api.post('/api/player', {
+            name: 'CreatorPlayer',
+            ...MOCK_PLAYER_DATA_FULL,
+            subject: 'creator-sub'
+        });
+        mockCreatorId = playerResp.body.player.id;
+    });
+
+    // Test: GET (Liste von allen Gruppen) - ANGEPASST für korrigiertes Rückgabeobjekt
+    test('GET: Should return a list of all PlayGroup objects (Status 200) including members', async () => {
+        await api.post('/api/group', { name: 'GroupA', creatorId: mockCreatorId, nickname: 'CreatorA' });
+
+        const player2Resp = await api.post('/api/player', { name: 'CreatorPlayer2', ...MOCK_PLAYER_DATA_FULL, subject: 'creator-sub-2' });
+        const mockCreatorId2 = player2Resp.body.player.id;
+
+        await api.post('/api/group', { name: 'GroupB', creatorId: mockCreatorId2, nickname: 'CreatorB' });
 
         const response = await api.get('/api/group');
         expect(response.status).toBe(200);
         expect(response.body.length).toBe(2);
+
+        expect(response.body[0].members).toBeDefined();
+        expect(response.body[0].members.length).toBe(1);
+        expect(response.body[1].members.length).toBe(1);
     });
 
     // Test: POST (Name kein String)
     test('POST: Should fail if "name" is not a string (Status 400)', async () => {
-        const response = await api.post('/api/group', { name: 1001 });
+        const response = await api.post('/api/group', { name: 1001, creatorId: mockCreatorId }); 
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Validation failed');
     });
 
     // Test: POST (Anlegen einer neuen Gruppe)
-    test('POST: Should successfully create a new PlayGroup (Status 201)', async () => {
+    test('POST: Should successfully create a new PlayGroup and add the creator as member (Status 201)', async () => {
         const groupName = 'NewGamingGroup';
-        const response = await api.post('/api/group', { name: groupName });
+        console.log('/api/group', { 
+            name: groupName,
+            creatorId: mockCreatorId,
+            nickname: mockNickname
+        });
+        const response = await api.post('/api/group', { 
+            name: groupName,
+            creatorId: mockCreatorId,
+            nickname: mockNickname
+        });
 
         expect(response.status).toBe(201);
         expect(response.body.message).toBe('Created PlayGroup');
         expect(response.body.playGroup.name).toBe(groupName);
+        expect(response.body.playGroup.members.length).toBe(1);
+        expect(response.body.playGroup.members[0].playerId).toBe(mockCreatorId);
+        expect(response.body.playGroup.members[0].nickname).toBe(mockNickname);
     });
 
     // Test: POST (Name ist leer)
     test('POST: Should fail if "name" is empty (Status 400)', async () => {
-        const response = await api.post('/api/group', { name: '  ' });
+        const response = await api.post('/api/group', { name: '  ', creatorId: mockCreatorId }); 
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('Validation failed');
+    });
+
+    // Test: POST (creatorId fehlt)
+    test('POST: Should fail if "creatorId" is missing (Status 400)', async () => {
+        const response = await api.post('/api/group', { name: 'TestName' });
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Validation failed');
     });
@@ -65,10 +103,19 @@ describe('API /api/group', () => {
 
 describe('API /api/group/[group]', () => {
     let createdGroupId: string;
+    let mockCreatorId: string;
 
     beforeEach(async () => {
         await setupDatabase();
-        const response = await api.post('/api/group', { name: 'GroupToManage' });
+        const playerResp = await api.post('/api/player', {
+            name: 'CreatorPlayerForGroup',
+            provider: 'GOOGLE',
+            subject: 'group-test-sub',
+            email: 'group.test@example.com'
+        });
+        mockCreatorId = playerResp.body.player.id;
+
+        const response = await api.post('/api/group', { name: 'GroupToManage', creatorId: mockCreatorId });
         createdGroupId = response.body.playGroup.id;
     });
 
@@ -83,6 +130,8 @@ describe('API /api/group/[group]', () => {
     test('GET: Should return the specific PlayGroup object (Status 200)', async () => {
         const response = await api.get(`/api/group/${createdGroupId}`);
         expect(response.status).toBe(200);
+        expect(response.body.members).toBeDefined();
+        expect(response.body.members.length).toBe(1);
     });
 
     // Test: GET (Gruppe existiert nicht)
@@ -101,7 +150,7 @@ describe('API /api/group/[group]', () => {
 
     // Test: PUT (Leerer Name)
     test('PUT: Should fail if "name" is an empty string (Status 400)', async () => {
-        const response = await api.put(`/api/group/${createdGroupId}`, { name: '  ' });
+        const response = await api.put(`/api/group/${createdGroupId}`, { name: '  ' });
         expect(response.status).toBe(400);
         expect(response.body.message).toBe('Valid PlayGroup required');
     });
@@ -151,17 +200,15 @@ describe('API /api/group/member & /api/group/invite/join', () => {
     beforeEach(async () => {
         await setupDatabase();
 
-        const groupResp = await api.post('/api/group', { name: 'MemberTestGroup' });
+        const creatorResp = await api.post('/api/player', { name: 'CreatorPlayer', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-creator' });
+        const creatorId = creatorResp.body.player.id;
+
+        const groupResp = await api.post('/api/group', { name: 'MemberTestGroup', creatorId: creatorId });
         groupId = groupResp.body.playGroup.id;
 
-        const playerResp = await api.post('/api/player', { name: 'Player1', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-p1' });
-        playerId = playerResp.body.player.id;
-
-        const memberResp = await api.post(`/api/group/${groupId}/member`, { playerId: playerId });
-        if (memberResp.status !== 201) {
-            throw new Error(`Failed to create initial member: Status ${memberResp.status}. Body: ${JSON.stringify(memberResp.body)}`);
-        }
-        memberId = memberResp.body.playGroupMember.id;
+        const members = groupResp.body.playGroup.members;
+        memberId = members[0].id;
+        playerId = creatorId;
     });
 
     // Tests für /api/group/[group]/member

@@ -38,7 +38,10 @@ describe('API /api/group/[group]/session', () => {
         await setupDatabase();
         
         // 1. Player erstellen (mit Identity Daten)
-        const playerResp = await api.post('/api/player', { name: 'Creator1', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-s1' });
+        const playerResp = await api.post('/api/player', {
+            name: 'Creator1', 
+            ...MOCK_PLAYER_DATA_FULL
+        });
         playerId = playerResp.body.player.id;
         
         // 2. Gruppe erstellen (muss createdBy enthalten)
