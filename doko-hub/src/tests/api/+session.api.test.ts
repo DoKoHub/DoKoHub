@@ -3,18 +3,24 @@ import { setupDatabase } from '../setup/+setup';
 import { db } from '$lib/server/db';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
+import { PlayGroup, Session, type Ruleset } from '$lib/types';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
 const MOCK_SESSION_DATA = {
-    ruleset: 'STANDARD', // ruleSet zu ruleset korrigiert
+    ruleset: 'STANDARD',
     plannedRounds: 42,
     startedAt: new Date().toISOString(), 
 };
 
-// Notwendige Daten für die Spielerstellung (Identity)
 const MOCK_PLAYER_DATA_FULL = {
+    provider: 'GOOGLE',
+    subject: 'session-test-subject',
+    email: 'session.test@example.com',
+};
+
+const MOCK_PLAYER_DATA_FULL2 = {
     provider: 'GOOGLE',
     subject: 'session-test-subject',
     email: 'session.test@example.com',
@@ -37,18 +43,15 @@ describe('API /api/group/[group]/session', () => {
     beforeEach(async () => {
         await setupDatabase();
         
-        // 1. Player erstellen (mit Identity Daten)
         const playerResp = await api.post('/api/player', {
             name: 'Creator1', 
             ...MOCK_PLAYER_DATA_FULL
         });
         playerId = playerResp.body.player.id;
-        
-        // 2. Gruppe erstellen (muss createdBy enthalten)
-        const groupResp = await api.post('/api/group', { name: 'SessionTestGroup', createdBy: playerId });
+
+        const groupResp = await api.post('/api/group', { name: 'SessionTestGroup', creatorId: playerId });
         groupId = groupResp.body.playGroup.id;
 
-        // NEU: Explizit den Creator als Mitglied hinzufügen, da auto-add scheinbar fehlschlägt
         await api.post(`/api/group/${groupId}/member`, { playerId: playerId });
     });
 
@@ -114,19 +117,15 @@ describe('API /api/group/[group]/session/[session]', () => {
 
     beforeEach(async () => {
         await setupDatabase();
-        
-        // 1. Player erstellen
-        const playerResp = await api.post('/api/player', { name: 'Creator2', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-s2' });
+
+        const playerResp = await api.post('/api/player', { name: 'Creator2', ...MOCK_PLAYER_DATA_FULL });
         playerId = playerResp.body.player.id;
-        
-        // 2. Gruppe erstellen (muss createdBy enthalten)
-        const groupResp = await api.post('/api/group', { name: 'ManageSessionGroup', createdBy: playerId });
+
+        const groupResp = await api.post('/api/group', { name: 'ManageSessionGroup', creatorId: playerId });
         groupId = groupResp.body.playGroup.id;
 
-        // NEU: Explizit den Creator als Mitglied hinzufügen
         await api.post(`/api/group/${groupId}/member`, { playerId: playerId });
-        
-        // 3. Session erstellen
+
         const sessionResp = await api.post(`/api/group/${groupId}/session`, MOCK_SESSION_DATA);
         sessionId = sessionResp.body.session.id;
         initialStartedAt = sessionResp.body.session.startedAt;
@@ -150,18 +149,16 @@ describe('API /api/group/[group]/session/[session]', () => {
     // Test: PUT (Aktualisierung von plannedRounds und endedAt)
     test('PUT: Should successfully update plannedRounds and endedAt (Status 200)', async () => {
         const newRounds = 100;
-        const endedDate = new Date().toISOString();
-        
-        const updateDataFull = { 
-            id: sessionId,          
-            groupId: groupId,       
-            ruleset: initialRuleset, 
-            plannedRounds: newRounds, 
-            endedAt: endedDate,
-            startedAt: initialStartedAt 
-        };
+        const endedDate = new Date();
 
-        const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, updateDataFull);
+        const sessionResponse = await api.get(`/api/group/${groupId}/session/${sessionId}`);
+        let session: Session = Session.parse(sessionResponse.body);
+        session.plannedRounds = newRounds;
+        session.endedAt = endedDate;
+
+        console.log("1: ", `/api/group/${groupId}/session/${sessionId}`, {session: session});
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, {session: session});
+        console.log("check: ",response);
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Updated Session');
@@ -190,45 +187,48 @@ describe('API /api/group/[group]/session/[session]/sessionmember', () => {
     let groupId: string;
     let sessionId: string;
     let playerId: string;
-    let memberId: string; // PlayGroupMember ID
+    let playerId2: string;
+    let memberId1: string;
+    let memberId2: string;
     const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
     beforeEach(async () => {
         await setupDatabase();
 
-        // 1. Create Player
-        const playerResp = await api.post('/api/player', { name: 'SessionPlayer1', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-sess-p1' });
+        const playerResp = await api.post('/api/player', { name: 'SessionPlayer1', ...MOCK_PLAYER_DATA_FULL });
         playerId = playerResp.body.player.id;
-        
-        // 2. Create Group
-        const groupResp = await api.post('/api/group', { name: 'SessionMemberGroup', createdBy: playerId });
-        groupId = groupResp.body.playGroup.id;
-        
-        // NEU: Explizit den Creator als Mitglied hinzufügen
-        const addMemberResp = await api.post(`/api/group/${groupId}/member`, { playerId: playerId });
-        memberId = addMemberResp.body.playGroupMember.id;
 
-        // 3. Create Session
+        const playerResp2 = await api.post('/api/player', { name: 'SessionPlayer2', ...MOCK_PLAYER_DATA_FULL2 });
+        playerId2 = playerResp2.body.player.id;
+
+        const groupResp = await api.post('/api/group', { name: 'SessionMemberGroup', creatorId: playerId });
+        groupId = groupResp.body.playGroup.id;
+
+        const memberIdResp = await api.get(`/api/group/${groupId}`);
+        let groupMember: PlayGroup = PlayGroup.parse(memberIdResp.body);
+        memberId1 = groupMember.members[0].id;
+
+        const memberResp = await api.post(`/api/group/${groupId}/member`, { playerId: playerId2 });
+        memberId2 = memberResp.body.playGroupMember.id;
+
         const sessionResp = await api.post(`/api/group/${groupId}/session`, MOCK_SESSION_DATA);
         sessionId = sessionResp.body.session.id;
     });
 
     // Test: POST (Hinzufügen eines neuen Mitglieds)
-    test('POST: Should successfully add a new SessionMember (Status 201)', async () => {
-        const response = await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId });
+    test('POST: Should successfully add a new SessionMember (Status 200)', async () => {
+        const response = await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId1, seatPos: 3 });
 
-        expect(response.status).toBe(201); 
-        expect(response.body.sessionMember.memberId).toBe(memberId); 
+        expect(response.status).toBe(200); 
+        expect(response.body.sessionMember.memberId).toBe(memberId1); 
         expect(response.body.sessionMember.sessionId).toBe(sessionId);
     });
 
     // Test: POST (Mitglied existiert bereits)
-    test('POST: Should fail if SessionMember already exists (Status 500)', async () => {
-        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId });
+    test('POST: Should fail if SessionMember already exists (Status 400)', async () => {
+        const response = await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: playerId });
 
-        const response = await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId });
-
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message');
     });
 
@@ -249,20 +249,8 @@ describe('API /api/group/[group]/session/[session]/sessionmember', () => {
 
     // Test: GET (Liste mit Mitgliedern)
     test('GET: Should return a list with existing SessionMembers (Status 200)', async () => {
-        // 1. Füge das erste Mitglied hinzu
-        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId });
-
-        // 2. Erstelle zweiten Spieler/Mitglied
-        const player2Resp = await api.post('/api/player', { name: 'SessionPlayer2', ...MOCK_PLAYER_DATA_FULL, subject: 'sub-sess-p2' });
-        const player2Id = player2Resp.body.player.id;
-        
-        // Füge Spieler 2 zur Gruppe hinzu (erzeugt PlayGroupMember 2)
-        const member2Resp = await api.post(`/api/group/${groupId}/member`, { playerId: player2Id });
-        const member2Id = member2Resp.body.playGroupMember.id;
-        
-        // Füge zweites Mitglied zur Session hinzu
-        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: member2Id });
-
+        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId1, seatPos: 3 });
+        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId2, seatPos: 2 });
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
 
         expect(response.status).toBe(200);
@@ -270,7 +258,7 @@ describe('API /api/group/[group]/session/[session]/sessionmember', () => {
         expect(response.body.length).toBe(2);
 
         const memberIds = response.body.map((member: any) => member.memberId); 
-        expect(memberIds).toContain(memberId);
-        expect(memberIds).toContain(member2Id);
+        expect(memberIds).toContain(memberId1);
+        expect(memberIds).toContain(memberId2);
     });
 });

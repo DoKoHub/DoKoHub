@@ -33,7 +33,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
         for (let i = 0; i < sessionsFromDB.length; i++) {
             const session = sessionsFromDB[i];
             
-            const response = await fetch(`api/group/${groupId}/session/${session.id}/sessionmember`)
+            const response = await fetch(`/api/group/${groupId}/session/${session.id}/sessionmember`)
             const body = await response.json();
 
             sessions.push({
@@ -56,22 +56,17 @@ export const GET: RequestHandler = async({ params, fetch }) => {
 
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
-        ruleSet: Ruleset,
+        ruleset: Ruleset,
         plannedRounds: z.number().int().min(1),
         startedAt: ISODate.optional().nullable(),
     });
-    const { ruleSet, plannedRounds, startedAt } = await readValidatedBody(event, bodySchema);
+    const { ruleset, plannedRounds, startedAt } = await readValidatedBody(event, bodySchema);
 
     try {
         const groupId = event.params.group;
-        if (!groupId) {
+        if (!groupId || !(UUID.safeParse(groupId)) ) {
             return badRequest({ message: 'PlayGroup ID required' });
         }
-
-        const parsed = UUIDSchema.safeParse(groupId);
-        if (!parsed.success) {
-            return badRequest({ message: 'PlayGroup ID required' });
-        } 
 
         const groupResponse = await event.fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
@@ -82,7 +77,7 @@ export const POST: RequestHandler = async(event) => {
             .insert(session)
             .values({
                 groupId: groupId,
-                ruleset: ruleSet,
+                ruleset: ruleset,
                 plannedRounds: plannedRounds,
                 startedAt: startedAt
             })

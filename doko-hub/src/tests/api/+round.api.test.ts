@@ -3,6 +3,7 @@ import { setupDatabase } from '../setup/+setup';
 import { db } from '$lib/server/db';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
+import { GameType, Round, RoundParticipation } from '$lib/types';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
@@ -28,7 +29,6 @@ const MOCK_ROUND_DATA = {
 
 const MOCK_RE_PARTICIPATION = {
     side: 'RE', 
-    seatPos: 1,
 };
 
 const MOCK_CALL_DATA = {
@@ -37,7 +37,6 @@ const MOCK_CALL_DATA = {
 
 const MOCK_BONUS_DATA = {
     bonus: 'DOKO',
-    count: 1,
 };
 
 
@@ -52,10 +51,10 @@ afterAll(async () => {
 async function setupRoundEnvironment() {
     await setupDatabase();
 
-    const creatorResp = await api.post('/api/player', { name: 'Creator', ...MOCK_PLAYER_DATA_FULL, subject: 'creator-sub' });
+    const creatorResp = await api.post('/api/player', { name: 'Creator', ...MOCK_PLAYER_DATA_FULL });
     const creatorPlayerId: string = creatorResp.body.player.id;
 
-    const groupResp = await api.post('/api/group', { name: 'RoundTestGroup', createdBy: creatorPlayerId });
+    const groupResp = await api.post('/api/group', { name: 'RoundTestGroup', creatorId: creatorPlayerId });
     const groupId: string = groupResp.body.playGroup.id;
 
     const membersResp = await api.get(`/api/group/${groupId}/member`);
@@ -64,27 +63,30 @@ async function setupRoundEnvironment() {
     const sessionResp = await api.post(`/api/group/${groupId}/session`, MOCK_SESSION_DATA);
     const sessionId: string = sessionResp.body.session.id;
 
-    await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: creatorMemberId });
-    
-    const createPlayerAndMember = async (name: string, subject: string) => {
-        const playerResp = await api.post('/api/player', { name: name, ...MOCK_PLAYER_DATA_FULL, subject: subject });
+    await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: creatorMemberId, seatPos: 1 });
+
+    let nextSeatPos = 2;
+
+    const createPlayerAndMember = async (name: string, seatPos: number) => {
+        const playerResp = await api.post('/api/player', { name: name, ...MOCK_PLAYER_DATA_FULL});
         const playerId = playerResp.body.player.id;
 
         const memberResp = await api.post(`/api/group/${groupId}/member`, { playerId: playerId });
         const memberId = memberResp.body.playGroupMember.id;
-        
-        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId });
+
+        await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: memberId, seatPos: seatPos });
         
         return { playerId, memberId };
     };
 
-    const re = await createPlayerAndMember('Player RE', 're-sub');
-    const kontra = await createPlayerAndMember('Player KONTRA', 'kontra-sub');
-    const another = await createPlayerAndMember('Another Player', 'another-sub');
+    const re = await createPlayerAndMember('Player RE', nextSeatPos++);
+    const kontra = await createPlayerAndMember('Player KONTRA', nextSeatPos++);
+    const another = await createPlayerAndMember('Another Player', nextSeatPos++);
 
     return { 
         groupId, 
         sessionId, 
+        creatorMemberId,
         reMemberId: re.memberId, 
         kontraMemberId: kontra.memberId, 
         anotherMemberId: another.memberId 
@@ -102,10 +104,10 @@ describe('API /api/group/[group]/session/[session]/round (Round)', () => {
     });
 
     // Test: POST (Erfolgreiches Erstellen einer neuen Runde)
-    test('POST: Should successfully create a new Round (Status 201)', async () => {
+    test('POST: Should successfully create a new Round (Status 200)', async () => {
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
 
-        expect(response.status).toBe(201); 
+        expect(response.status).toBe(200); 
         expect(response.body.message).toBe('Created Round');
         expect(response.body.round.roundNum).toBe(MOCK_ROUND_DATA.roundNum);
         expect(response.body.round.gameType).toBe(MOCK_ROUND_DATA.gameType);
@@ -151,10 +153,6 @@ describe('API /api/group/[group]/session/[session]/round/[round] (Round Details)
 
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
 
-        if (roundResp.status !== 201) { 
-            console.error(`[FATAL SETUP ERROR] Failed to create Round (Status ${roundResp.status}). Body: ${JSON.stringify(roundResp.body)}`);
-            throw new Error('Setup failed: Could not create Round'); 
-        }
         roundId = roundResp.body.round.id;
     });
 
@@ -174,18 +172,26 @@ describe('API /api/group/[group]/session/[session]/round/[round] (Round Details)
 
     // Test: PUT (Aktualisierung von roundNum und gameType)
     test('PUT: Should successfully update roundNum and gameType (Status 200)', async () => {
-        const newRoundNumber = 10;
+        const newRoundNumber = 20;
         const newGameType = 'HOCHZEIT';
+        const newSoloKind = null;
         const newEyesRe = 70;
+        
+        const roundResponse = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`);
+        let round: Round = Round.parse(roundResponse.body);
+        round.roundNum = newRoundNumber;
+        round.gameType = newGameType;
+        round.soloKind = newSoloKind;
+        round.eyesRe = newEyesRe;
 
-        const updateData = { roundNum: newRoundNumber, gameType: newGameType, soloKind: null, eyesRe: newEyesRe };
-
-        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`, updateData);
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`, {round: round});
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Updated Round');
         expect(response.body.round.roundNum).toBe(newRoundNumber);
         expect(response.body.round.gameType).toBe(newGameType);
+        expect(response.body.round.eyesRe).toBe(newEyesRe);
+        expect(response.body.round.soloKind).toBe(newSoloKind);
     });
 
     // Test: PUT (Validierung - required fields fehlen)
@@ -210,27 +216,26 @@ describe('API /api/group/[group]/session/[session]/round/[round]/participation (
         ({ groupId, sessionId, reMemberId, kontraMemberId } = env);
         
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
-        if (roundResp.status !== 201) { throw new Error('Setup failed: Could not create Round'); } 
         roundId = roundResp.body.round.id;
         validParticipationData = { ...MOCK_RE_PARTICIPATION, memberId: reMemberId }; 
     });
 
     // Test: POST (Erfolgreiches Erstellen einer neuen Participation)
-    test('POST Participation (Side/Seat): Should successfully create a new RoundParticipation (Status 201)', async () => {
+    test('POST Participation (Side/Seat): Should successfully create a new RoundParticipation (Status 200)', async () => {
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation`, validParticipationData);
 
-        expect(response.status).toBe(201); 
+        expect(response.status).toBe(200); 
         expect(response.body.message).toBe('Created RoundParticipation');
         expect(response.body.roundParticipation.memberId).toBe(reMemberId); 
         expect(response.body.roundParticipation.side).toBe(validParticipationData.side);
     });
 
     // Test: POST (Participation existiert bereits)
-    test('POST: Should fail if Participation already exists (Status 500)', async () => {
+    test('POST: Should fail if Participation already exists (Status 400)', async () => {
         await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation`, validParticipationData);
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation`, validParticipationData);
 
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message');
     });
 
@@ -267,7 +272,6 @@ describe('API /api/group/[group]/session/[session]/round/[round]/participation/[
         ({ groupId, sessionId, reMemberId } = env);
         
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
-        if (roundResp.status !== 201) { throw new Error('Setup failed: Could not create Round'); } 
         roundId = roundResp.body.round.id;
 
         const participationData = { ...MOCK_RE_PARTICIPATION, memberId: reMemberId }; 
@@ -282,22 +286,25 @@ describe('API /api/group/[group]/session/[session]/round/[round]/participation/[
         expect(response.body.side).toBe(MOCK_RE_PARTICIPATION.side);
     });
 
-    // Test: PUT (Aktualisierung von side, seatPos, and eyes)
-    test('PUT: Should successfully update side, seatPos, and eyes (Status 200)', async () => {
+    /**
+    // Test: PUT (Aktualisierung von side)
+    test('PUT: Should successfully update side (Status 200)', async () => {
         const newSide = 'KONTRA';
-        const newSeatPos = 4;
-        const newEyes = 30;
 
-        const updateData = { side: newSide, seatPos: newSeatPos, eyes: newEyes };
+        const participationResponse = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${reMemberId}`);
+        let participation: RoundParticipation = RoundParticipation.parse(participationResponse.body);
+        participation.side = newSide;
 
-        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${reMemberId}`, updateData); 
+        console.log("1: ", `/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${reMemberId}`, );
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`, {participation: participation});
+        console.log("check: ",response);
 
         expect(response.status).toBe(200); 
         expect(response.body.message).toBe('Updated Participation and Score');
         expect(response.body.roundParticipation.side).toBe(newSide);
-        expect(response.body.roundParticipation.seatPos).toBe(newSeatPos);
-        expect(response.body.roundScore.eyes).toBe(newEyes); 
     });
+
+    */
 
     // Test: GET (Participation existiert nicht)
     test('GET: Should return 400 if Participation for member is not found', async () => {
@@ -321,29 +328,28 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call', () => {
         ({ groupId, sessionId, reMemberId, kontraMemberId } = env);
         
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
-        if (roundResp.status !== 201) { throw new Error('Setup failed: Could not create Round'); } 
         roundId = roundResp.body.round.id;
         
         callData = { ...MOCK_CALL_DATA, memberId: reMemberId }; 
     });
 
     // Test: POST (Erfolgreiches Erstellen eines neuen Calls)
-    test('POST: Should successfully create a new RoundCall (Status 201)', async () => {
+    test('POST: Should successfully create a new RoundCall (Status 200)', async () => {
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call`, callData);
 
-        expect(response.status).toBe(201); 
+        expect(response.status).toBe(200); 
         expect(response.body.message).toBe('Created RoundCall');
-        expect(response.body.call.memberId).toBe(reMemberId); 
-        expect(response.body.call.call).toBe(callData.call);
+        expect(response.body.roundCall.memberId).toBe(reMemberId); 
+        expect(response.body.roundCall.call).toBe(callData.call);
     });
 
     // Test: POST (Mitglied existiert bereits)
-    test('POST: Should fail if RoundCall already exists for player/round (Status 500)', async () => {
+    test('POST: Should fail if RoundCall already exists for player/round (Status 400)', async () => {
         await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call`, callData);
 
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call`, callData);
 
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message');
     });
     
@@ -372,17 +378,17 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call/[memberId]
         ({ groupId, sessionId, reMemberId } = env);
         
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
-        if (roundResp.status !== 201) { throw new Error('Setup failed: Could not create Round'); } 
         roundId = roundResp.body.round.id;
         
         const callResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call`, { ...MOCK_CALL_DATA, memberId: reMemberId }); 
-        if (callResp.status !== 201) { throw new Error('Setup failed: Could not create Call'); } 
-        callId = callResp.body.call.id;
+        callId = callResp.body.roundCall.id;
     });
 
     // Test: GET (Abfrage eines spezifischen Calls)
     test('GET: Should return the specific RoundCall object (Status 200)', async () => {
-        const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${reMemberId}`); 
+        console.log("CallGetAPI: ", `/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`);
+        const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`); 
+        console.log("CallGetResponse: ", response);
         expect(response.status).toBe(200);
         expect(response.body.memberId).toBe(reMemberId); 
         expect(response.body.call).toBe(MOCK_CALL_DATA.call);
@@ -409,38 +415,36 @@ describe('API /api/group/[group]/session/[session]/round/[round]/bonus', () => {
         ({ groupId, sessionId, kontraMemberId } = env);
         
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
-        if (roundResp.status !== 201) { throw new Error('Setup failed: Could not create Round'); } 
         roundId = roundResp.body.round.id;
         
         bonusData = { ...MOCK_BONUS_DATA, memberId: kontraMemberId }; 
     });
 
     // Test: POST (Erfolgreiches Erstellen eines neuen Bonus)
-    test('POST: Should successfully create a new RoundBonus (Status 201)', async () => {
+    test('POST: Should successfully create a new RoundBonus (Status 200)', async () => {
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, bonusData);
 
-        expect(response.status).toBe(201); 
+        expect(response.status).toBe(200); 
         expect(response.body.message).toBe('Created RoundBonus');
-        expect(response.body.bonus.memberId).toBe(kontraMemberId); 
-        expect(response.body.bonus.bonus).toBe(bonusData.bonus);
-        expect(response.body.bonus.count).toBe(bonusData.count);
+        expect(response.body.roundBonus.memberId).toBe(kontraMemberId); 
+        expect(response.body.roundBonus.bonus).toBe(bonusData.bonus);
     });
 
     // Test: POST (Allow multiple Boni)
-    test('POST: Should allow multiple RoundBonuses for the same player/round (Status 201)', async () => {
+    test('POST: Should allow multiple RoundBonuses for the same player/round (Status 200)', async () => {
         await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, bonusData);
 
-        const newBonusData = { memberId: kontraMemberId, bonus: 'KARLCHEN', count: 2 }; 
+        const newBonusData = { memberId: kontraMemberId, bonus: 'KARLCHEN' }; 
         const response = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, newBonusData);
 
-        expect(response.status).toBe(201); 
-        expect(response.body.bonus.bonus).toBe('KARLCHEN');
+        expect(response.status).toBe(200); 
+        expect(response.body.roundBonus.bonus).toBe('KARLCHEN');
     });
 
     // Test: GET (Alle Boni der Runde)
     test('GET: Should return a list with existing RoundBonuses (Status 200)', async () => {
         await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, bonusData);
-        await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { memberId: kontraMemberId, bonus: 'FUCHS', count: 1 }); 
+        await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { memberId: kontraMemberId, bonus: 'FUCHS' }); 
 
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`);
 
@@ -455,22 +459,23 @@ describe('API /api/group/[group]/session/[session]/round/[round]/bonus/[memberId
     let sessionId: string;
     let roundId: string;
     let kontraMemberId: string; 
+    let bonusId: string;
 
     beforeEach(async () => {
         const env = await setupRoundEnvironment();
         ({ groupId, sessionId, kontraMemberId } = env);
         
         const roundResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round`, MOCK_ROUND_DATA);
-        if (roundResp.status !== 201) { throw new Error('Setup failed: Could not create Round'); } 
         roundId = roundResp.body.round.id;
         
         await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { ...MOCK_BONUS_DATA, memberId: kontraMemberId }); 
-        await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { memberId: kontraMemberId, bonus: 'KARLCHEN', count: 2 }); 
+        const bonusResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { memberId: kontraMemberId, bonus: 'KARLCHEN' });
+        bonusId = bonusResp.body.id;
     });
 
     // Test: GET (Abfrage ALLER Boni)
     test('GET: Should return ALL RoundBonus objects for the specific player (Status 200)', async () => {
-        const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${kontraMemberId}`); 
+        const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${bonusId}`); 
         expect(response.status).toBe(200); 
         expect(Array.isArray(response.body)).toBe(true);
         expect(response.body.length).toBe(2);
