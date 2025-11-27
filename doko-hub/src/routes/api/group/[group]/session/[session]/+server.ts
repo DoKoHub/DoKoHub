@@ -1,6 +1,6 @@
 import { badRequest, serverError, ok } from "$lib/http";
 import type { RequestHandler } from "@sveltejs/kit";
-import { Ruleset, Session, UUID } from "$lib/types";
+import { Ruleset, Session, SessionMember, UUID } from "$lib/types";
 import { db } from "$lib/server/db";
 import { session } from "$lib/server/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -34,7 +34,18 @@ export const GET: RequestHandler = async({ params, fetch }) => {
         if (!returnSession) {
             return badRequest({ message: 'Session not found' });
         }
-        const sessionObj: Session = returnSession as Session;
+        const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
+        const body = await response.json();
+        
+        const sessionObj: Session = {
+            id: returnSession.id as UUID,
+            groupId: returnSession.groupId as UUID,
+            ruleset: returnSession.ruleset,
+            plannedRounds: returnSession.plannedRounds,
+            startedAt: returnSession.startedAt,
+            endedAt: returnSession.endedAt,
+            members: body as SessionMember[]
+        };
         return ok(sessionObj);
     } catch(error) {
         return serverError({ message: 'Database error while fetching Session' });
@@ -67,7 +78,10 @@ export const PUT: RequestHandler = async({ request, params, fetch }) => {
 
         const [updatedSession] = await db
             .update(session)
-            .set(newSession)
+            .set({
+                plannedRounds: newSession.plannedRounds,
+                endedAt: newSession.endedAt,
+            })
             .where(eq(session.id, sessionId))
             .returning();
 

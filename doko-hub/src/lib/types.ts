@@ -1,13 +1,16 @@
 // Globale Interfaces basierend auf dem ER-Modell
-
 import { z } from "zod";
-
-export type PlayerStatus = "ACTIVE" | "LEFT";
 
 /** UUID brand + Parser */
 //rüft: Ist der Wert ein gültiger UUID-String?
 export const UUID = z.string().uuid().brand<"UUID">();
 export type UUID = z.infer<typeof UUID>;
+
+export const Name = z.string().trim().min(1);
+export type Name = z.infer<typeof Name>;
+
+export const Token = z.string().trim().min(1).max(80);
+export type Token = z.infer<typeof Token>
 
 /** Dates: erlauben String/Date → geben Date zurück */
 export const ISODate = z.coerce.date();
@@ -19,8 +22,6 @@ export const NonEmpty = z.string().trim().min(1);
 /** Seat positions: 1..4  */
 export const SeatPos = z.number().int().min(1).max(4);
 export type SeatPos = z.infer<typeof SeatPos>;
-
-export type SeatPos = 1 | 2 | 3 | 4;
 
 export const GameType = z.enum([
   "NORMAL",
@@ -35,8 +36,8 @@ export type GameType = z.infer<typeof GameType>;
 export const AuthProvider = z.enum(["GOOGLE", "APPLE", "META"]);
 export type AuthProvider = z.infer<typeof AuthProvider>;
 
-export const SoloColor = z.enum(["CLUBS", "SPADES", "HEARTS", "DIAMONDS"]);
-export type SoloColor = z.infer<typeof SoloColor>;
+export const SoloKind = z.enum(["CLUBS", "SPADES", "HEARTS", "DIAMONDS"]);
+export type SoloKind = z.infer<typeof SoloKind>;
 
 export const Side = z.enum(["RE", "KONTRA"]);
 export type Side = z.infer<typeof Side>;
@@ -64,12 +65,12 @@ export const BonusType = z.enum([
   "FUCHS",
   "KARLCHEN",
   "LAUFENDE",
-  "GEGEN_DIE_ALTEN",
+  "GEGEN_DIE_ALTEN"/*,
   "SCHWEINCHEN",
-  "HYPERSCHWEIN",
+  "HYPERSCHWEIN",           Auskommentiert, weil die in der ER Modellierung nicht vorhanden sind.
   "DULLE_GEFANGEN",
   "FUCHS_GEFANGEN",
-  "KARLCHEN_IM_LETZTEN",
+  "KARLCHEN_IM_LETZTEN",*/
 ]);
 export type BonusType = z.infer<typeof BonusType>;
 
@@ -82,164 +83,129 @@ export type PlayerStatus = z.infer<typeof PlayerStatus>;
 export const SessionStatus = z.enum(["FULL", "NOTFULL"]);
 export type SessionStatus = z.infer<typeof SessionStatus>;
 
-export const Player = z
-  .object({
-    id: UUID,
-    name: NonEmpty.max(35),
-  })
-  .strict();
-export type Player = z.infer<typeof Player>;
+export const Player = z.object({
+  id: UUID,
+  name: Name,
+  provider: AuthProvider,
+  subject: NonEmpty.max(200),
+  email: z.string().email().optional().nullable(),
+  createdAt: ISODate.optional().nullable(),
+})
+.strict();
+export type Player= z.infer<typeof Player>;
 
-export const PlayerIdentity = z
-  .object({
-    id: UUID,
-    playerId: UUID,
-    provider: AuthProvider,
-    subject: NonEmpty.max(200),
-    email: z.string().email().optional().nullable(),
-    createdAt: ISODate.optional().nullable(),
-  })
-  .strict();
-export type PlayerIdentity = z.infer<typeof PlayerIdentity>;
 
 // Groups, Invites, Member
 
-export const PlayGroup = z
-  .object({
-    id: UUID,
-    name: NonEmpty.max(80),
-    createdOn: ISODate.optional().nullable(),
-    lastPlayedOn: ISODate.optional().nullable(),
-    note: z.string().trim().max(500).optional().nullable(),
-  })
-  .strict();
+export const PlayGroupMember = z.object({
+  id: UUID,
+  groupId: UUID,
+  playerId: UUID.nullable(),
+  nickname: Name.optional().nullable(),
+  status: PlayerStatus,
+  leftAt: ISODate.optional().nullable(),
+})
+.strict();
+export type PlayGroupMember = z.infer<typeof PlayGroupMember>;
+
+export const PlayGroup = z.object({
+  id: UUID,
+  name: Name,
+  createdOn: ISODate.optional().nullable(),
+  lastPlayedOn: ISODate.optional().nullable(),
+  members: PlayGroupMember.array()
+})
+.strict();
 export type PlayGroup = z.infer<typeof PlayGroup>;
 
-export const GroupInvite = z
-  .object({
-    id: UUID,
-    groupId: UUID,
-    token: NonEmpty.max(80),
-    expiresAt: ISODate.optional().nullable(),
-    createdBy: ISODate.optional().nullable(), // ggf. userId
-  })
-  .strict();
+export const GroupInvite = z.object({
+  id: UUID,
+  groupId: UUID,
+  token: NonEmpty.max(80),
+  expiresAt: ISODate.optional().nullable(),
+  createdBy: UUID
+})
+.strict();
 export type GroupInvite = z.infer<typeof GroupInvite>;
-
-export const PlayGroupMember = z
-  .object({
-    groupId: UUID,
-    playerId: UUID,
-    nickname: z.string().trim().max(60).optional().nullable(),
-    status: PlayerStatus,
-    leftAt: ISODate.optional().nullable(),
-  })
-  .strict();
-export type PlayGroupMember = z.infer<typeof PlayGroupMember>;
 
 //Sessions
 
-export const Session = z
-  .object({
-    id: UUID,
-    groupId: UUID,
-    ruleset: Ruleset.default("STANDARD"),
-    plannedRounds: z.number().int().min(1),
-    startedAt: ISODate.optional().nullable(),
-    endedAt: ISODate.optional().nullable(),
-  })
-  .refine((s) => !(s.endedAt && s.startedAt) || s.endedAt >= s.startedAt, {
-    message: "endedAt muss ≥ startedAt sein",
-    path: ["endedAt"],
-  })
-  .strict();
-export type Session = z.infer<typeof Session>;
-
-export const SessionMember = z
-  .object({
-    sessionId: UUID,
-    playerId: UUID,
-  })
-  .strict();
+export const SessionMember = z.object({
+  sessionId: UUID,
+  memberId: UUID,
+  seatPos: SeatPos
+})
+.strict();
 //erstellt automatisch den TypeScript-Typ aus genau diesem Schema.
 //Der Typ wird direkt aus dem Schema abgeleitet, es gibt keine doppelte Definition.
 export type SessionMember = z.infer<typeof SessionMember>;
 
-//Rounds & Participation
+export const Session = z.object({
+  id: UUID,
+  groupId: UUID,
+  ruleset: Ruleset.default("STANDARD"),
+  plannedRounds: z.number().int().min(1),
+  startedAt: ISODate.optional().nullable(),
+  endedAt: ISODate.optional().nullable(),
+  members: SessionMember.array()
+})
+.refine(
+  (s) => !(s.endedAt && s.startedAt) || s.endedAt >= s.startedAt,
+  { message: "endedAt muss ≥ startedAt sein", path: ["endedAt"] }
+)
+.strict();
+export type Session = z.infer<typeof Session>;
 
-export const Round = z
-  .object({
-    id: UUID,
-    sessionId: UUID,
-    roundNum: z.number().int().min(1).optional().nullable(),
-    gameType: GameType,
-    soloColor: SoloColor.optional().nullable(),
-  })
-  .refine(
-    //Wenn es kein SOLO_FARBE-Spiel ist → alles gut
-    // Wenn es ein SOLO_FARBE-Spiel ist → dann muss soloColor gesetzt sein
-    (r) => r.gameType !== "SOLO_FARBE" || !!r.soloColor,
-    {
-      message: "soloColor ist erforderlich bei SOLO_FARBE",
-      path: ["soloColor"],
-    }
-  )
-  .refine(
-    //Wenn es ein SOLO_FARBE-Spiel ist → alles gut
-    //Wenn es kein SOLO_FARBE-Spiel ist → dann muss soloColor leer sein
-    (r) => r.gameType === "SOLO_FARBE" || !r.soloColor,
-    { message: "soloColor nur bei SOLO_FARBE erlaubt", path: ["soloColor"] }
-  )
-  .strict();
+//Rounds & Participation
+ 
+export const Round = z.object({
+  id: UUID,
+  sessionId: UUID,
+  roundNum: z.number().int().min(1).optional().nullable(),
+  gameType: GameType,
+  soloKind: SoloKind.optional().nullable(),
+  eyesRe: z.number().int()
+})
+.refine(
+  //Wenn es kein SOLO_FARBE-Spiel ist → alles gut
+ // Wenn es ein SOLO_FARBE-Spiel ist → dann muss soloKind gesetzt sein
+  (r) => r.gameType !== "SOLO_FARBE" || !!r.soloKind,
+  { message: "soloKind ist erforderlich bei SOLO_FARBE", path: ["soloKind"] }
+)
+.refine( 
+  //Wenn es ein SOLO_FARBE-Spiel ist → alles gut
+  //Wenn es kein SOLO_FARBE-Spiel ist → dann muss soloKind leer sein
+  (r) => r.gameType === "SOLO_FARBE" || !r.soloKind,
+  { message: "soloKind nur bei SOLO_FARBE erlaubt", path: ["soloKind"] }
+)
+.strict();
 export type Round = z.infer<typeof Round>;
 
-export const RoundParticipation = z
-  .object({
-    roundId: UUID,
-    playerId: UUID,
-    side: Side,
-    seatPos: SeatPos.optional().nullable(),
-  })
-  .strict();
+
+export const RoundParticipation = z.object({
+  roundId: UUID,
+  memberId: UUID,
+  side: Side,
+})
+.strict();
 export type RoundParticipation = z.infer<typeof RoundParticipation>;
 
 // Scoring, Calls, Bonuses, Points
 
-export const RoundScore = z
-  .object({
-    roundId: UUID,
-    playerId: UUID,
-    eyes: z.number().int().min(0).max(240),
-  })
-  .strict();
-export type RoundScore = z.infer<typeof RoundScore>;
-
-export const RoundCall = z
-  .object({
-    id: UUID,
-    roundId: UUID,
-    playerId: UUID,
-    call: CallType,
-  })
-  .strict();
+export const RoundCall = z.object({
+  id: UUID,
+  roundId: UUID,
+  memberId: UUID,
+  call: CallType,
+})
+.strict();
 export type RoundCall = z.infer<typeof RoundCall>;
 
-export const RoundBonus = z
-  .object({
-    id: UUID,
-    roundId: UUID,
-    playerId: UUID,
-    bonus: BonusType,
-    count: z.number().int().min(0).max(10).default(0),
-  })
-  .strict();
+export const RoundBonus = z.object({
+  id: UUID,
+  roundId: UUID,
+  memberId: UUID,
+  bonus: BonusType
+})
+.strict();
 export type RoundBonus = z.infer<typeof RoundBonus>;
-
-export const RoundPoints = z
-  .object({
-    roundId: UUID,
-    playerId: UUID,
-    score: z.number().int(),
-  })
-  .strict();
-export type RoundPoints = z.infer<typeof RoundPoints>;

@@ -1,125 +1,75 @@
-import { BadResponse, ErrorResponse, GETResponse, POSTResponse } from "$lib/responses";
+import { badRequest, created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playgroupMember } from "$lib/server/db/schema";
-import type { Player, PlayerStatus, PlayGroupMember } from "$lib/types";
+import { Name, UUID, type PlayerStatus, type PlayGroupMember } from "$lib/types";
+import { isPlayGroupMember } from "$lib/utils";
+import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-// CHANGED: Zod für ergänzende Runtime-Validation
-import { z } from "zod";
-
-
-// CHANGED: Lokale, minimale Schemas für Format-Checks
-const UUID = z.string().uuid();
-const OptionalNickname = z.string().trim().max(60).optional().nullable();
-const PostBodySchema = z.object({
-  playerId: UUID,
-  nickname: OptionalNickname, // optional, wird bei Invalid fallbacken
-});
+import z from "zod";
 
 export const GET: RequestHandler = async({ params }) => {
     try {
         // UUID der Gruppe
         const groupId = params.group;
 
-        //Falls UUID leer ist
-        if (!groupId) {
-            return new BadResponse('PlayGroup ID required');
+        if (!groupId || !(UUID.safeParse(groupId).success)) {
+            return badRequest({ message: 'PlayGroup ID required' })
         }
-         // CHANGED: zusätzliches Format-Check für UUID (gleiche Fehlermeldung)
-    if (!UUID.safeParse(groupId).success) {
-      return new BadResponse("PlayGroup ID required");
-    }
 
         const members = await db
             .select()
             .from(playgroupMember)
             .where(eq(playgroupMember.groupId, groupId));
 
-        return new GETResponse(members as PlayGroupMember[]);
+        return ok(members as PlayGroupMember[])
     } catch(error) {
-        return new ErrorResponse('Database error while fetching PlayGroupMember[]');
+        return serverError({ message: 'Database error while fetching PlayGroupMember[]' })
     }
 }
 
-export const POST: RequestHandler = async({ request, params, fetch }) => {
+export const POST: RequestHandler = async(event) => {
+    const bodySchema = z.object({
+      playerId: UUID,
+      nickname: Name.optional(), // optional, wird bei Invalid fallbacken
+    });
+    const { playerId, nickname } = await readValidatedBody(event, bodySchema);
+
     try {
         // UUID der Gruppe
-        const groupId = params.group;
+        const groupId = event.params.group;
 
-        //Falls UUID leer ist
-        if (!groupId) {
-            return new BadResponse('PlayGroup ID required');
+        if (!groupId || !(UUID.safeParse(groupId).success)) {
+            return badRequest({ message: 'PlayGroup ID required' })
         }
 
-        // CHANGED: zusätzliches Format-Check für UUID (gleiche Fehlermeldung)
-     if (!UUID.safeParse(groupId).success) {
-      return new BadResponse("PlayGroup ID required");
-    }
-
-        const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
-        if (!groupResponseBody) {
-            return new BadResponse('PlayGroup not found');
+        const groupResponse = await event.fetch(`/api/group/${groupId}`);
+        if (groupResponse.status != 200) {
+            return badRequest({ message: 'PlayGroup not found' })
         }
 
-        const body = await request.json();
-
-        const playerId = body.playerId;
-        if (!playerId) {
-            return new BadResponse('Player ID required');
+        const playerResponse = await event.fetch(`/api/player/${playerId}`);
+        if (playerResponse.status != 200) {
+            return badRequest({ message: 'Player not found' });
         }
+        const player = await playerResponse.json();
 
-
-        // CHANGED: zusätzliches Format-Check für playerId (gleiche Fehlermeldung)
-    if (!UUID.safeParse(playerId).success) {
-      return new BadResponse("Player ID required");
-    }
-
-
-
-    // CHANGED: Body vollständig validieren nickname.
-    // Falls NUR der Nickname invalid ist, fallbacken wir wie vorher auf player.name.
-    const parsed = PostBodySchema.safeParse(body);
-    const nicknameValidationFailedOnly =
-      !parsed.success &&
-      parsed.error.issues.every((i) => i.path[0] === "nickname");
-
-
-
-        const player = await(await fetch(`/api/player/${playerId}`)).json() as Player;
-        if (!player) {
-            return new BadResponse('Player not found');
-        }
-
-        // CHANGED: Nickname bestimmen
-        // - Wenn kompletter Body ok: parsed.data.nickname (bereits getrimmt)
-        // - Wenn nur Nickname invalid: fallback auf player.name (original Verhalten)
-       // - Wenn gar kein Nickname: original-Fallback body.nickname ?? player.name
-    const nickname =
-      parsed.success
-        ? parsed.data.nickname ?? player.name
-        : nicknameValidationFailedOnly
-          ? player.name
-          : (typeof body.nickname === "string" && body.nickname.trim().length > 0
-              ? body.nickname.trim()
-              : player.name);
-
-
-
-
-        const playgroupMemberObj = {
-            groupId: groupId,
-            playerId: player.id,
-            nickname: body.nickname ? body.nickname : player.name,
-            status: "ACTIVE" as PlayerStatus
+        if (await isPlayGroupMember(groupId, playerId)) {
+            return badRequest({ message: 'Player is a member already' });
         }
 
         const [playgroupMemberFromDB] = await db
             .insert(playgroupMember)
-            .values(playgroupMemberObj)
+            .values({
+                groupId: groupId as UUID,
+                playerId: player.id as UUID,
+                nickname: nickname ? nickname : player.name,
+                status: "ACTIVE" as PlayerStatus
+            })
             .returning();
 
-        return new POSTResponse('Created PlayGroupMember', {name: 'playGroupMember', data: playgroupMemberFromDB as PlayGroupMember});
+        return created({ message: 'Created PlayGroupMember', playGroupMember: playgroupMemberFromDB as PlayGroupMember });
     } catch(error) {
-        return new ErrorResponse('Database error while creating PlayGroupMember');
+        return serverError({ message: 'Database error while creating PlayGroupMember' });
     }
 };
