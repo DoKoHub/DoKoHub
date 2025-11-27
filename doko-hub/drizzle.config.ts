@@ -1,4 +1,4 @@
-import { defineConfig } from 'drizzle-kit';
+import { defineConfig } from 'drizzle-kit'; // ohne / sonst node export fehler
 
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 
