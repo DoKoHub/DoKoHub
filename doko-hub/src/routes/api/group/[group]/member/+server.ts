@@ -42,10 +42,31 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'PlayGroup ID required' })
         }
 
+       
+
+      // CHANGED: Vor Beitritt prüfen, ob bereits 4 aktive Mitglieder in der Gruppe sind
+
+        const existingMembers = await db
+            .select()
+            .from(playgroupMember)
+            .where(eq(playgroupMember.groupId, groupId)); // CHANGED: Mitglieder der Gruppe laden
+
+
+        const activeCount = existingMembers.filter(m => m.status === 'ACTIVE').length; // CHANGED: nur ACTIVE-Mitglieder zählen
+
+        if (activeCount >= 4) {
+            return badRequest({
+                message: 'This PlayGroup is already full (max. 4 active members).', // CHANGED: Beitritt blocken, wenn Gruppe voll ist
+            });
+        }
+        
+
+
         const groupResponse = await event.fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' })
         }
+    
 
         const playerResponse = await event.fetch(`/api/player/${playerId}`);
         if (playerResponse.status != 200) {
