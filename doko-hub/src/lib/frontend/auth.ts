@@ -1,4 +1,4 @@
-import { Player } from "$lib/types";
+import { AuthProvider, Player } from "$lib/types";
 import z from "zod";
 import { post } from "./fetch";
 
@@ -10,6 +10,9 @@ export async function first_time_login(name: string) {
     "/api/player",
     {
       name,
+      provider: "GOOGLE", //TODO: this needs to be done differently once we have OAuth
+      subject: "test-subject",
+      email: "test@example.com",
     },
     z.object({ message: z.string(), player: Player })
   );
