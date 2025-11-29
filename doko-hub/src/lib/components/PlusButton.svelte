@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Fab, { Icon } from '@smui/fab';
-  import { mdiPlus } from '@mdi/js';
+  import Fab, { Icon } from "@smui/fab";
+  import { mdiPlus } from "@mdi/js";
 
   export let addSomething: () => void;
 </script>
@@ -17,14 +17,6 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    background-color: #ff3e00;
-    color: white;
     z-index: 1000; /* über Tabs, App Bar */
   }
-
-  :global(.fab:hover) {
-    background-color: #e03600;
-  }
 </style>
-
-

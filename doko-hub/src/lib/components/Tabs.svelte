@@ -1,3 +1,4 @@
+<!--FIXME: Bitte Svelte5 statt deprecated Svelte4 nutzen-->
 <script lang="ts">
   import Tab, { Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
