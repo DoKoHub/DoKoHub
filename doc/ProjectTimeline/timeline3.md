@@ -37,8 +37,9 @@
   - Konstantin:
     - Erste Seiten Frontend und Backend verbunden
   - Melanie:
-    - Prototyp group invitation erstellt nach figma
+    - Prototypen group invitation & dialog new erstellt nach figma
     - App bars, plus button, icon buttons einheitlich nach Svelte-UI
+    - Unterstützung bei Anbindung: group games
   - Leen: 
     - DTOs erstellt
     - Erste zod anpassungen
