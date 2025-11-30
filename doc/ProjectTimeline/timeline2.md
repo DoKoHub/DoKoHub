@@ -9,7 +9,10 @@
 - Anpassungen der Aufgaben basierend auf dem Feedback des Supervisors vom 15.10.   
 - Laila erstellt weiterhin die laufende Dokumentation und überwacht den Projektfortschritt  
 - **Absprachen für weitere Treffen:**
-  - Melanie & Konstantin trafen sich bereits am 16.10., um gemeinsam an der UI in Figma zu arbeiten  
+  - Melanie & Konstantin trafen sich bereits am 16.10., um gemeinsam an der UI in Figma zu arbeiten
+  - folgende Aufteilung:
+    - Konstantin: Login, First-Time-Login, Group-Overview
+    - Melanie: Group-Games, Group-Stats, Group-Members
   - Leen & Larin treffen sich am Sonntag, 19.10., um an der Datenbankstruktur und am ER-Modell zu arbeiten  
 
 **Ergebnis:**  
