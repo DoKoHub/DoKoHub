@@ -81,6 +81,8 @@ Backend – Larin
 
 Frontend – Melanie  
 - Die Tabbar wurde so angepasst, dass sie jetzt korrekt zur jeweiligen Zielseite navigiert (fertig).
+- Neue UI Seite: GAME_ROUNDS (fertig). 
+- einheitliches Layout für die beiden UI Seiten: GAME_ROUNDS und GAME_STATS.
 
 Frontend – Konstantin  
 - Die Logik für die Verwendung von Top AppBar und Bottom AppBar wurde angepasst:  
@@ -88,7 +90,7 @@ Frontend – Konstantin
   - Bottom AppBar für allgemeine Seiten und Navigation (fertig).
 
 Frontend – Laila  
-- Neue UI-Seiten wurden umgesetzt: STATS_OVERVIEW, PROFILE, GAME_ROUNDS und GAME_STATS (fertig).  
+- Neue UI-Seiten wurden umgesetzt: STATS_OVERVIEW, PROFILE und GAME_STATS (fertig).  
 - Im Team wurde vereinbart, dass alle von Laila erstellten UI-Seiten auf Svelte Material UI umgestellt werden sollen, um einheitliche Farben und ein konsistentes Styling über alle Meilensteine hinweg zu erreichen.
 
 Frontend ↔ Backend – Konstantin  und Melanie
