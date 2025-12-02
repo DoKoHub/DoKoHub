@@ -1,4 +1,4 @@
-import { badRequest, ok, serverError } from "$lib/http";
+import { badRequest, created, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { groupInvite } from "$lib/server/db/schema";
 import { UUID, type GroupInvite } from "$lib/types";
@@ -37,7 +37,7 @@ export const POST: RequestHandler = async(event) => {
             .values(creationTemplate)
             .returning();
 
-        return ok({ message: 'Created GroupInvite', groupInvite: invite as GroupInvite });
+        return created({ message: 'Created GroupInvite', groupInvite: invite as GroupInvite });
     } catch (error) {
         return serverError({ message: 'Database error while creating GroupInvite' });
     }

@@ -64,12 +64,12 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'Session ID required' });
         }
 
-        const groupResponse = await fetch(`/api/group/${groupId}`);
+        const groupResponse = await event.fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
-        const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
+        const sessionResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
@@ -87,6 +87,6 @@ export const POST: RequestHandler = async(event) => {
 
         return ok({ message: 'Created Round', round: roundFromDB });
     } catch(error) {
-        return serverError({ message: 'Database error while creating Round' });
+        return serverError({ message: 'Database error while creating Round' , error});
     }
 };

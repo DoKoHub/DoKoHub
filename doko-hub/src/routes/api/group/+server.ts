@@ -8,7 +8,6 @@ import z from "zod";
 
 export const GET: RequestHandler = async({ fetch }) => {
     try {
-
         // Alle Gruppen aus der DB lesen
         const groupsFromDB = await db
             .select()
@@ -20,7 +19,7 @@ export const GET: RequestHandler = async({ fetch }) => {
             if (!group) {
                 continue;
             }
-            const response = await fetch(`api/group/${group.id}/member`);
+            const response = await fetch(`/api/group/${group.id}/member`);
             const body = await response.json();
 
             playGroups.push({
@@ -56,9 +55,9 @@ export const POST: RequestHandler = async(event) => {
         const [insertedGroup] = await db
             .insert(playgroup)
             .values(creationObj)
-            .returning()
+            .returning();
         
-        await event.fetch(`api/group/${insertedGroup.id}/member`, {
+        const createMemberRequest = await event.fetch(`/api/group/${insertedGroup.id}/member`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -68,8 +67,8 @@ export const POST: RequestHandler = async(event) => {
                 ...(nickname ? {nickname: nickname} : {})
             })
         });
-        
-        const response = await fetch(`api/group/${insertedGroup.id}/member`);
+
+        const response = await event.fetch(`/api/group/${insertedGroup.id}/member`);
         const body = await response.json();
 
         const group: PlayGroup = {
@@ -83,6 +82,7 @@ export const POST: RequestHandler = async(event) => {
         return created({ message: 'Created PlayGroup', playGroup: group });
     } catch(error) {
         // Falls die DB einen Fehler wirft
+        console.log(error);
         return serverError({ message: 'Database error while creating PlayGroup' })
     }
 }

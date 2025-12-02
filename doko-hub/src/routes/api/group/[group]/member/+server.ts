@@ -2,6 +2,7 @@ import { badRequest, created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playgroupMember } from "$lib/server/db/schema";
 import { Name, UUID, type PlayerStatus, type PlayGroupMember } from "$lib/types";
+import { isPlayGroupMember } from "$lib/utils";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -72,18 +73,20 @@ export const POST: RequestHandler = async(event) => {
         if (playerResponse.status != 200) {
             return badRequest({ message: 'Player not found' });
         }
-        const player = (await playerResponse.json()).player; 
+        const player = await playerResponse.json();
 
-        const playgroupMemberObj = {
-            groupId: groupId,
-            playerId: player.id,
-            nickname: nickname ? nickname : player.name,
-            status: "ACTIVE" as PlayerStatus
+        if (await isPlayGroupMember(groupId, playerId)) {
+            return badRequest({ message: 'Player is a member already' });
         }
 
         const [playgroupMemberFromDB] = await db
             .insert(playgroupMember)
-            .values(playgroupMemberObj)
+            .values({
+                groupId: groupId as UUID,
+                playerId: player.id as UUID,
+                nickname: nickname ? nickname : player.name,
+                status: "ACTIVE" as PlayerStatus
+            })
             .returning();
 
         return created({ message: 'Created PlayGroupMember', playGroupMember: playgroupMemberFromDB as PlayGroupMember });

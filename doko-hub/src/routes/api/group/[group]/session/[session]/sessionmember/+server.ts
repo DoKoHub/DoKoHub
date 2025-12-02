@@ -2,6 +2,7 @@ import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { sessionMember } from "$lib/server/db/schema";
 import { SeatPos, SessionMember, UUID } from "$lib/types";
+import { groupExists, sessionExists } from "$lib/utils";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -21,13 +22,11 @@ export const GET: RequestHandler = async({ params }) => {
             return badRequest({ message: 'Session ID required' });
         }
 
-        const groupResponse = await fetch(`/api/group/${groupId}`);
-        if (groupResponse.status != 200) {
+        if (!groupExists(groupId)) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
-        const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
-        if (sessionResponse.status != 200) {
+        if (!sessionExists(sessionId)) {
             return badRequest({ message: 'Session not found' });
         }
 
@@ -61,13 +60,11 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'Session ID required' });
         }
 
-        const groupResponse = await event.fetch(`/api/group/${groupId}`);
-        if (groupResponse.status != 200) {
+        if (!groupExists(groupId)) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
-        const sessionResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}`);
-        if (sessionResponse.status != 200) {
+        if (!sessionExists(sessionId)) {
             return badRequest({ message: 'Session not found' });
         }
 

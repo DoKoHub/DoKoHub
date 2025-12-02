@@ -54,6 +54,7 @@ export const POST: RequestHandler = async (event) => {
 
     return created({ message: 'Created Player', player: insertedPlayer as Player });
   } catch (error) {
+    console.log(error);
     return serverError({ message: 'Database error while creating Player' })
   }
 }

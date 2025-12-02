@@ -2,6 +2,7 @@ import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { round, roundParticipation } from "$lib/server/db/schema";
 import { RoundParticipation, SeatPos, Side, UUID } from "$lib/types";
+import { hasParticipationInRound } from "$lib/utils";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -91,6 +92,10 @@ export const POST: RequestHandler = async(event) => {
         const roundResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`);
         if (roundResponse.status != 200) {
             return badRequest({ message: 'Round not found' });
+        }
+
+        if (await hasParticipationInRound(roundId,memberId)) {
+            return badRequest({ message: 'Member already has a participation in Round'});
         }
 
         const [createdparticipation] = await db

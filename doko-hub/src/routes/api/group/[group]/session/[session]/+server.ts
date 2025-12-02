@@ -34,7 +34,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
         if (!returnSession) {
             return badRequest({ message: 'Session not found' });
         }
-        const response = await fetch(`api/group/${groupId}/session/${sessionId}/sessionmember`);
+        const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
         const body = await response.json();
         
         const sessionObj: Session = {
@@ -78,7 +78,10 @@ export const PUT: RequestHandler = async({ request, params, fetch }) => {
 
         const [updatedSession] = await db
             .update(session)
-            .set(newSession)
+            .set({
+                plannedRounds: newSession.plannedRounds,
+                endedAt: newSession.endedAt,
+            })
             .where(eq(session.id, sessionId))
             .returning();
 

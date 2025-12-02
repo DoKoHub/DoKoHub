@@ -84,13 +84,18 @@ export const PUT: RequestHandler = async({ request, params, fetch}) => {
 
         const body = await request.json();
         const roundObj = body.round;
-        if (!roundObj || !(Round.safeParse(roundObj)).success) {
-            return badRequest({ message: 'Round required' });
+        if (!roundObj || !(Round.safeParse(roundObj).success)) {
+            return badRequest({ message: 'Round required', roundObj});
         }
 
         const [updatedRound] = await db
             .update(round)
-            .set(roundObj)
+            .set({
+                soloKind: roundObj.soloKind,
+                roundNum: roundObj.roundNum,
+                gameType: roundObj.gameType,
+                eyesRe: roundObj.eyesRe,
+            })
             .where(eq(round.id, roundId))
             .returning();
 
