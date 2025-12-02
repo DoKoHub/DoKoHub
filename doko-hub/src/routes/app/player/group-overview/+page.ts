@@ -1,5 +1,5 @@
 import type { PageLoad } from "./$types";
-import { PlayGroup, PlayGroupMember, UUID } from "$lib/types";
+import { PlayGroup } from "$lib/types";
 import { get } from "$lib/frontend/fetch";
 import { get_user } from "$lib/frontend/auth";
 import z from "zod";
@@ -31,29 +31,8 @@ export const load: PageLoad = async ({ fetch }) => {
     fetch
   );
 
-  //FIXME: These request should be one that returns a more usable group object
-
-  const group_members = new Map<UUID, PlayGroupMember[]>();
-  for (const { id, name } of groups) {
-    let members: PlayGroupMember[] = [];
-    try {
-      members = await get(
-        `/api/group/${id}/member`,
-        z.array(PlayGroupMember),
-        fetch
-      );
-    } catch (e) {
-      console.error(
-        `Error while fetching members for group ${id} ('${name}')!`,
-        e
-      );
-    }
-    group_members.set(id, members);
-  }
-
   return {
     groups,
-    group_members,
   };
 };
 

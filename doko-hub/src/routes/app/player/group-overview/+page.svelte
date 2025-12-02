@@ -32,15 +32,11 @@
   let dialogOpen = $state(false);
   let groupName = $state("New Group");
   let groups = $state(data.groups);
-  let members = $state(data.group_members);
 
   async function handleCreate(name: string) {
     console.log("Neue Gruppe erstellt:", name);
 
     try {
-      //FIXME: Diese beiden Anfragen müssen zu einer zusammengeführt werden, um
-      // gegen Netzwerkfehler zwischen den beiden Anfragen resistent zu sein!
-
       /*
         Backend informieren: POST-Request sendet die Daten an das Backend
         Erster Parameter: Route
@@ -49,26 +45,13 @@
       */
       const { playGroup } = await post(
         "/api/group",
-        { name },
-        z.object({ message: z.string(), playGroup: PlayGroup })
-      );
-
-      // Spieler der neuen Gruppe hinzufügen
-      const { playGroupMember } = await post(
-        `/api/group/${playGroup.id}/member`,
-        { playerId: user.id },
-        z.object({ message: z.string(), playGroupMember: PlayGroupMember })
+        { name, creatorId: user.id },
+        z.object({ playGroup: PlayGroup })
       );
 
       // Lokalen Zustand ändern, die angezeigte Liste ändert sich sofort hier nach
       // Sollte man immer als letztes machen falls einer der Aufrufe zum Backend fehlschlägt
-      const { id } = playGroup;
       groups.push(playGroup);
-      if (members.has(id)) {
-        members.get(id)?.push(playGroupMember);
-      } else {
-        members.set(id, [playGroupMember]);
-      }
     } catch (e) {
       //TODO: Notify user about error
       console.error(e);
@@ -82,10 +65,10 @@
   <Text>
     <PrimaryText>{group.name}</PrimaryText>
     <SecondaryText
-      >Spieler: {members
-        .get(group.id)
-        ?.map(({ nickname }) => nickname ?? "???")
-        .join(", ") ?? ""}</SecondaryText
+      >Spieler: {group.members
+        //FIXME: the nickname is never actually null but the DTOs don't reflect that
+        .map(({ nickname }) => nickname!)
+        .join()}</SecondaryText
     >
     <SecondaryText>
       {#if group.lastPlayedOn}
@@ -158,7 +141,7 @@
   /* FAB unten rechts */
   .fab {
     position: fixed;
-    bottom: 24px;
+    bottom: 80px;
     right: 24px;
     border: none;
     border-radius: 50%;
@@ -169,6 +152,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    z-index: 10;
 
     /* Material Design default shadows */
     box-shadow: var(--mdc-elevation--z6);
