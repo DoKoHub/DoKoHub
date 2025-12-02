@@ -71,9 +71,11 @@
 
     <!-- Spielrunden -->
     <div class="section">
+      <!--FIXME: Hier bitte Label statt label-->
       <label class="section-label">Spielrunden</label>
       <div class="round-buttons">
         {#each [8, 12, 16, 20, 24] as rounds}
+          <!--FIXME: Hier bitte Radio buttons verwenden-->
           <Button variant="outlined" class="round-btn">
             <Label>{rounds}</Label>
           </Button>
@@ -107,6 +109,10 @@
   </DialogActions>
 </Dialog>
 
+<!--
+FIXME: Ungenutzte CSS-Klassen
+FIXME: Bitte keine Farben außer rot und grün vorgeben!!!
+-->
 <style lang="scss">
   @use "sass:color";
   @use "@material/theme/color-palette";
@@ -117,6 +123,7 @@
     $background: #fff,
     $error: color-palette.$red-900
   );
+
   .game-list {
     list-style: none;
     padding: 16px;
