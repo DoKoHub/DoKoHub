@@ -1,10 +1,9 @@
 // src/routes/app/group/[group]/members/+page.ts
 import type { PageLoad } from "./$types";
-import { PlayGroupMember ,Player} from "$lib/types";
+import { PlayGroupMember, Player } from "$lib/types";
 import { get } from "$lib/frontend/fetch";
 import z from "zod";
-import type { APIRoute } from "$lib/server/routes";
-
+import { UUID } from "$lib/types";
 
 /*
   Wird von SvelteKit aufgerufen, wenn die Seite geladen wird.
@@ -14,14 +13,14 @@ import type { APIRoute } from "$lib/server/routes";
 */
 export const load: PageLoad = async ({ params, fetch }) => {
   //  Gruppen-ID aus URL /app/group/[group]/members
-  const groupId = params.group;
+  const groupId = UUID.parse(params.group);
 
   // 1. Mitglieder dieser Gruppe laden
   let members: PlayGroupMember[] = [];
 
   try {
     members = await get(
-      `/api/group/${groupId}/member` as APIRoute ,
+      `/api/group/${groupId}/member`,
       z.array(PlayGroupMember),
       fetch
     );
@@ -39,7 +38,6 @@ export const load: PageLoad = async ({ params, fetch }) => {
   // 3. Spieler, die bereits Mitglied in dieser Gruppe sind, herausfiltern
   const memberIds = new Set(members.map((m) => m.playerId));
   const availablePlayers = allPlayers.filter((p) => !memberIds.has(p.id));
-
 
   //  Daten an +page.svelte übergeben
   return {

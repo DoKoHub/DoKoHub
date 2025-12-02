@@ -28,16 +28,11 @@
 
   const MAX_PLAYERS = 4;
 
-  const { data } = $props() as PageProps & {
-    data: {
-      groupId: string;
-      members: PlayGroupMember[];
-    };
-  };
+  const { data }: PageProps = $props();
 
   // Gruppen-ID und Mitglieder aus dem load()
   const groupId = data.groupId;
-  let members = $state<PlayGroupMember[]>(data.members);
+  let members = $state(data.members);
 
   // aktueller Spieler (für playerId beim POST)
   const user = get_user();
@@ -96,7 +91,7 @@
 
       // 1️.Spieler im Backend anlegen
       const response = await post(
-        `/api/group/${groupId}/member` as APIRoute,
+        `/api/group/${groupId}/member`,
         {
           playerId: user.id, // aktueller Spieler
           nickname,
