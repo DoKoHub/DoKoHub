@@ -861,6 +861,111 @@ Blackbox.
 -->
 
 ### \<Name Blackbox 1>
+# UI Documentation
+
+## 1. Overview
+
+Projektname: DoKoHub  
+Beschreibung: Webapplikation des Spiels Doppelkopf  
+Letzte Aktualisierung: 29.11.2025
+
+---
+
+## 2. Ziel
+
+Benutzerfreundliche Darstellung des Spiels, insbesondere auf mobilen Geräten.
+
+
+---
+
+## 3. Tech Stack
+
+| Bereich        | Beschreibung      |
+|---------------|-------------------|
+| Framework     | Svelte            |
+| Sprache       | TypeScript        |
+| Datenbank     | SQLper            |
+| Designvorlage | Figma             |
+| Versionierung | GitHub Repository |
+
+---
+
+## 4. Design System
+
+### 4.1 Farben (Material Theme – Svelte)
+
+```scss
+@use '@material/theme/index' as theme with (
+  $primary: #ff3e00,
+  $secondary: #676778,
+  $surface: #fff,
+  $background: #fff,
+  $error: color-palette.$red-900
+);
+
+html,
+body {
+  background-color: theme.$surface;
+  color: theme.$on-surface;
+}
+
+a {
+  color: #40b3ff;
+}
+
+a:visited {
+  color: color.scale(#40b3ff, $lightness: -35%);
+}
+```
+
+### 4.2 Typografie
+
+```scss
+html {
+  @include typography.typography('body1');
+}
+
+h1 { @include typography.typography('headline1'); }
+h2 { @include typography.typography('headline2'); }
+h3 { @include typography.typography('headline3'); }
+h4 { @include typography.typography('headline4'); }
+h5 { @include typography.typography('headline5'); }
+h6 { @include typography.typography('headline6'); }
+```
+
+---
+
+## 5. Grundaufbau (Svelte Material UI)
+
+Die Anwendung DoKoHub verwendet Komponenten aus **Svelte Material UI (SMUI)** für das Grundlayout.
+
+[Website Svelte Material UI](https://sveltematerialui.com/)
+
+### 5.1 Übersicht der Komponenten
+
+| Bereich / Funktion              | SMUI- oder externe Komponente                                    | Beschreibung / Verwendung |
+|--------------------------------|-------------------------------------------------------------------|---------------------------|
+| **Header / Navigation**        | `TopAppBar`, `Section`, `Title`                                  | Fester Header mit optionalen Aktionen; zentrales Navigationselement auf allen Seiten. |
+| **Login-Container**            | `Card`, `Textfield`                                              | Eingabemaske für den Benutzernamen; zentrierter Card-Container mit Textfeld, optimiert für mobile Ansicht. |
+| **Gruppenübersicht**           | `List`, `Item`, `PrimaryText`, `SecondaryText`, `Graphic`, `Meta`, `Separator`, `Text` | Darstellung der Spielgruppen mit Namen, Spielerlisten und zuletzt gespieltem Datum im dreizeiligen List-Layout (`threeLine`) mit optionalen Icons. |
+| **Zeitangaben**                | `Time` (aus *svelte-time*)                                       | Formatiert Zeitstempel innerhalb der Gruppenübersicht, z. B. mit `format="dd.mm.YYYY"`. |
+| **Navigationsleiste (unten)**  | `BottomAppBar`, `Section`                                        | Feste Navigationsleiste am unteren Bildschirmrand mit Aktionen (z. B. Gruppen, Statistiken, Profil). |
+| **Tab-Navigation**             | `TabBar`, `Tab`, `Label`                                         | Reiter-Navigation zur Umschaltung zwischen Ansichten (z. B. Spiele, Statistiken, Spieler). |
+| **Aktion (Floating Button)**   | `Fab`, `Icon` aus `@smui/fab`, `mdiPlus` aus `@mdi/js`, `PlusButton` | Schwebender Aktionsbutton unten rechts, ggf. als eigene `PlusButton`-Komponente gekapselt; löst zentrale Aktionen wie „Neue Gruppe erstellen“ aus. |
+| **Kontext- / Optionsmenüs**    | `Menu`, `List`, `ListItem`                                       | Kontext- oder Dropdown-Menüs für zusätzliche Aktionen (z. B. Gruppe bearbeiten/löschen). |
+| **Icon-Aktionen**              | `IconButton`                                                     | Einzelne Icon-Schaltflächen für schnelle Aktionen (z. B. Bearbeiten, Löschen). |
+| **Primäre / Sekundäre Aktionen** | `Button`                                                       | Standard-Schaltflächen für Aktionen in Formularen, Dialogen und Übersichten. |
+| **Kartenlayout allgemein**     | `Card`, `Content`                                                | Container zur strukturierten Darstellung von Gruppen-, Spiel- oder Spielerinformationen. |
+| **Schalter / Toggle**          | `Switch`                                                         | Umschalter für binäre Einstellungen (z. B. Option aktiv/inaktiv, Filter an/aus). |
+| **Lifecycle-Initialisierung**  | `onMount` (aus `svelte`)                                         | Lädt Daten oder initialisiert Zustand beim Rendern der Komponente. |
+| **Formulareingaben**           | `TextField`                                                      | Text-Eingabefelder in Formularen und Dialogen (z. B. Gruppenname, Spielername, Notizen). |
+| **Formularfeld-Gruppierung**   | `FormField`                                                      | Gruppiert Eingabeelemente wie `Radio` oder `Switch` zusammen mit Label. |
+| **Optionsauswahl**             | `Radio`                                                          | Auswahl zwischen vordefinierten Optionen (z. B. Spielmodus, Sortierung). |
+| **Dialoge / Modale**           | `Dialog`, `DialogTitle`, `DialogContent`, `DialogActions`        | Modale Dialoge zur Bestätigung oder Eingabe von Informationen. |
+    
+### \<Name Blackbox 2>
+
+*\<Blackbox-Template>*
 
 <!--
 <div class="sidebar">

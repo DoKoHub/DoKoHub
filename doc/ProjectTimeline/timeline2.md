@@ -9,9 +9,24 @@
 - Anpassungen der Aufgaben basierend auf dem Feedback des Supervisors vom 15.10.   
 - Laila erstellt weiterhin die laufende Dokumentation und überwacht den Projektfortschritt  
 - **Absprachen für weitere Treffen:**
-  - Melanie & Konstantin** trafen sich bereits am 16.10., um gemeinsam an der UI in Figma zu arbeiten  
+  - Melanie & Konstantin trafen sich bereits am 16.10., um gemeinsam an der UI in Figma zu arbeiten
+  - folgende Aufteilung:
+    - Konstantin: Login, First-Time-Login, Group-Overview
+    - Melanie: Group-Games, Group-Stats, Group-Members
   - Leen & Larin treffen sich am Sonntag, 19.10., um an der Datenbankstruktur und am ER-Modell zu arbeiten  
 
 **Ergebnis:**  
 Die Aufgabenverteilung und Zieldefinition für den 2. Meilenstein sind abgeschlossen.  
 Alle Teammitglieder beginnen nun mit der Umsetzung ihrer jeweiligen Bereiche.
+
+## 25.10. – Teammeeting: Präsentation der Zwischenergebnisse
+
+- Wir haben uns getroffen, um den aktuellen Stand aller Bereiche zu zeigen (Datenbank, REST-API, UI und Präsentation).  
+- Gemeinsam haben wir uns die bisherigen Ergebnisse angeschaut und besprochen, was bereits gut funktioniert.  
+- Es gab eine kurze Feedbackrunde mit kleinen Verbesserungsvorschlägen.  
+- Einige Punkte konnten direkt angepasst werden, andere werden bis zur Abgabe noch überarbeitet.  
+
+**Ergebnis:**  
+- Das Projekt läuft nach Plan, und wir sind mit dem bisherigen Fortschritt zufrieden.  
+- Kleine Feinanpassungen werden noch bis zum 29.10. erledigt.  
+- Ein Abschlussmeeting zur finalen Abstimmung findet am 28.10. statt.
