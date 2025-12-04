@@ -1,19 +1,18 @@
-import { BadResponse, ErrorResponse, GETResponse, PUTOrDeleteResponse } from "$lib/responses";
+import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { groupInvite, playgroup } from "$lib/server/db/schema";
-import type { PlayGroup, PlayGroupMember } from "$lib/types";
+import { PlayGroup, UUID, type PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
-
-export const GET: RequestHandler = async({ params }) => {
+export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         // UUID der Gruppe
         const groupId = params.group;
 
         //Falls UUID leer ist
-        if (!groupId) {
-            return new BadResponse('Missing group id');
+        if (!groupId || !(UUID.safeParse(groupId).success)) {
+            return badRequest({ message: 'PlayGroup ID required' });
         }
 
         // Alle möglichen Spieler aus DB sammeln
@@ -24,14 +23,25 @@ export const GET: RequestHandler = async({ params }) => {
         
         // Pruefen ob Gruppen zurueckgegeben wurden
         if (!groupsFromDB[0]) {
-            return new BadResponse('Group not found');
+            return badRequest({ message: 'PlayGroup not found' });
         }
 
+        const response = await fetch(`/api/group/${groupsFromDB[0].id}/member`);
+        const body = await response.json();
+
+        const finalGroup: PlayGroup = {
+            id: groupsFromDB[0].id as UUID,
+            name: groupsFromDB[0].name,
+            createdOn: groupsFromDB[0].createdOn ? new Date(groupsFromDB[0].createdOn) : null,
+            lastPlayedOn: groupsFromDB[0].lastPlayedOn ? new Date(groupsFromDB[0].lastPlayedOn) : null,
+            members: body as PlayGroupMember[]
+        };
+
         // OK und Gruppe zurueckgeben
-        return new GETResponse(groupsFromDB[0] as PlayGroup);
+        return ok(finalGroup);
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse( `Database error while fetching group "${params.group}"`);
+        return serverError({ message: 'Database error while fetching PlayGroup' });
     }
 };
 
@@ -41,39 +51,35 @@ export const PUT: RequestHandler = async({ request, params }) => {
         const groupId = params.group;
         
         //Falls UUID leer ist
-        if (!groupId) {
-            return new BadResponse('Missing group id');
+        if (!groupId || !(UUID.safeParse(groupId).success)) {
+            return badRequest({ message: 'PlayGroup ID required' });
         }
 
         const body = await request.json();
         const newGroup = body.playGroup;
         
-        if (!newGroup) {
-            return new BadResponse('Must send a valid PlayGroup');
-        }
-
-        if (newGroup.name.trim().length === 0) {
-            return new BadResponse('Name is required and must be a string');
+        if (!newGroup || !(PlayGroup.safeParse(newGroup).success)) {
+            return badRequest({ message: 'Valid PlayGroup required' });
         }
 
         const [updatedGroup] = await db
             .update(playgroup)
             .set({
                 name: newGroup.name,
-                lastPlayedOn: newGroup.lastPlayedOn,
-                note: newGroup.note
+                lastPlayedOn: newGroup.lastPlayedOn?.toISOString(),
             })
             .where(eq(playgroup.id, groupId))
             .returning();
 
         if (!updatedGroup) {
-            return new BadResponse('Group not found');
+            return badRequest({ message: 'PlayGroup not found' });
         }
 
-        return new PUTOrDeleteResponse('Updated Group', {name: 'playGroup', data: updatedGroup as PlayGroup})
+        return ok({ message: 'Updated PlayGroup', playGroup: updatedGroup as PlayGroup });
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse(`Database error while updating group "${params.group}"`);
+        console.log(error);
+        return serverError({ message: 'Database error while updating PlayGroup' });
     }
 }
 
@@ -83,21 +89,14 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
         const groupId = params.group;
 
         //Falls UUID leer ist
-        if (!groupId) {
-            return new BadResponse('Missing group id');
+        if (!groupId || !(UUID.safeParse(groupId).success)) {
+            return badRequest({ message: 'PlayGroup ID required' });
         }
 
         const groupResponse = await fetch(`/api/group/${groupId}`);
-        if (groupResponse.status == 400) {
-            return new BadResponse('Group not found');
+        if (groupResponse.status != 200) {
+            return badRequest({ message: 'PlayGroup not found' });
         }
-
-        const groupResponseBody = await groupResponse.json();
-
-        if (Object.keys(groupResponseBody).length == 0) {
-            return new BadResponse("Group not found");
-        }
-
 
         // Abhängigkeiten löschen
         const memberResponse = await fetch(`/api/group/${groupId}/member`);
@@ -124,8 +123,8 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             .where(eq(playgroup.id, groupId))
             .returning();
         
-        return new PUTOrDeleteResponse('Deleted Group', {name: 'playGroup', data: deletedGroup as PlayGroup});
+        return ok({ message: 'Deleted PlayGroup', playGroup: deletedGroup as PlayGroup });
     } catch(error) {
-        return new ErrorResponse('Database error while deleting group');
+        return serverError({ message: 'Database error while deleting PlayGroup' })
     }
 }

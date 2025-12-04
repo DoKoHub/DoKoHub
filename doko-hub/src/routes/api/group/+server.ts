@@ -1,41 +1,52 @@
-import { BadResponse, ErrorResponse, GETResponse, POSTResponse } from "$lib/responses";
+import { badRequest, created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playgroup } from "$lib/server/db/schema";
-import type { PlayGroup } from "$lib/types";
+import { Name, PlayGroup, PlayGroupMember, UUID } from "$lib/types";
+import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
+import z from "zod";
 
-
-export const GET: RequestHandler = async() => {
+export const GET: RequestHandler = async({ fetch }) => {
     try {
-
         // Alle Gruppen aus der DB lesen
         const groupsFromDB = await db
             .select()
             .from(playgroup);
         
-        // mapping
-        const groups: PlayGroup[] = groupsFromDB as PlayGroup[];
+        let playGroups: PlayGroup[] = [];
+        for (let i =0; i < groupsFromDB.length; i++) {
+            const group = groupsFromDB[i];
+            if (!group) {
+                continue;
+            }
+            const response = await fetch(`/api/group/${group.id}/member`);
+            const body = await response.json();
 
-        // OK und Gruppen zurueckgeben
-        return new GETResponse(groups);
+            playGroups.push({
+                id: group.id as UUID,
+                name: group.name,
+                createdOn: group.createdOn ? new Date(group.createdOn) : null,
+                lastPlayedOn: group.lastPlayedOn ? new Date(group.lastPlayedOn) : null,
+                members: body as PlayGroupMember[]
+            })
+        }
+
+        return ok(groupsFromDB as PlayGroup[])
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while fetching groups')
+        return serverError({ message: 'Database error while fetching PlayGroup[]' });
     }
 }
 
-export const POST: RequestHandler = async({ request }) => {
+export const POST: RequestHandler = async(event) => {
+    const bodySchema = z.object({
+        name: Name,
+        creatorId: UUID,
+        nickname: Name.optional()
+    });
+    const { name, creatorId, nickname } = await readValidatedBody(event, bodySchema)
+
     try {
-        // Request body
-        const body = await request.json();
-
-        // Name ueberpruefen
-        const name = body.name;
-        if (!name || typeof name !== 'string' || name.trim().length === 0) {
-            // Name ist nicht valide
-            return new BadResponse('Name is required and must be a string');
-        }
-
         const creationObj = {
             name: name,
             createdOn: new Date().toISOString().slice(0, 10) // 'YYYY-MM-DD'
@@ -44,11 +55,34 @@ export const POST: RequestHandler = async({ request }) => {
         const [insertedGroup] = await db
             .insert(playgroup)
             .values(creationObj)
-            .returning()
+            .returning();
         
-        return new POSTResponse('Group created', {name: 'playGroup', data: insertedGroup as PlayGroup})
+        const createMemberRequest = await event.fetch(`/api/group/${insertedGroup.id}/member`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                playerId: creatorId,
+                ...(nickname ? {nickname: nickname} : {})
+            })
+        });
+
+        const response = await event.fetch(`/api/group/${insertedGroup.id}/member`);
+        const body = await response.json();
+
+        const group: PlayGroup = {
+            id: insertedGroup.id as UUID,
+            name: insertedGroup.name,
+            createdOn: insertedGroup.createdOn ? new Date(insertedGroup.createdOn) : null,
+            lastPlayedOn: insertedGroup.lastPlayedOn ? new Date(insertedGroup.lastPlayedOn) : null,
+            members: body as PlayGroupMember[]
+        };
+
+        return created({ message: 'Created PlayGroup', playGroup: group });
     } catch(error) {
         // Falls die DB einen Fehler wirft
-        return new ErrorResponse('Database error while creating group');
+        console.log(error);
+        return serverError({ message: 'Database error while creating PlayGroup' })
     }
 }

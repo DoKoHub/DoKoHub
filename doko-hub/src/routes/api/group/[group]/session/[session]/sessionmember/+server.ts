@@ -1,0 +1,84 @@
+import { badRequest, ok, serverError } from "$lib/http";
+import { db } from "$lib/server/db";
+import { sessionMember } from "$lib/server/db/schema";
+import { SeatPos, SessionMember, UUID } from "$lib/types";
+import { groupExists, sessionExists } from "$lib/utils";
+import { readValidatedBody } from "$lib/validation";
+import type { RequestHandler } from "@sveltejs/kit";
+import { eq } from "drizzle-orm";
+import z from "zod";
+
+
+export const GET: RequestHandler = async({ params }) => {
+    try {
+        const groupId = params.group;
+        const sessionId = params.session;
+
+        if (!groupId || !(UUID.safeParse(groupId)).success) {
+            return badRequest({ message: 'PlayGroup ID required' });
+        }
+
+        if (!sessionId || !(UUID.safeParse(sessionId)).success) {
+            return badRequest({ message: 'Session ID required' });
+        }
+
+        if (!groupExists(groupId)) {
+            return badRequest({ message: 'PlayGroup not found' });
+        }
+
+        if (!sessionExists(sessionId)) {
+            return badRequest({ message: 'Session not found' });
+        }
+
+        const sessionMembersFromDB = await db
+            .select()
+            .from(sessionMember)
+            .where(eq(sessionMember.sessionId, sessionId));
+
+        return ok(sessionMembersFromDB as SessionMember[]);
+    } catch(error) {
+        return serverError({ message: 'Database error while fetching SessionMember[]' });
+    }
+};
+
+export const POST: RequestHandler = async(event) => {
+    const bodySchema = z.object({
+        memberId: UUID,
+        seatPos: SeatPos.nullable()
+    });
+    const { memberId, seatPos } = await readValidatedBody(event, bodySchema);
+
+    try {
+        const groupId = event.params.group;
+        const sessionId = event.params.session;
+
+        if (!groupId || !(UUID.safeParse(groupId)).success) {
+            return badRequest({ message: 'PlayGroup ID required' });
+        }
+
+        if (!sessionId || !(UUID.safeParse(sessionId)).success) {
+            return badRequest({ message: 'Session ID required' });
+        }
+
+        if (!groupExists(groupId)) {
+            return badRequest({ message: 'PlayGroup not found' });
+        }
+
+        if (!sessionExists(sessionId)) {
+            return badRequest({ message: 'Session not found' });
+        }
+
+        const [createdPlayer] = await db
+            .insert(sessionMember)
+            .values({
+                sessionId: sessionId,
+                memberId: memberId,
+                seatPos: seatPos
+            })
+            .returning();
+        
+        return ok({ message: 'Created SessionMember', sessionMember: createdPlayer as SessionMember });
+    } catch(error) {
+        return serverError({ message: 'Database error while creating SessionMember' });
+    }
+}

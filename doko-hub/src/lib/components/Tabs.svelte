@@ -1,77 +1,80 @@
+<!--FIXME: Bitte Svelte5 statt deprecated Svelte4 nutzen-->
 <script lang="ts">
-  export let tabs: string[] = ["Spiele", "Statistiken", "Spieler"]; 
-  export let activeTab: string = tabs[0]; // Standard: erster Tab aktiv
-  export let onSelectTab: (tab: string) => void = (tab) =>
-    console.log(`Tab ausgewählt: ${tab}`);
+  import Tab, { Label } from "@smui/tab";
+  import TabBar from "@smui/tab-bar";
+  import { createEventDispatcher } from "svelte";
 
-  /** interner Handler */
-  function handleSelect(tab: string) {
-    activeTab = tab;
-    onSelectTab(tab);
-  }
+  // Schnittstelle: Tabs und aktiver Tab können von außen
+  export let tabs: string[] = ["Spiele", "Statistiken", "Spieler"];
+  export let active: string = tabs[0];
+
+  const dispatch = createEventDispatcher();
+
+  // wenn active sich ändert, dann event an parent
+  $: dispatch("change", active);
 </script>
 
-<!--Tabs-->
-<nav class="tab-bar">
-  {#each tabs as tab}
-    <button
-      class="tab {activeTab === tab ? 'active' : ''}"
-      on:click={() => handleSelect(tab)}
-    >
-      {tab}
-    </button>
-  {/each}
-</nav>
-
-
-<div class="divider"></div>
+<TabBar {tabs} bind:active>
+  {#snippet tab(tab)}
+    <Tab {tab}>
+      <Label>{tab}</Label>
+    </Tab>
+  {/snippet}
+</TabBar>
 
 <style lang="scss">
-@use 'sass:color';
-@use '@material/theme/color-palette';
-@use '@material/theme/index' as theme with (
-  $primary: #955cff,
-  $secondary: #676778,
-  $surface: #ffffff,
-  $background: #ffffff,
-  $error: color-palette.$red-900
-);
+  @use "sass:color";
+  @use "@material/theme/color-palette";
+  @use "@material/theme/index" as theme with (
+    $primary: #ff3e00,
+    $secondary: #676778,
+    $surface: #ffffff,
+    $background: #ffffff,
+    $error: color-palette.$red-900
+  );
 
-/* Tab */
-.tab-bar {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  height: 64px;
-  width: 100%;
-  background-color: theme.$surface;
-}
+  // --- Tab-Leiste ---
+  :global(.smui-tab-bar) {
+    width: 100%;
+    background-color: theme.$surface;
+    color: theme.$on-surface;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid color.scale(theme.$surface, $lightness: -15%);
+    display: flex;
+    justify-content: center;
+  }
 
-.tab {
-  flex: 1;
-  background: none;
-  border: none;
-  height: 100%;
-  font-size: 16px;
-  color: theme.$on-surface;
-  cursor: pointer;
-  transition: color 0.2s, border-bottom 0.2s;
+  // --- Einzelne Tabs ---
+  :global(.smui-tab) {
+    min-width: 100px;
+    padding: 0 12px;
+    color: theme.$on-surface;
+    text-transform: none;
+    font-weight: 500;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
 
-  &.active {
+    &:hover {
+      background-color: color.scale(theme.$surface, $lightness: -5%);
+    }
+  }
+
+  // --- Aktiver Tab (global kombiniert) ---
+  :global(.smui-tab.mdc-tab--active) {
     color: theme.$primary;
-    border-bottom: 2px solid theme.$primary;
-    font-weight: 600;
   }
 
-  &:hover {
-    background-color: color.scale(theme.$surface, $lightness: -10%);
+  // --- Aktiv-Indikator ---
+  :global(.smui-tab.mdc-tab--active .mdc-tab__indicator) {
+    background-color: theme.$primary;
+    height: 3px;
+    border-radius: 2px;
   }
-}
 
-
-.divider {
-  width: 100%;
-  height: 1px;
-  background-color: color.scale(theme.$on-surface, $lightness: 70%);
-}
+  // --- Label Tabs ---
+  :global(.smui-tab__text-label) {
+    font-size: 16px;
+    padding: 12px 0;
+  }
 </style>
