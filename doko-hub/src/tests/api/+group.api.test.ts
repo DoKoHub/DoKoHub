@@ -8,11 +8,6 @@ import { PlayGroup, PlayGroupMember } from '$lib/types';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
-const MOCK_PLAYER_DATA_FULL = {
-    provider: 'GOOGLE',
-    subject: 'group-test-sub',
-    email: 'group.test@example.com'
-};
 
 const MOCK_PLAYER_DATA_FULL = {
     provider: 'GOOGLE',
