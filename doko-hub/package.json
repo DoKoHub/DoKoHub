@@ -18,8 +18,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "smui-prepare": "npm run smui-theme-light && npm run smui-theme-dark",
-    "smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
-    "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
+    "smui-theme-light": "smui-theme compile static/smui.css --source-file src/theme/_smui-theme.scss",
+    "smui-theme-dark": "smui-theme compile static/smui-dark.css --source-file src/theme/dark/_smui-theme.scss"
   },
   "devDependencies": {
     "@mdi/js": "^7.4.47",

@@ -1,6 +1,7 @@
 // Globale Interfaces basierend auf dem ER-Modell
 import { z } from "zod";
 
+
 /** UUID brand + Parser */
 //rüft: Ist der Wert ein gültiger UUID-String?
 export const UUID = z.string().uuid().brand<"UUID">();
@@ -22,6 +23,7 @@ export const NonEmpty = z.string().trim().min(1);
 /** Seat positions: 1..4  */
 export const SeatPos = z.number().int().min(1).max(4);
 export type SeatPos = z.infer<typeof SeatPos>;
+
 
 export const GameType = z.enum([
   "NORMAL",
@@ -79,6 +81,7 @@ export type PointsKind = z.infer<typeof PointsKind>;
 
 export const PlayerStatus = z.enum(["ACTIVE", "LEFT"]);
 export type PlayerStatus = z.infer<typeof PlayerStatus>;
+
 
 export const SessionStatus = z.enum(["FULL", "NOTFULL"]);
 export type SessionStatus = z.infer<typeof SessionStatus>;
@@ -189,6 +192,7 @@ export const RoundParticipation = z.object({
 })
 .strict();
 export type RoundParticipation = z.infer<typeof RoundParticipation>;
+
 
 // Scoring, Calls, Bonuses, Points
 

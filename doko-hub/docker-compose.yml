@@ -21,7 +21,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: npm run db:migrate
+    command: npm run db:push -- --force
 
   db:
     # Use a specific major version for predictability
