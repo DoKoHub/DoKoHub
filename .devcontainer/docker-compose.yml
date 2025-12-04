@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspaces:cached
+    command: sleep infinity
+    user: node
+    depends_on:
+      - db
+    networks:
+      - dokohub
+    ports:
+      - 3000:3000
+
+  db:
+    image: postgres:16
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - ../doko-hub/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - dokohub
+
+volumes:
+  pgdata:
+
+networks:
+  dokohub:
