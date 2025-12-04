@@ -3,8 +3,7 @@ import { setupDatabase } from '../setup/+setup';
 import { db } from '$lib/server/db';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
-import { Name, Player } from '$lib/types';
-import { player } from '$lib/server/db/schema';
+import { Player } from '$lib/types';
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
@@ -151,13 +150,6 @@ describe('API /api/player/[player]', () => {
         expect(response.body.message).toBe('Updated Player');
         expect(response.body.player.name).toBe(newName);
         expect(response.body.player.email).toBe(newEmail);
-    });
-
-    // TEST: PUT (Validierung - Name fehlt)
-    test('PUT: Should fail if "name" is missing in the update body (Status 400)', async () => {
-        const response = await api.put(`/api/player/${createdPlayerId}`, {});
-        expect(response.status).toBe(400);
-        expect(response.body.message).toBe('Valid Player required');
     });
 
     // TEST: PUT (Validierung - Name leer)

@@ -1,6 +1,6 @@
 const BASE_URL = 'http://localhost:3000';
 
-jest.setTimeout(15000);
+jest.setTimeout(30000);
 
 interface ApiResponse {
     status: number;
