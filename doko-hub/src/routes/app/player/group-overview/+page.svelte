@@ -66,14 +66,14 @@
     <PrimaryText>{group.name}</PrimaryText>
     <SecondaryText
       >Spieler: {group.members
-        //FIXME: the nickname is never actually null but the DTOs don't reflect that
+        //TODO: the nickname is never actually null but the DTOs don't reflect that
         .map(({ nickname }) => nickname!)
         .join()}</SecondaryText
     >
     <SecondaryText>
       {#if group.lastPlayedOn}
         Zuletzt gespielt am: <Time
-          timestamp={group.lastPlayedOn}
+          timestamp={group.lastPlayedOn!}
           format="dd.MM.YYYY"
         ></Time>
       {:else}
