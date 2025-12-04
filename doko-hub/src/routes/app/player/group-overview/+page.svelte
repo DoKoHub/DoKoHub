@@ -1,0 +1,182 @@
+<script lang="ts">
+  import List, {
+    Item,
+    PrimaryText,
+    SecondaryText,
+    Separator,
+    Text,
+  } from "@smui/list";
+  import Time from "svelte-time";
+  import Dialog, {
+    Title as DialogTitle,
+    Content as DialogContent,
+    Actions as DialogActions,
+  } from "@smui/dialog";
+  import Button, { Label } from "@smui/button";
+  import Textfield from "@smui/textfield";
+  import Icon from "@smui/textfield/icon"; // für das "X"-Symbol rechts im Textfeld
+  import type { PageProps } from "./$types";
+  import { PlayGroup, PlayGroupMember } from "$lib/types";
+  import { post } from "$lib/frontend/fetch";
+  import { get_user } from "$lib/frontend/auth";
+  import z from "zod";
+  import { goto } from "$app/navigation";
+
+  const { data }: PageProps = $props();
+  try {
+    var user = get_user();
+  } catch (e) {
+    goto("/app/first-time-login");
+  }
+
+  let dialogOpen = $state(false);
+  let groupName = $state("New Group");
+  let groups = $state(data.groups);
+
+  async function handleCreate(name: string) {
+    console.log("Neue Gruppe erstellt:", name);
+
+    try {
+      /*
+        Backend informieren: POST-Request sendet die Daten an das Backend
+        Erster Parameter: Route
+        Zweiter Parameter: Daten, die gesendet werden (siehe Tarons Dokumentation)
+        Dritter Parameter: Gerade kacke, Typ der vom Backend zurückgegeben wird
+      */
+      const { playGroup } = await post(
+        "/api/group",
+        { name, creatorId: user.id },
+        z.object({ playGroup: PlayGroup })
+      );
+
+      // Lokalen Zustand ändern, die angezeigte Liste ändert sich sofort hier nach
+      // Sollte man immer als letztes machen falls einer der Aufrufe zum Backend fehlschlägt
+      groups.push(playGroup);
+    } catch (e) {
+      //TODO: Notify user about error
+      console.error(e);
+    }
+
+    dialogOpen = false;
+  }
+</script>
+
+{#snippet GroupItem(group: PlayGroup)}
+  <Text>
+    <PrimaryText>{group.name}</PrimaryText>
+    <SecondaryText
+      >Spieler: {group.members
+        //TODO: the nickname is never actually null but the DTOs don't reflect that
+        .map(({ nickname }) => nickname!)
+        .join()}</SecondaryText
+    >
+    <SecondaryText>
+      {#if group.lastPlayedOn}
+        Zuletzt gespielt am: <Time
+          timestamp={group.lastPlayedOn!}
+          format="dd.MM.YYYY"
+        ></Time>
+      {:else}
+        Noch nicht gespielt
+      {/if}
+    </SecondaryText>
+  </Text>
+{/snippet}
+
+<List threeLine>
+  {#each groups as group}
+    <Item onclick={async () => await goto(`/app/group/${group.id}/games`)}>
+      {@render GroupItem(group)}
+    </Item>
+    <Separator />
+  {/each}
+</List>
+<!-- FAB unten rechts -->
+<button
+  class="fab"
+  aria-label="Neue Gruppe erstellen"
+  onclick={() => (dialogOpen = true)}
+>
+  <span class="material-icons">add</span>
+</button>
+
+<!-- Dialog -->
+<Dialog bind:open={dialogOpen} class="new-group-dialog">
+  <DialogTitle>Neue Gruppe erstellen</DialogTitle>
+
+  <DialogContent>
+    <Textfield
+      label="Name"
+      variant="filled"
+      class="w-full"
+      bind:value={groupName}
+      withTrailingIcon
+    >
+      {#snippet trailingIcon()}
+        <Icon
+          class="material-icons"
+          role="button"
+          onclick={() => (groupName = "")}
+        >
+          close
+        </Icon>
+      {/snippet}
+    </Textfield>
+  </DialogContent>
+
+  <DialogActions class="dlg-actions-right">
+    <Button onclick={() => (dialogOpen = false)}>
+      <Label>Abbrechen</Label>
+    </Button>
+    <Button
+      onclick={() => handleCreate(groupName)}
+      disabled={!groupName.trim()}
+    >
+      <Label>Ok</Label>
+    </Button>
+  </DialogActions>
+</Dialog>
+
+<style>
+  /* FAB unten rechts */
+  .fab {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+
+    /* Material Design default shadows */
+    box-shadow: var(--mdc-elevation--z6);
+  }
+
+  /* Dialog surface: nur Radius, KEINE Farbe */
+  :global(.mdc-dialog__surface) {
+    border-radius: 24px;
+  }
+
+  /* Actions im Dialog rechts ausrichten */
+  :global(.mdc-dialog__actions) {
+    justify-content: flex-end;
+    gap: 16px;
+  }
+
+  /* Textfield: keine Farben setzen → SMUI default */
+  :global(.mdc-text-field) {
+    width: 100%;
+  }
+
+  :global(.dlg-actions-right) {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+</style>
