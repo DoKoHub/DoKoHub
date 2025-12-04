@@ -6,8 +6,11 @@ import type { Sql } from 'postgres';
 import { PlayGroup, Session, type Ruleset } from '$lib/types';
 
 // Mock data
+<<<<<<< HEAD
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
+=======
+>>>>>>> dev
 const MOCK_SESSION_DATA = {
     ruleset: 'STANDARD',
     plannedRounds: 42,
@@ -156,9 +159,13 @@ describe('API /api/group/[group]/session/[session]', () => {
         session.plannedRounds = newRounds;
         session.endedAt = endedDate;
 
+<<<<<<< HEAD
         console.log("1: ", `/api/group/${groupId}/session/${sessionId}`, {session: session});
         const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, {session: session});
         console.log("check: ",response);
+=======
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, {session: session});
+>>>>>>> dev
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Updated Session');
@@ -166,6 +173,7 @@ describe('API /api/group/[group]/session/[session]', () => {
         expect(response.body.session.endedAt).not.toBeNull();
     });
 
+<<<<<<< HEAD
     // Test: PUT (Validierung - required fields fehlen)
     test('PUT: Should fail if required fields are missing in body (Status 400)', async () => {
         const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, {}); 
@@ -173,6 +181,8 @@ describe('API /api/group/[group]/session/[session]', () => {
         expect(response.body).toHaveProperty('message');
     });
 
+=======
+>>>>>>> dev
     // Test: PUT (Ungültiges Session-ID-Format)
     test('PUT: Should return 400 if session ID has an invalid format', async () => {
         const response = await api.put(`/api/group/${groupId}/session/not-a-valid-uuid`, MOCK_SESSION_DATA);

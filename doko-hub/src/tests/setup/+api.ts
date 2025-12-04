@@ -1,6 +1,10 @@
 const BASE_URL = 'http://localhost:3000';
 
+<<<<<<< HEAD
 jest.setTimeout(15000);
+=======
+jest.setTimeout(30000);
+>>>>>>> dev
 
 interface ApiResponse {
     status: number;

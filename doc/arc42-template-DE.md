@@ -1,5 +1,7 @@
 #
 
+#
+
 **Über arc42**
 
 arc42, das Template zur Dokumentation von Software- und
@@ -19,6 +21,7 @@ contributors. Siehe <https://arc42.org>.
 > [!NOTE]
 > Diese Version des Templates enthält Hilfen und Erläuterungen. Sie
 > dient der Einarbeitung in arc42 sowie dem Verständnis der Konzepte.
+> Für die Dokumentation eigener System verwenden Sie besser die _plain_
 > Für die Dokumentation eigener System verwenden Sie besser die _plain_
 > Version.
 
@@ -295,10 +298,16 @@ bezüglich der Architektur und deren Dokumentation.
 
 | Rolle                         | Kontakt                                                                                       | Erwartungshaltung                                                                                                      |
 | ----------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Rolle                         | Kontakt                                                                                       | Erwartungshaltung                                                                                                      |
+| ----------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Betreuende                    | `le.brauner@ostfalia.de`                                                                      | [Funktionale Anforderungen](#aufgabenstellung) sind erfüllt und klar dokumentiert; Häufige Rückmeldung der Entwickler. |
 | Entwickler                    | _siehe [github repo (github.com)](https://github.com/DoKoHub/DoKoHub)_                        | Klar definierte Anforderungen; Konstantes Feedback von anderen Stakeholdern; Aktuelle Dokumentation                    |
 | Verteilungsbeauftrage         | -                                                                                             | Klar definierte Verteilungsprozesse; Reproduzierbare Softwarebundles; Überwachungsmöglichkeiten                        |
+| Entwickler                    | _siehe [github repo (github.com)](https://github.com/DoKoHub/DoKoHub)_                        | Klar definierte Anforderungen; Konstantes Feedback von anderen Stakeholdern; Aktuelle Dokumentation                    |
+| Verteilungsbeauftrage         | -                                                                                             | Klar definierte Verteilungsprozesse; Reproduzierbare Softwarebundles; Überwachungsmöglichkeiten                        |
 | Endnutzer                     | -                                                                                             | [Funktionale Anforderungen](#aufgabenstellung) sind erfüllt; Intuitive Nutzerschnittstelle und flüssiges Appverhalten  |
+| Externe/Zukünftige Entwickler | Klare, aktuelle Dokumentation; Quick-Start-Anleitung und reproduzierbare Entwicklungsumgebung |                                                                                                                        |
+| Externe App-Frontends         | -                                                                                             | Klar dokumentierte, standartisierte Schnittstelle zum Backend                                                          |
 | Externe/Zukünftige Entwickler | Klare, aktuelle Dokumentation; Quick-Start-Anleitung und reproduzierbare Entwicklungsumgebung |                                                                                                                        |
 | Externe App-Frontends         | -                                                                                             | Klar dokumentierte, standartisierte Schnittstelle zum Backend                                                          |
 
@@ -373,6 +382,10 @@ online-Dokumentation (auf Englisch!).
 </div>
 -->
 
+| ID  | Beschreibung                              | Anmerkungen                                                                                                                                              |
+| --- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C01 | Primär von Studierenden entwickelt        | Architektur und Code müssen so simpel wie möglich gehalten werden. Komplexe Anforderungen müssen vereinfacht werden.                                     |
+| C02 | Kein Budget für Kostenpflichtige Services | DoKoHub muss auf quelloffener Software aufbauen und im Fall von Cloud-Hosting innerhalb der kostenfreien Grenzen bleiben                                 |
 | ID  | Beschreibung                              | Anmerkungen                                                                                                                                              |
 | --- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | C01 | Primär von Studierenden entwickelt        | Architektur und Code müssen so simpel wie möglich gehalten werden. Komplexe Anforderungen müssen vereinfacht werden.                                     |
@@ -673,6 +686,8 @@ online-Dokumentation (auf Englisch!).
 </div>
 -->
 
+-->
+
 Um F06 und Q03 zu erfüllen, ist DoKoHub in [TypeScript (typescriptlang.org, englisch)](https://www.typescriptlang.org/)
 mit dem Framework [SvelteKit (svelte.dev, englisch)](https://svelte.dev) geschrieben.
 Als Datenbank verwenden wir [PostgresQL (postgresql.org, englisch)](https://www.postgresql.org/)
@@ -826,6 +841,8 @@ des nachfolgenden Whitebox-Templates. Dieses enthält:
 
 **_\<Übersichtsdiagramm>_**
 
+**_\<Übersichtsdiagramm>_**
+
 <!--
 
 Begründung\
@@ -920,42 +937,46 @@ Die Daten die das Backend annimmt und sendet sind im Format wie in der `types.ts
 ##### api/player
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `Keine`<br>
+> URL Parameter:<br> > `Keine`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{Player}]`
 
-Gibt die Liste aller existierenden Spieler zurück.
+Gibt alle Gruppen in denen der gegebene Spieler aktives Mitglied ist zurück.
+
+##### api/group/[group]/session/[session]/round
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{Round}]`<br>
+
+Alle Runden einer Session
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `Keine`<br>
+> URL Parameter:<br> > `Keine`<br>
 > Request Body: `{"name": string}`<br>
 > Response Body: `{"message": string, "player": Player}`
 
-Erstellt einen neuen Spieler.
+Neue Runde erstellen
 
 ##### api/player/[player]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{Player}`
 
-Gibt einen spezifischen Spieler zurück.
+Spezifische Runde einer Session
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `{"name": string}`<br>
 > Response Body: `{"message": string, "player": Player}`
 
 Bearbeitet den Namen eines Spielers.
 
 > `DELETE`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{"message": string, "player": Player}`
 
@@ -964,24 +985,21 @@ Löscht einen Spieler.
 ##### api/player/[player]/identity
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{PlayerIdentity}`
 
 Gibt die Spieleridentität eines Spielers zurück.
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `{"playerIdentity": PlayerIdentity}`<br>
 > Response Body: `{"message": string, "playerIdentity": PlayerIdentity}`
 
 Bearbeitet eine Spieleridentität.
 
 > `DELETE`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{"message": string, "playerIdentity": PlayerIdentity}`
 
@@ -990,8 +1008,7 @@ Löscht eine Spieleridentität.
 ##### api/player/[player]/register
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[player]`: `UUID`<br>
+> URL Parameter:<br> > `[player]`: `UUID`<br>
 > Request Body: `{"playerIdentity": PlayerIdentity}`<br>
 > Response Body: `{"message": String, "playerIdentity": PlayerIdentity}`
 
@@ -1000,16 +1017,14 @@ Verknüpft einen Spieler zu einer Spieleridentität.
 ##### api/group
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `Keine`<br>
+> URL Parameter:<br> > `Keine`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{PlayGroup}]`
 
 Gibt alle existierenden Gruppen zurück.
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `Keine`<br>
+> URL Parameter:<br> > `Keine`<br>
 > Request Body: `{"name": string}`<br>
 > Response Body: `{"message": string, "playGroup": PlayGroup}`
 
@@ -1018,24 +1033,21 @@ Erstellt eine neue Gruppe.
 ##### api/group/[group]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{PlayGroup}`<br>
 
 Gibt eine spezifische Gruppe zurück.
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br>
 > Request Body: `{"playGroup": PlayGroup}`<br>
 > Response Body: `{"message": string, "playGroup": PlayGroup}`<br>
 
 Bearbeitet eine Gruppe.
 
 > `DELETE`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{"message": string, "playGroup": PlayGroup}`
 
@@ -1044,8 +1056,7 @@ Löscht eine Gruppe.
 ##### api/group/[group]/invite
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br>
 > Request Body: `{"expiresAt": Date, "createdBy": UUID}`<br>
 > Response Body: `{GroupInvite}`
 
@@ -1054,16 +1065,14 @@ Erstellt eine Einladung zu einer Gruppe.
 ##### api/group/[group]/member
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{PlayGroupMember}]`<br>
 
 Gibt alle Mitglieder einer Gruppe zurück.
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br>
 > Request Body: `{"playerId": UUID, ?"nickname": string}`<br>
 > Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`
 
@@ -1072,8 +1081,7 @@ Fügt einer Gruppe ein neues Mitglied hinzu.
 ##### api/group/[group]/member/[member]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `UUID`<br> >`[member]`: `UUID`<br>
+> URL Parameter:<br> > `[group]`: `UUID`<br> >`[member]`: `UUID`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{PlayGroupMember}`<br>
 
@@ -1096,209 +1104,204 @@ Setzt den Status eines Mitgliedes einer Gruppe auf `"LEFT"`.
 ##### api/group/join/[token]
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[token]`: `string`<br>
+> URL Parameter:<br> > `[token]`: `string`<br>
 > Request Body: `{"playerId": UUID, ?"nickname": string}`<br>
 > Response Body: `{"message": string, "playGroupMember": PlayGroupMember}`<br>
 
 Ein Spieler wird über ein Invite Token zu einer Gruppe als Mitglied hinzugefügt.
 
 ##### api/group/[group]/session
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `[{Session}]`<br>
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{Session}]`<br>
 
 Alle Sessions einer Gruppe
 
->`POST`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->Request Body: `{"ruleset": RuleSet, "plannedRounds": number, "startedAt": ISODate}`<br>
->Response Body: `["message": string, "session": Session]`<br>
+> `POST`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br>
+> Request Body: `{"ruleset": RuleSet, "plannedRounds": number, "startedAt": ISODate}`<br>
+> Response Body: `["message": string, "session": Session]`<br>
 
 Neue Session erstellen
 
 ##### api/group/[group]/session/[session]
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `{Session}`<br>
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{Session}`<br>
 
 Spezifische Session einer Gruppe
 
->`PUT`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->Request Body: `{"session": Session}`<br>
->Response Body: `{"message": string, "session": Session}`<br>
+> `PUT`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `{"session": Session}`<br>
+> Response Body: `{"message": string, "session": Session}`<br>
 
 Spezifische Session einer Gruppe bearbeiten
 
 ##### api/group/[group]/session/[session]/sessionmember
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `[{SessionMember}]`<br>
+
+> `GET`:<br> >`[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `{"session": Session}`<br>
+> Response Body: `{"message": string, "session": Session}`<br>
+
+Spezifische Session einer Gruppe bearbeiten
+
+##### api/group/[group]/session/[session]/sessionmember
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{SessionMember}]`<br>
+> Response Body: `[{SessionMember}]`<br>
 
 Alle member einer Session
+Alle member einer Session
 
->`POST`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->Request Body: `{"playerId": UUID}`<br>
->Response Body: `[{SessionMember}]`<br>
+> `POST`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `{"playerId": UUID}`<br>
+> Response Body: `[{SessionMember}]`<br>
 
 Neues Session member erstellen
 
 ##### api/group/[group]/session/[session]/round
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `[{Round}]`<br>
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{Round}]`<br>
+> Response Body: `[{Round}]`<br>
 
 Alle Runden einer Session
+Alle Runden einer Session
 
->`POST`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->Request Body: `{"roundNum": number, "gameType": GameType, ?"soloColor": SoloColor}`<br>
->Response Body: `{"message": string, "round": Round}`<br>
+> `POST`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
+> Request Body: `{"roundNum": number, "gameType": GameType, ?"soloColor": SoloColor}`<br>
+> Response Body: `{"message": string, "round": Round}`<br>
 
 Neue Runde erstellen
 
 ##### api/group/[group]/session/[session]/round/[round]
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `{Round}`<br>
+
+##### api/group/[group]/session/[session]/round/[round]
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `{Round}`<br>
+> Response Body: `{Round}`<br>
 
 Spezifische Runde einer Session
+Spezifische Runde einer Session
 
->`PUT`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `{"round": Round}`<br>
->Response Body: `{"message": string, "round": Round}`<br>
+> `PUT`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `{"round": Round}`<br>
+> Response Body: `{"message": string, "round": Round}`<br>
 
 Runde bearbeiten
 
 ##### api/group/[group]/session/[session]/round/[round]/bonus
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `[{RoundBonus}]`<br>
+
+> `GET`:<br> >`[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `{"round": Round}`<br>
+> Response Body: `{"message": string, "round": Round}`<br>
+
+Runde bearbeiten
+
+##### api/group/[group]/session/[session]/round/[round]/bonus
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{RoundBonus}]`<br>
 
 Alle Runden Boni einer Runde
 
->`POST`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `{"playerId": UUID, "bonus": BonusType, "count": number}`<br>
->Response Body: `{"message": string, "roundBonus": RoundBonus}`<br>
+> `POST`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `{"playerId": UUID, "bonus": BonusType, "count": number}`<br>
+> Response Body: `{"message": string, "roundBonus": RoundBonus}`<br>
 
 Neuen Bonus erstellen
 
 ##### api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->`[bonus]`: `string` (Player ID)<br>
->Request Body: `Leer`<br>
->Response Body: `{RoundBonus}`<br>
+
+##### api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string` (Player ID)<br>
+> Request Body: `Leer`<br>
+> Response Body: `{RoundBonus}`<br>
 
 Spezifischer Bonus einer Runde
 
 ##### api/group/[group]/session/[session]/round/[round]/call
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `[{RoundCall}]`<br>
+
+##### api/group/[group]/session/[session]/round/[round]/call
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{RoundCall}]`<br>
+> Response Body: `[{RoundCall}]`<br>
 
 Alle Calls einer Runde
+Alle Calls einer Runde
 
->`POST`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `{"playerId": UUID, "call": CallType}`<br>
->Response Body: `{"message": string, "roundCall": RoundCall}`<br>
+> `POST`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `{"playerId": UUID, "call": CallType}`<br>
+> Response Body: `{"message": string, "roundCall": RoundCall}`<br>
 
 Neuen call erstellen
 
 ##### api/group/[group]/session/[session]/round/[round]/call/[call]
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->`[call]`: `string` (Player ID)<br>
->Request Body: `Leer`<br>
->Response Body: `{RoundCall}`<br>
 
+##### api/group/[group]/session/[session]/round/[round]/call/[call]
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string` (Player ID)<br>
+> Request Body: `Leer`<br>
+> Response Body: `{RoundCall}`<br>
+> Response Body: `{RoundCall}`<br>
+
+Spezifischer Call einer Runde
 Spezifischer Call einer Runde
 
 ##### api/group/[group]/session/[session]/round/[round]/participation
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `Leer`<br>
->Response Body: `[{RoundParticipation}]`<br>
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `Leer`<br>
+> Response Body: `[{RoundParticipation}]`<br>
 
 Alle Participations einer Runde
 
->`POST`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->Request Body: `{"playerId": UUID, "side": Side, "seatPos": SeatPos}`<br>
->Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
+> `POST`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> Request Body: `{"playerId": UUID, "side": Side, "seatPos": SeatPos}`<br>
+> Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
 
 Neue Participation erstellen
 
 ##### api/group/[group]/session/[session]/round/[round]/participation/[participation]
->`GET`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->`[participation]`: `string` (Player ID)<br>
->Request Body: `Leer`<br>
->Response Body: `{RoundParticipation}`<br>
+
+> `GET`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string` (Player ID)<br>
+> Request Body: `Leer`<br>
+> Response Body: `{RoundParticipation}`<br>
 
 Spezifische Participation einer Runde
 
 ### \<Name Blackbox n>
 
+_\<Blackbox-Template>_
 _\<Blackbox-Template>_
 
 ### \<Name Schnittstelle 1>
@@ -1330,6 +1333,8 @@ Teile sollten Sie weglassen.
 
 ### Whitebox _\<Baustein 1>_
 
+### Whitebox _\<Baustein 1>_
+
 <!--
 <div class="sidebar">
 
@@ -1343,15 +1348,22 @@ Teile sollten Sie weglassen.
 -->
 
 _\<Whitebox-Template>_
+_\<Whitebox-Template>_
 
 ### Whitebox _\<Baustein 2>_
 
+### Whitebox _\<Baustein 2>_
+
+_\<Whitebox-Template>_
 _\<Whitebox-Template>_
 
 ...
 
 ### Whitebox _\<Baustein m>_
 
+### Whitebox _\<Baustein m>_
+
+_\<Whitebox-Template>_
 _\<Whitebox-Template>_
 
 ## Ebene 3
@@ -1381,17 +1393,21 @@ arc42 für die weiteren Ebenen.
 </div>
 
 ... zeigt das Innenleben von _Baustein x.1_.
+... zeigt das Innenleben von _Baustein x.1_.
 
 </div>
 
+_\<Whitebox-Template>_
 _\<Whitebox-Template>_
 
 ### Whitebox \<\_Baustein x.2\_>
 
 _\<Whitebox-Template>_
+_\<Whitebox-Template>_
 
 ### Whitebox \<\_Baustein y.1\_>
 
+_\<Whitebox-Template>_
 _\<Whitebox-Template>_
 
 # Laufzeitsicht
@@ -1494,6 +1510,8 @@ online-Dokumentation (auf Englisch!).
 
 ## _\<Bezeichnung Laufzeitszenario 1>_
 
+## _\<Bezeichnung Laufzeitszenario 1>_
+
 - \<hier Laufzeitdiagramm oder Ablaufbeschreibung einfügen>
 
 - \<hier Besonderheiten bei dem Zusammenspiel der Bausteine in diesem
@@ -1501,7 +1519,11 @@ online-Dokumentation (auf Englisch!).
 
 ## _\<Bezeichnung Laufzeitszenario 2>_
 
+## _\<Bezeichnung Laufzeitszenario 2>_
+
 …​
+
+## _\<Bezeichnung Laufzeitszenario n>_
 
 ## _\<Bezeichnung Laufzeitszenario n>_
 
@@ -1627,14 +1649,18 @@ Teil von arc42 für alle wichtigen Umgebungen/Varianten.
 </div>
 
 **_\<Übersichtsdiagramm>_**
+**_\<Übersichtsdiagramm>_**
 
 Begründung\
+_\<Erläuternder Text>_
 _\<Erläuternder Text>_
 
 Qualitäts- und/oder Leistungsmerkmale\
 _\<Erläuternder Text>_
+_\<Erläuternder Text>_
 
 Zuordnung von Bausteinen zu Infrastruktur\
+_\<Beschreibung der Zuordnung>_
 _\<Beschreibung der Zuordnung>_
 
 ## Infrastruktur Ebene 2
@@ -1654,16 +1680,25 @@ Für jedes Infrastrukturelement kopieren Sie die Struktur aus Ebene 1.
 
 ### _\<Infrastrukturelement 1>_
 
+### _\<Infrastrukturelement 1>_
+
+_\<Diagramm + Erläuterungen>_
 _\<Diagramm + Erläuterungen>_
 
 ### _\<Infrastrukturelement 2>_
 
+### _\<Infrastrukturelement 2>_
+
+_\<Diagramm + Erläuterungen>_
 _\<Diagramm + Erläuterungen>_
 
 …​
 
 ### _\<Infrastrukturelement n>_
 
+### _\<Infrastrukturelement n>_
+
+_\<Diagramm + Erläuterungen>_
 _\<Diagramm + Erläuterungen>_
 
 # Querschnittliche Konzepte
@@ -1683,6 +1718,7 @@ Inhalt
 </div>
 
 Dieser Abschnitt beschreibt übergreifende, prinzipielle Regelungen und
+Lösungsansätze, die an mehreren Stellen (=_querschnittlich_) relevant
 Lösungsansätze, die an mehreren Stellen (=_querschnittlich_) relevant
 sind.
 
@@ -1705,6 +1741,7 @@ Motivation
 
 </div>
 
+Konzepte bilden die Grundlage für _konzeptionelle Integrität_
 Konzepte bilden die Grundlage für _konzeptionelle Integrität_
 (Konsistenz, Homogenität) der Architektur und damit eine wesentliche
 Grundlage für die innere Qualität Ihrer Systeme.
@@ -1764,6 +1801,7 @@ Weiterführende Informationen
 Einige Themen innerhalb von Systemen betreffen oft mehrere Bausteine,
 Hardwareelemente oder Prozesse. Es könnte einfacher sein, solche
 _Querschnittsthemen_ an einer zentralen Stelle zu kommunizieren oder zu
+_Querschnittsthemen_ an einer zentralen Stelle zu kommunizieren oder zu
 dokumentieren, anstatt sie in der Beschreibung der betreffenden
 Bausteine, Hardwareelemente oder Entwicklungsprozesse zu wiederholen.
 
@@ -1779,16 +1817,25 @@ der online-Dokumentation (auf Englisch).
 
 ## _\<Konzept 1>_
 
+## _\<Konzept 1>_
+
+_\<Erklärung>_
 _\<Erklärung>_
 
 ## _\<Konzept 2>_
 
+## _\<Konzept 2>_
+
+_\<Erklärung>_
 _\<Erklärung>_
 
 …​
 
 ## _\<Konzept n>_
 
+## _\<Konzept n>_
+
+_\<Erklärung>_
 _\<Erklärung>_
 
 # Architekturentscheidungen
@@ -1895,6 +1942,7 @@ Die wichtigsten davon haben Sie bereits in Abschnitt 1.2
 werden. In diesem Abschnitt 10 sollten Sie auch Qualitätsanforderungen
 mit geringerer Bedeutung erfassen, deren Nichterfüllung keine großen
 Risiken birgt (die aber _nice-to-have_ sein könnten).
+Risiken birgt (die aber _nice-to-have_ sein könnten).
 
 <div class="formalpara">
 
@@ -1982,6 +2030,8 @@ enthält. Alternativ können Sie auch eine Mindmap verwenden, um diese
 Qualitätsanforderungen zu strukturieren. In der Literatur (insb.
 [Bass+21]) ist die Idee eines _Quality Attribute Utility Tree_ (auf
 Deutsch manchmal kurz als _Qualitätsbaum_ bezeichnet) beschrieben
+[Bass+21]) ist die Idee eines _Quality Attribute Utility Tree_ (auf
+Deutsch manchmal kurz als _Qualitätsbaum_ bezeichnet) beschrieben
 worden, der den Oberbegriff „Qualität“ als Wurzel hat und eine
 baumartige Verfeinerung des Begriffs „Qualität“ verwendet.
 
@@ -2047,6 +2097,7 @@ In Kurzform (bevorzugt im Q42-Modell):
   eine Reaktion oder eine Aktion aus.
 
 - **Metrik/Akzeptanzkriterien**: Eine Reaktion einschließlich einer
+  _Maßnahme_ oder _Metrik_
   _Maßnahme_ oder _Metrik_
 
 Die Langform von Szenarien (die von der SEI und [Bass+21] bevorzugt
@@ -2242,5 +2293,7 @@ online-Dokumentation (auf Englisch!).
 
 | Begriff        | Definition        |
 | -------------- | ----------------- |
+| _\<Begriff-1>_ | _\<Definition-1>_ |
+| _\<Begriff-2_  | _\<Definition-2>_ |
 | _\<Begriff-1>_ | _\<Definition-1>_ |
 | _\<Begriff-2_  | _\<Definition-2>_ |

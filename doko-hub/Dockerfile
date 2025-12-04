@@ -5,6 +5,9 @@ WORKDIR /app
 # Copy package manager files and .npmrc
 COPY package.json package-lock.json .npmrc ./
 
+# Install directory static
+RUN mkdir static
+
 # Install dependencies
 RUN npm install
 
@@ -26,11 +29,15 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Copy production dependencies definition
 COPY package.json .
 
+# Deactivate scricpts for production dependencies install
+ENV NPM_CONFIG_IGNORE_SCRIPTS=true
+
 # Install only production dependencies
 RUN npm install --omit=dev
 
 # Copy the built application from the builder stage and set ownership
 COPY --from=builder --chown=appuser:appgroup /app/build ./build
+COPY --from=builder --chown=appuser:appgroup /app/static ./static
 
 # Switch to the non-root user
 USER appuser

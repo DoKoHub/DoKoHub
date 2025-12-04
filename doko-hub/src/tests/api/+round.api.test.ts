@@ -3,7 +3,11 @@ import { setupDatabase } from '../setup/+setup';
 import { db } from '$lib/server/db';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
+<<<<<<< HEAD
 import { GameType, Round, RoundParticipation } from '$lib/types';
+=======
+import { Round, RoundBonus, RoundCall, RoundParticipation } from '$lib/types';
+>>>>>>> dev
 
 // Mock data
 const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
@@ -194,12 +198,15 @@ describe('API /api/group/[group]/session/[session]/round/[round] (Round Details)
         expect(response.body.round.soloKind).toBe(newSoloKind);
     });
 
+<<<<<<< HEAD
     // Test: PUT (Validierung - required fields fehlen)
     test('PUT: Should fail if required fields are missing in body (Status 400)', async () => {
         const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`, {}); 
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message');
     });
+=======
+>>>>>>> dev
 });
 
 // Tests für /api/group/[group]/session/[session]/round/[round]/participation (GET & POST)
@@ -286,7 +293,10 @@ describe('API /api/group/[group]/session/[session]/round/[round]/participation/[
         expect(response.body.side).toBe(MOCK_RE_PARTICIPATION.side);
     });
 
+<<<<<<< HEAD
     /**
+=======
+>>>>>>> dev
     // Test: PUT (Aktualisierung von side)
     test('PUT: Should successfully update side (Status 200)', async () => {
         const newSide = 'KONTRA';
@@ -295,6 +305,7 @@ describe('API /api/group/[group]/session/[session]/round/[round]/participation/[
         let participation: RoundParticipation = RoundParticipation.parse(participationResponse.body);
         participation.side = newSide;
 
+<<<<<<< HEAD
         console.log("1: ", `/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${reMemberId}`, );
         const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`, {participation: participation});
         console.log("check: ",response);
@@ -306,6 +317,15 @@ describe('API /api/group/[group]/session/[session]/round/[round]/participation/[
 
     */
 
+=======
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${reMemberId}`, {roundParticipation: participation});
+
+        expect(response.status).toBe(200); 
+        expect(response.body.message).toBe('Updated RoundParticipation');
+        expect(response.body.roundParticipation.side).toBe(newSide);
+    });
+
+>>>>>>> dev
     // Test: GET (Participation existiert nicht)
     test('GET: Should return 400 if Participation for member is not found', async () => {
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${NON_EXISTENT_ID}`);
@@ -342,6 +362,7 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call', () => {
         expect(response.body.roundCall.memberId).toBe(reMemberId); 
         expect(response.body.roundCall.call).toBe(callData.call);
     });
+<<<<<<< HEAD
 
     // Test: POST (Mitglied existiert bereits)
     test('POST: Should fail if RoundCall already exists for player/round (Status 400)', async () => {
@@ -352,6 +373,8 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call', () => {
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message');
     });
+=======
+>>>>>>> dev
     
     // Test: GET (Alle Calls der Runde)
     test('GET: Should return a list with existing RoundCalls (Status 200)', async () => {
@@ -365,7 +388,11 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call', () => {
     });
 });
 
+<<<<<<< HEAD
 // Tests für /api/group/[group]/session/[session]/round/[round]/call/[memberId] (GET)
+=======
+// Tests für /api/group/[group]/session/[session]/round/[round]/call/[memberId] (GET & PUT)
+>>>>>>> dev
 describe('API /api/group/[group]/session/[session]/round/[round]/call/[memberId] (Call Details)', () => {
     let groupId: string;
     let sessionId: string;
@@ -386,9 +413,13 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call/[memberId]
 
     // Test: GET (Abfrage eines spezifischen Calls)
     test('GET: Should return the specific RoundCall object (Status 200)', async () => {
+<<<<<<< HEAD
         console.log("CallGetAPI: ", `/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`);
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`); 
         console.log("CallGetResponse: ", response);
+=======
+        const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`); 
+>>>>>>> dev
         expect(response.status).toBe(200);
         expect(response.body.memberId).toBe(reMemberId); 
         expect(response.body.call).toBe(MOCK_CALL_DATA.call);
@@ -400,6 +431,24 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call/[memberId]
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('message');
     });
+<<<<<<< HEAD
+=======
+
+    // Test: PUT (Aktualisierung vom call)
+    test('PUT: Should successfully update call (Status 200)', async () => {
+        const newCall = 'KEINE60';
+
+        const callResponse = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`);
+        let call: RoundCall = RoundCall.parse(callResponse.body);
+        call.call = newCall;
+
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${callId}`, {roundCall: call});
+
+        expect(response.status).toBe(200); 
+        expect(response.body.message).toBe('Updated RoundCall');
+        expect(response.body.roundCall.call).toBe(newCall);
+    });
+>>>>>>> dev
 });
 
 // Tests für /api/group/[group]/session/[session]/round/[round]/bonus (GET & POST)
@@ -453,7 +502,11 @@ describe('API /api/group/[group]/session/[session]/round/[round]/bonus', () => {
     });
 });
 
+<<<<<<< HEAD
 // Tests für /api/group/[group]/session/[session]/round/[round]/bonus/[memberId] (GET)
+=======
+// Tests für /api/group/[group]/session/[session]/round/[round]/bonus/[memberId] (GET & PUT)
+>>>>>>> dev
 describe('API /api/group/[group]/session/[session]/round/[round]/bonus/[memberId] (Bonus Details)', () => {
     let groupId: string;
     let sessionId: string;
@@ -470,13 +523,18 @@ describe('API /api/group/[group]/session/[session]/round/[round]/bonus/[memberId
         
         await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { ...MOCK_BONUS_DATA, memberId: kontraMemberId }); 
         const bonusResp = await api.post(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`, { memberId: kontraMemberId, bonus: 'KARLCHEN' });
+<<<<<<< HEAD
         bonusId = bonusResp.body.id;
+=======
+        bonusId = bonusResp.body.roundBonus.id;
+>>>>>>> dev
     });
 
     // Test: GET (Abfrage ALLER Boni)
     test('GET: Should return ALL RoundBonus objects for the specific player (Status 200)', async () => {
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${bonusId}`); 
         expect(response.status).toBe(200); 
+<<<<<<< HEAD
         expect(Array.isArray(response.body)).toBe(true);
         expect(response.body.length).toBe(2);
     });
@@ -486,5 +544,35 @@ describe('API /api/group/[group]/session/[session]/round/[round]/bonus/[memberId
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${NON_EXISTENT_ID}`);
         expect(response.status).toBe(200); 
         expect(response.body).toEqual([]);
+=======
+        expect(Array.isArray(response.body)).toBe(false); 
+        expect(response.body).toHaveProperty('id', bonusId);
+        expect(response.body).toHaveProperty('memberId', kontraMemberId);
+        expect(response.body).toHaveProperty('bonus', 'KARLCHEN');
+    });
+
+    // Test: GET (Bonus existiert nicht)
+    test('GET: Should return 400 if a specific RoundBonus ID is not found', async () => {
+    const NON_EXISTENT_BONUS_ID = '00000000-0000-4000-8000-000000000000';
+    const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${NON_EXISTENT_BONUS_ID}`);
+
+    expect(response.status).toBe(400); 
+    expect(response.body).toHaveProperty('message', 'RoundBonus not found');
+});
+
+    // Test: PUT (Aktualisierung vom bonus)
+    test('PUT: Should successfully update bonus (Status 200)', async () => {
+        const newBonus = 'FUCHS';
+
+        const bonusResponse = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${bonusId}`);
+        let bonus: RoundBonus = RoundBonus.parse(bonusResponse.body);
+        bonus.bonus = newBonus;
+
+        const response = await api.put(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${bonusId}`, {roundBonus: bonus});
+
+        expect(response.status).toBe(200); 
+        expect(response.body.message).toBe('Updated RoundBonus');
+        expect(response.body.roundBonus.bonus).toBe(newBonus);
+>>>>>>> dev
     });
 });
