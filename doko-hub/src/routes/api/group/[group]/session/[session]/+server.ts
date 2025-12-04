@@ -76,11 +76,15 @@ export const PUT: RequestHandler = async({ request, params, fetch }) => {
             return badRequest({ message: 'Session required' });
         }
 
+        const endedAtDate = newSession.endedAt 
+            ? new Date(newSession.endedAt) 
+            : null;
+
         const [updatedSession] = await db
             .update(session)
             .set({
                 plannedRounds: newSession.plannedRounds,
-                endedAt: newSession.endedAt,
+                endedAt: endedAtDate, 
             })
             .where(eq(session.id, sessionId))
             .returning();
@@ -91,6 +95,6 @@ export const PUT: RequestHandler = async({ request, params, fetch }) => {
 
         return ok({ message: 'Updated Session', session: updatedSession as Session })
     } catch(error) {
-        return serverError({ message: 'Database error while updating Session' });
+        return serverError({ message: 'Database error while updating Session'});
     }
 };
