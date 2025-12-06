@@ -1,8 +1,12 @@
 <script lang="ts">
   import Button from "@smui/button";
   import PlusButton from "$lib/components/PlusButton.svelte";
+  import { goto } from "$app/navigation";
 
-  function addSomething() {}
+  function addSomething() {
+    // zur NEW_ROUND/default Seite
+    goto("/app/game_rounds/new_round/default");
+  }
 
   // Beispielspieler
   let players = ["Marcel", "Fabian", "Nick", "Maurice"];
@@ -58,16 +62,16 @@
 
   // Dummy Pflichtsolo-Daten
   const pflichtsolo = [
-    ["X", "-", "X", "-"], 
-    ["-2", "+6", "-2", "-2"], 
-    ["-", "X", "-", "X"], 
-    ["-", "-", "-", "-"], 
+    ["X", "-", "X", "-"],
+    ["-2", "+6", "-2", "-2"],
+    ["-", "X", "-", "X"],
+    ["-", "-", "-", "-"],
   ];
 
   // Dummy Summe-Daten
   const sum = {
     values: ["+11", "-3", "-1", "-9"],
-    winners: [true, false, false, false], 
+    winners: [true, false, false, false],
   };
 </script>
 
@@ -145,6 +149,7 @@
       </div>
     {/each}
   </div>
+  <PlusButton {addSomething} />
 </div>
 
 <style>
