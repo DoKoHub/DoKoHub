@@ -143,6 +143,16 @@ export const SessionMember = z.object({
 //Der Typ wird direkt aus dem Schema abgeleitet, es gibt keine doppelte Definition.
 export type SessionMember = z.infer<typeof SessionMember>;
 
+export const ReturnSessionMember = z.object({
+  memberId: UUID,
+  seatPos: SeatPos,
+  playerId: UUID.nullable(),
+  nickname: Name.optional().nullable(),
+  status: PlayerStatus,
+  leftAt: ISODate.optional().nullable()
+})
+export type ReturnSessionMember = z.infer<typeof ReturnSessionMember>;
+
 export const Session = z.object({
   id: UUID,
   groupId: UUID,
@@ -150,7 +160,7 @@ export const Session = z.object({
   plannedRounds: z.number().int().min(1),
   startedAt: ISODate.optional().nullable(),
   endedAt: ISODate.optional().nullable(),
-  members: SessionMember.array()
+  members: ReturnSessionMember.array()
 })
 .refine(
   (s) => !(s.endedAt && s.startedAt) || s.endedAt >= s.startedAt,
