@@ -1,18 +1,13 @@
-import { api } from "../setup/+api";
-import { setupDatabase } from "../setup/+setup";
-import { db } from "$lib/server/db";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import type { Sql } from "postgres";
-import { cleanupExpiredInvites } from "$lib/server/cleanup-invites";
-import { PlayGroup, PlayGroupMember } from "$lib/types";
+import { api } from '../setup/+api';
+import { setupDatabase } from '../setup/+setup';
+import { db } from '$lib/server/db';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Sql } from 'postgres';
+import { cleanupExpiredInvites } from '$lib/server/cleanup-invites';
+import { PlayGroup, PlayGroupMember } from '$lib/types';
 
 // Mock data
-const NON_EXISTENT_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
-const MOCK_PLAYER_DATA_FULL = {
-  provider: "GOOGLE",
-  subject: "group-test-sub",
-  email: "group.test@example.com",
-};
+const NON_EXISTENT_ID = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
 const MOCK_PLAYER_DATA_FULL = {
   provider: "GOOGLE",
@@ -156,26 +151,24 @@ describe("API /api/group/[group]", () => {
     expect(response.body.members.length).toBe(1);
   });
 
-  // Test: GET (Gruppe existiert nicht)
-  test("GET: Should return 400 if group ID is not found", async () => {
-    const response = await api.get(`/api/group/${NON_EXISTENT_ID}`);
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe("PlayGroup not found");
-  });
-
-  // Test: PUT (Leerer Name)
-  test('PUT: Should fail if "name" is an empty string (Status 400)', async () => {
-    const updateData = " ";
-    const groupResponse = await api.get(`/api/group/${createdGroupId}`);
-    let group: PlayGroup = PlayGroup.parse(groupResponse.body);
-    group.name = updateData;
-    const response = await api.put(`/api/group/${createdGroupId}`, {
-      playGroup: group,
+    // Test: GET (Gruppe existiert nicht)
+    test('GET: Should return 400 if group ID is not found', async () => {
+        const response = await api.get(`/api/group/${NON_EXISTENT_ID}`);
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('PlayGroup not found');
     });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Valid PlayGroup required");
-  });
+    // Test: PUT (Leerer Name)
+    test('PUT: Should fail if "name" is an empty string (Status 400)', async () => {
+        const updateData = ' ';
+        const groupResponse = await api.get(`/api/group/${createdGroupId}`);
+        let group: PlayGroup = PlayGroup.parse(groupResponse.body);
+        group.name = updateData;
+        const response = await api.put(`/api/group/${createdGroupId}`,{playGroup: group});
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('Valid PlayGroup required');
+    });
 
   // Test: PUT (Aktualisierung des Gruppennamens)
   test("PUT: Should successfully update name (Status 200)", async () => {
@@ -313,38 +306,29 @@ describe("API /api/group/member & /api/group/invite/join", () => {
 
   // Tests für /api/group/[group]/member/[member]
 
-  // Test: PUT Member (Mitglied existiert nicht)
-  test("PUT Member: Should fail if the member ID to update does not exist (Status 400)", async () => {
-    const newNickname = "GhostMember";
-    const memberResponse = await api.get(
-      `/api/group/${groupId}/member/${memberId}`
-    );
+    // Test: PUT Member (Mitglied existiert nicht)
+    test('PUT Member: Should fail if the member ID to update does not exist (Status 400)', async () => {
+        const newNickname = 'GhostMember';
+        const memberResponse = await api.get(`/api/group/${groupId}/member/${memberId}`);
 
-    let member: PlayGroupMember = PlayGroupMember.parse(memberResponse.body);
-    member.nickname = newNickname;
+        let member: PlayGroupMember = PlayGroupMember.parse(memberResponse.body);
+        member.nickname = newNickname;
 
-    const response = await api.put(
-      `/api/group/${groupId}/member/${NON_EXISTENT_ID}`,
-      { playGroupMember: member }
-    );
+        const response = await api.put(`/api/group/${groupId}/member/${NON_EXISTENT_ID}`, { playGroupMember: member });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe("PlayGroupMember not found");
-  });
-
-  // Test: PUT (playGroupMember Nickname ist leer)
-  test('PUT Member: Should fail if field "nickname" is empty (Status 400)', async () => {
-    const newNickname = "";
-    const memberResponse = await api.get(
-      `/api/group/${groupId}/member/${memberId}`
-    );
-
-    let member: PlayGroupMember = PlayGroupMember.parse(memberResponse.body);
-    member.nickname = newNickname;
-
-    const response = await api.put(`/api/group/${groupId}/member/${memberId}`, {
-      playGroupMember: member,
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('PlayGroupMember not found'); 
     });
+
+    // Test: PUT (playGroupMember Nickname ist leer)
+    test('PUT Member: Should fail if field "nickname" is empty (Status 400)', async () => {
+        const newNickname = '';
+        const memberResponse = await api.get(`/api/group/${groupId}/member/${memberId}`);
+
+        let member: PlayGroupMember = PlayGroupMember.parse(memberResponse.body);
+        member.nickname = newNickname;
+
+        const response = await api.put(`/api/group/${groupId}/member/${memberId}`, { playGroupMember: member });
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("Valid PlayGroupMember required");

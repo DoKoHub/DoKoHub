@@ -9,7 +9,8 @@ import {
   roundParticipation,
   roundCall,
   roundBonus,
-} from "$lib/server/db/schema";
+} 
+from "$lib/server/db/schema";
 import { UUID } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq, and, inArray } from "drizzle-orm";
@@ -28,6 +29,7 @@ type ParticipationRow = typeof roundParticipation.$inferSelect;
 type CallRow = typeof roundCall.$inferSelect;
 type BonusRow = typeof roundBonus.$inferSelect;
 
+
 /**
  * Berechnet die Punkte einer EINZELNEN Runde.
  * Rückgabe: Map memberId -> Punkte in DIESER Runde.
@@ -42,6 +44,7 @@ function calculateRoundPoints(
   const eyesRe = roundRow.eyesRe ?? 0;
   const eyesKontra = 240 - eyesRe;
 
+
   // Welche Mitglieder gehören zu RE / KONTRA (laut round_participation)?
   const reMembers = participations
     .filter((p) => p.side === "RE")
@@ -51,6 +54,7 @@ function calculateRoundPoints(
     .filter((p) => p.side === "KONTRA")
     .map((p) => p.memberId as string);
 
+
   // Gewinnerseite nach Augen: RE gewinnt ab 121 Augen
   const winnerSide: "RE" | "KONTRA" = eyesRe >= 121 ? "RE" : "KONTRA";
   const loserSide: "RE" | "KONTRA" = winnerSide === "RE" ? "KONTRA" : "RE";
@@ -59,6 +63,7 @@ function calculateRoundPoints(
   const loserEyes = 240 - winnerEyes; // Augen der verlierenden Partei
 
   const points: Record<string, number> = {};
+
 
   // Hilfsfunktion: Punkte für eine Partei + Gegenpartei (symmetrisch)
   const addToSide = (side: "RE" | "KONTRA", value: number) => {
@@ -73,9 +78,11 @@ function calculateRoundPoints(
     }
   };
 
+
   // --- 1) Grundspiel + Stufen (keine 90 / 60 / 30 / schwarz) ---
   // Basis: 1 Punkt für Spielsieg
   let basePoints = 1;
+
 
   // Stufen nach VERLIERER-Augen (Doppelkopf-Logik)
   if (loserEyes <= 89) basePoints += 1; // "keine 90"
@@ -86,26 +93,30 @@ function calculateRoundPoints(
   // diese Gesamtwert bekommt die Gewinnerpartei und die Verliererpartei negativ
   addToSide(winnerSide, basePoints);
 
+
   // --- 2) Ansagen / Absagen (round_call) ---
   // Map memberId -> Partei (RE/KONTRA)
   const sideByMember: Record<string, "RE" | "KONTRA"> = {};
   for (const id of reMembers) sideByMember[id] = "RE";
   for (const id of kontraMembers) sideByMember[id] = "KONTRA";
 
+
   // Gegner-Augen aus Sicht einer Partei (für KEINE90/60/30/SCHWARZ)
   const opponentEyes = (side: "RE" | "KONTRA") =>
     side === "RE" ? eyesKontra : eyesRe;
 
+
   for (const c of calls) {
     const memberId = c.memberId as string;
     const side = sideByMember[memberId]; // RE oder KONTRA
-    // if (!side) continue;
+    // if (!side) continue; 
 
     const callType = c.call as string;
     const winsGame = winnerSide === side;
     const oppEyes = opponentEyes(side);
 
     let success = false;
+
 
     // Erfolgskriterien je Call-Typ
     switch (callType) {
@@ -132,10 +143,12 @@ function calculateRoundPoints(
 
     const callPoint = success ? 1 : -1;
 
+
     // Call wirkt wie eine zusätzliche Stufe:
     // rufende Partei +1/-1, Gegenpartei -1/+1
     addToSide(side, callPoint);
   }
+
 
   // --- 3) Sonderpunkte pro Spieler (round_bonus) ---
   // WICHTIG: jeder Eintrag in round_bonus zählt separat
@@ -151,6 +164,7 @@ function calculateRoundPoints(
   return points;
 }
 
+
 /**
  * GET /api/group/:group/session/:session/result
  * Berechnet das Endergebnis (Punkte) für alle Session-Teilnehmer.
@@ -158,6 +172,7 @@ function calculateRoundPoints(
 export const GET: RequestHandler = async ({ params }) => {
   const groupId = params.group;
   const sessionId = params.session;
+
 
   // 1) Params validieren (UUID-Check)
   if (!groupId || !UUID.safeParse(groupId).success) {
@@ -168,6 +183,8 @@ export const GET: RequestHandler = async ({ params }) => {
   }
 
   try {
+
+
     // 2) Session holen und prüfen, ob sie wirklich zu dieser Gruppe gehört
     const [sessionRow] = await db
       .select()
@@ -187,18 +204,17 @@ export const GET: RequestHandler = async ({ params }) => {
         seatPos: sessionMember.seatPos,
       })
       .from(sessionMember)
-      .innerJoin(
-        playgroupMember,
-        eq(playgroupMember.id, sessionMember.memberId)
-      )
+      .innerJoin(playgroupMember, eq(playgroupMember.id, sessionMember.memberId))
       .innerJoin(player, eq(player.id, playgroupMember.playerId))
       .where(eq(sessionMember.sessionId, sessionId));
+
 
     // 4) Alle Runden dieser Session holen
     const rounds = await db
       .select()
       .from(round)
       .where(eq(round.sessionId, sessionId));
+
 
     // Falls noch keine Runde gespielt: alle 0 Punkte zurückgeben
     if (rounds.length === 0) {
@@ -218,6 +234,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     const roundIds = rounds.map((r) => r.id as string);
 
+
     // 5) Beteiligungen / Calls / Boni für alle Runden aus der DB holen
     const participations = await db
       .select()
@@ -233,6 +250,7 @@ export const GET: RequestHandler = async ({ params }) => {
       .select()
       .from(roundBonus)
       .where(inArray(roundBonus.roundId, roundIds));
+
 
     // 6) Nach roundId gruppieren, damit wir pro Runde rechnen können
     const partsByRound: Record<string, ParticipationRow[]> = {};
@@ -252,11 +270,13 @@ export const GET: RequestHandler = async ({ params }) => {
       (bonusByRound[rid] ??= []).push(b);
     }
 
+
     // 7) Scoreboard initialisieren: alle Session-Mitglieder starten bei 0
     const scoreMap: Record<string, number> = {};
     for (const m of membersWithPlayerInfo) {
       scoreMap[m.memberId as string] = 0;
     }
+
 
     // 8) Für jede Runde Punkte berechnen und aufsummieren
     for (const r of rounds) {
@@ -272,7 +292,8 @@ export const GET: RequestHandler = async ({ params }) => {
         if (scoreMap[memberId] === undefined) continue; // Safety
         scoreMap[memberId] += pts;
       }
-    }
+    } 
+
 
     // 9) Ergebnis im richtigen Format zurückgeben
     const playersWithResults = membersWithPlayerInfo.map((member) => ({
@@ -290,7 +311,7 @@ export const GET: RequestHandler = async ({ params }) => {
   } catch (error) {
     console.error("Error fetching and calculating session results:", error);
     return serverError({
-      message: "Database error while calculating session results.",
+      message:  "Database error while calculating session results.",
     });
   }
 };

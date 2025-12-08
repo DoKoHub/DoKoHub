@@ -1,9 +1,10 @@
 import { badRequest, serverError, ok } from "$lib/http";
 import type { RequestHandler } from "@sveltejs/kit";
-import { Ruleset, Session, SessionMember, UUID } from "$lib/types";
+import { ReturnSessionMember, Ruleset, Session, SessionMember, UUID } from "$lib/types";
 import { db } from "$lib/server/db";
 import { session } from "$lib/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { generateReturnMember } from "$lib/utils";
 
 export const GET: RequestHandler = async ({ params, fetch }) => {
   try {
@@ -23,32 +24,39 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
       return badRequest({ message: "PlayGroup not found" });
     }
 
-    const [returnSession] = await db
-      .select()
-      .from(session)
-      .where(and(eq(session.groupId, groupId), eq(session.id, sessionId)));
+        const [returnSession] = await db
+            .select()
+            .from(session)
+            .where(and(
+                eq(session.groupId, groupId),
+                eq(session.id, sessionId)
+            ));
+        
+        if (!returnSession) {
+            return badRequest({ message: 'Session not found' });
+        }
+        const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
+        const body = (await response.json()) as SessionMember[];
+        
+        const list: ReturnSessionMember[] = [];
+        for (let i = 0; i < body.length; i++) {
+            const obj = await generateReturnMember(body[i].memberId);
+            list.push(obj as ReturnSessionMember);
+        }
 
-    if (!returnSession) {
-      return badRequest({ message: "Session not found" });
+        const sessionObj: Session = {
+            id: returnSession.id as UUID,
+            groupId: returnSession.groupId as UUID,
+            ruleset: returnSession.ruleset,
+            plannedRounds: returnSession.plannedRounds,
+            startedAt: returnSession.startedAt,
+            endedAt: returnSession.endedAt,
+            members: list
+        };
+        return ok(sessionObj);
+    } catch(error) {
+        return serverError({ message: 'Database error while fetching Session' });
     }
-    const response = await fetch(
-      `/api/group/${groupId}/session/${sessionId}/sessionmember`
-    );
-    const body = await response.json();
-
-    const sessionObj: Session = {
-      id: returnSession.id as UUID,
-      groupId: returnSession.groupId as UUID,
-      ruleset: returnSession.ruleset,
-      plannedRounds: returnSession.plannedRounds,
-      startedAt: returnSession.startedAt,
-      endedAt: returnSession.endedAt,
-      members: body as SessionMember[],
-    };
-    return ok(sessionObj);
-  } catch (error) {
-    return serverError({ message: "Database error while fetching Session" });
-  }
 };
 
 export const PUT: RequestHandler = async ({ request, params, fetch }) => {
@@ -75,28 +83,25 @@ export const PUT: RequestHandler = async ({ request, params, fetch }) => {
       return badRequest({ message: "Session required" });
     }
 
-    const endedAtDate = newSession.endedAt
-      ? new Date(newSession.endedAt)
-      : null;
+        const endedAtDate = newSession.endedAt 
+            ? new Date(newSession.endedAt) 
+            : null;
 
-    const [updatedSession] = await db
-      .update(session)
-      .set({
-        plannedRounds: newSession.plannedRounds,
-        endedAt: endedAtDate,
-      })
-      .where(eq(session.id, sessionId))
-      .returning();
+        const [updatedSession] = await db
+            .update(session)
+            .set({
+                plannedRounds: newSession.plannedRounds,
+                endedAt: endedAtDate, 
+            })
+            .where(eq(session.id, sessionId))
+            .returning();
 
     if (!updatedSession) {
       return badRequest({ message: "Session not found" });
     }
 
-    return ok({
-      message: "Updated Session",
-      session: updatedSession as Session,
-    });
-  } catch (error) {
-    return serverError({ message: "Database error while updating Session" });
-  }
+        return ok({ message: 'Updated Session', session: updatedSession as Session })
+    } catch(error) {
+        return serverError({ message: 'Database error while updating Session'});
+    }
 };
