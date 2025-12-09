@@ -1,5 +1,5 @@
 import { get } from "$lib/frontend/fetch";
-import { Session, UUID } from "$lib/types";
+import { Session, UUID, PlayGroupMember } from "$lib/types";
 import type { PageLoad } from "./$types";
 import { z } from "zod";
 
@@ -11,7 +11,14 @@ export const load: PageLoad = async ({ params, fetch }) => {
     fetch
   );
 
+  const group_members = await get(
+    `/api/group/${group_id}/member`,
+    z.array(PlayGroupMember),
+    fetch
+  );
+
   return {
     sessions,
+    group_members,
   };
 };
