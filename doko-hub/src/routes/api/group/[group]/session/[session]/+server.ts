@@ -1,27 +1,28 @@
 import { badRequest, serverError, ok } from "$lib/http";
 import type { RequestHandler } from "@sveltejs/kit";
-import { Ruleset, Session, SessionMember, UUID } from "$lib/types";
+import { ReturnSessionMember, Ruleset, Session, SessionMember, UUID } from "$lib/types";
 import { db } from "$lib/server/db";
 import { session } from "$lib/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { generateReturnMember } from "$lib/utils";
 
-export const GET: RequestHandler = async({ params, fetch }) => {
-    try {
-        const groupId = params.group;
-        const sessionId = params.session;
+export const GET: RequestHandler = async ({ params, fetch }) => {
+  try {
+    const groupId = params.group;
+    const sessionId = params.session;
 
-        if (!groupId || !(UUID.safeParse(groupId)).success) {
-            return badRequest({ message: 'PlayGroup ID required' });
-        }
+    if (!groupId || !UUID.safeParse(groupId).success) {
+      return badRequest({ message: "PlayGroup ID required" });
+    }
 
-        if (!sessionId || !(UUID.safeParse(sessionId)).success) {
-            return badRequest({ message: 'Session ID required' });
-        }
+    if (!sessionId || !UUID.safeParse(sessionId).success) {
+      return badRequest({ message: "Session ID required" });
+    }
 
-        const groupResponse = await fetch(`/api/group/${groupId}`);
-        if (groupResponse.status != 200) {
-            return badRequest({ message: 'PlayGroup not found' });
-        }
+    const groupResponse = await fetch(`/api/group/${groupId}`);
+    if (groupResponse.status != 200) {
+      return badRequest({ message: "PlayGroup not found" });
+    }
 
         const [returnSession] = await db
             .select()
@@ -35,8 +36,14 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Session not found' });
         }
         const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
-        const body = await response.json();
+        const body = (await response.json()) as SessionMember[];
         
+        const list: ReturnSessionMember[] = [];
+        for (let i = 0; i < body.length; i++) {
+            const obj = await generateReturnMember(body[i].memberId);
+            list.push(obj as ReturnSessionMember);
+        }
+
         const sessionObj: Session = {
             id: returnSession.id as UUID,
             groupId: returnSession.groupId as UUID,
@@ -44,7 +51,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             plannedRounds: returnSession.plannedRounds,
             startedAt: returnSession.startedAt,
             endedAt: returnSession.endedAt,
-            members: body as SessionMember[]
+            members: list
         };
         return ok(sessionObj);
     } catch(error) {
@@ -52,29 +59,29 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 };
 
-export const PUT: RequestHandler = async({ request, params, fetch }) => {
-    try {
-        const groupId = params.group;
-        const sessionId = params.session;
+export const PUT: RequestHandler = async ({ request, params, fetch }) => {
+  try {
+    const groupId = params.group;
+    const sessionId = params.session;
 
-        if (!groupId || !(UUID.safeParse(groupId)).success) {
-            return badRequest({ message: 'PlayGroup ID required' });
-        }
+    if (!groupId || !UUID.safeParse(groupId).success) {
+      return badRequest({ message: "PlayGroup ID required" });
+    }
 
-        if (!sessionId || !(UUID.safeParse(sessionId)).success) {
-            return badRequest({ message: 'Session ID required' });
-        }
+    if (!sessionId || !UUID.safeParse(sessionId).success) {
+      return badRequest({ message: "Session ID required" });
+    }
 
-        const groupResponse = await fetch(`/api/group/${groupId}`);
-        if (groupResponse.status != 200) {
-            return badRequest({ message: 'PlayGroup not found' });
-        }
+    const groupResponse = await fetch(`/api/group/${groupId}`);
+    if (groupResponse.status != 200) {
+      return badRequest({ message: "PlayGroup not found" });
+    }
 
-        const body = await request.json();
-        const newSession = body.session;
-        if (!newSession || !(Session.safeParse(newSession).success)) {
-            return badRequest({ message: 'Session required' });
-        }
+    const body = await request.json();
+    const newSession = body.session;
+    if (!newSession || !Session.safeParse(newSession).success) {
+      return badRequest({ message: "Session required" });
+    }
 
         const endedAtDate = newSession.endedAt 
             ? new Date(newSession.endedAt) 
@@ -89,9 +96,9 @@ export const PUT: RequestHandler = async({ request, params, fetch }) => {
             .where(eq(session.id, sessionId))
             .returning();
 
-        if (!updatedSession) {
-            return badRequest({ message: 'Session not found' });
-        }
+    if (!updatedSession) {
+      return badRequest({ message: "Session not found" });
+    }
 
         return ok({ message: 'Updated Session', session: updatedSession as Session })
     } catch(error) {
