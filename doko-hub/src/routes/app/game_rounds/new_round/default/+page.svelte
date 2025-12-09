@@ -1,3 +1,4 @@
+<!--FIXME: Clanker code >:(-->
 <script lang="ts">
   import TopAppBar, { Section, Title } from "@smui/top-app-bar";
   import Button, { Label } from "@smui/button";
@@ -640,6 +641,7 @@
   </DialogActions>
 </Dialog>
 
+<!--FIXME: **KEINE FARBEN IM CSS VORGEBEN!!**-->
 <style>
   :global(body) {
     margin: 0;

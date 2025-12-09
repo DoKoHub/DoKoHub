@@ -31,7 +31,7 @@
 
   let dialogOpen = $state(false);
   let groupName = $state("New Group");
-  let groups = $state(data.groups);
+  let groups = $state(data.groups); //FIXME: svelte warns here but the suggested fix doesn't seem to work? :(
 
   async function handleCreate(name: string) {
     console.log("Neue Gruppe erstellt:", name);
