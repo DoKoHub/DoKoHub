@@ -24,8 +24,10 @@ export const sessionstatus = pgEnum('sessionstatus', [
 ]);
 
 export const gameType = pgEnum('game_type', [
-	'NORMAL',
-	'HOCHZEIT',
+  'NORMAL',
+  'HOCHZEIT_STILL',
+  'HOCHZEIT_UNKOWN',
+  'HOCHZEIT_NORMAL',
 	'SOLO_FARBE',
 	'SOLO_DAMEN',
 	'SOLO_BUBEN',
@@ -38,7 +40,7 @@ export const side = pgEnum('side', ['RE', 'KONTRA']);
 
 export const callType = pgEnum('call_type', ['RE', 'KONTRA', 'KEINE90', 'KEINE60', 'KEINE30', 'SCHWARZ']);
 
-export const bonusType = pgEnum('bonus_type', ['DOKO', 'FUCHS', 'KARLCHEN', 'LAUFENDE', 'GEGEN_DIE_ALTEN']);
+export const bonusType = pgEnum('bonus_type', ['DOKO', 'FUCHS', 'KARLCHEN']);
 
 
 export const player = pgTable('player', {

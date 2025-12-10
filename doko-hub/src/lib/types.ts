@@ -27,7 +27,9 @@ export type SeatPos = z.infer<typeof SeatPos>;
 
 export const GameType = z.enum([
   "NORMAL",
-  "HOCHZEIT",
+  "HOCHZEIT_STILL",
+  "HOCHZEIT_UNKOWN",
+  "HOCHZEIT_NORMAL",
   "SOLO_FARBE",
   "SOLO_DAMEN",
   "SOLO_BUBEN",
@@ -66,13 +68,7 @@ export const BonusType = z.enum([
   "DOKO",
   "FUCHS",
   "KARLCHEN",
-  "LAUFENDE",
-  "GEGEN_DIE_ALTEN"/*,
-  "SCHWEINCHEN",
-  "HYPERSCHWEIN",           Auskommentiert, weil die in der ER Modellierung nicht vorhanden sind.
-  "DULLE_GEFANGEN",
-  "FUCHS_GEFANGEN",
-  "KARLCHEN_IM_LETZTEN",*/
+  
 ]);
 export type BonusType = z.infer<typeof BonusType>;
 
