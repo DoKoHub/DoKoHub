@@ -6,37 +6,72 @@
   import FormField from "@smui/form-field";
   import Radio from "@smui/radio";
 
-  export function getExistingPlayers(): string[] {
-    return ["Fabian", "Nick"];
-  }
+  import type { PageData } from "./$types";
+  import { post } from "$lib/frontend/fetch";
+  import { get_user } from "$lib/frontend/auth";
+  import z from "zod";
 
-  function joinGroup() {
-    const name = selected || newName;
-    console.log("Beitritt mit Name:", name);
-    // später: API-Aufruf oder Navigation
-  }
+  // Daten aus .ts
+  export let data: PageData;
+  const { groupId, members } = data;
+  // FIX Me Gruppennamen
+  const groupName = ""; // DOTO
 
   let active: "groups" | "stats" | "profile" = "groups";
-  const existingPlayers = getExistingPlayers();
-  let selected = ""; // erstmal leer
+
+  // id ausgewählten members durch radio button
+  let selectedMemberId: string | null = null;
+
+  // Eingabe aus dem Textfeld
   let newName = "";
+
+  async function joinGroup() {
+    const player = get_user(); // aktuell eingeloggt, den hinzufügen unter neuem nickname
+
+    const selectedMember = members.find((m) => m.id === selectedMemberId);
+    const name = (selectedMember?.nickname ?? newName).trim();
+
+    // Name immer abfragen
+    // Logik für Name überschreiben
+    // unter dem vorhandenen Namen beitreten
+    if (selectedMember) {
+      await post(
+        `/api/group/${groupId}/member`,
+        {
+          playerId: player.id,
+          nickname: selectedMember.nickname,
+        },
+        z.any()
+      );
+    } else {
+      // Spieler der Gruppe hinzufügen: Eingabefeld
+      await post(
+        `/api/group/${groupId}/member`,
+        {
+          playerId: player.id,
+          nickname: name,
+        },
+        z.any()
+      );
+    }
+  }
 </script>
 
 <main class="page">
   <Card class="join-card">
     <h2 class="title">Gruppe beitreten</h2>
     <p class="subtitle">
-      Die Gruppe <strong>“Die Chaoten”</strong> freut sich über neue Mitspieler.
-      Wähle nachfolgend einen Namen und trete der Gruppe bei.
+      Die Gruppe <strong>{groupName}</strong> freut sich über neue Mitspieler. Wähle
+      nachfolgend einen Namen und trete der Gruppe bei.
     </p>
 
     <!-- Spieler-Liste -->
     <div class="player-list">
-      {#each existingPlayers as name}
+      {#each members as member}
         <FormField>
           <label class="player-option">
-            <Radio bind:group={selected} value={name} />
-            <span>{name}</span>
+            <Radio bind:group={selectedMemberId} value={member.id} />
+            <span>{member.nickname}</span>
           </label>
         </FormField>
       {/each}
@@ -55,41 +90,13 @@
       variant="raised"
       color="primary"
       class="join-button"
-      disabled={!selected && !newName}
+      disabled={!selectedMemberId && !newName}
       onclick={joinGroup}
     >
       Gruppe beitreten
     </Button>
   </Card>
 </main>
-
-<BottomAppBar variant="fixed" color="primary" class="bottom-bar">
-  <Section class="nav-section">
-    <button
-      class="nav-item"
-      class:active={active === "groups"}
-      on:click={() => (active = "groups")}
-    >
-      Gruppen
-    </button>
-
-    <button
-      class="nav-item"
-      class:active={active === "stats"}
-      on:click={() => (active = "stats")}
-    >
-      Meine Statistiken
-    </button>
-
-    <button
-      class="nav-item"
-      class:active={active === "profile"}
-      on:click={() => (active = "profile")}
-    >
-      Profil
-    </button>
-  </Section>
-</BottomAppBar>
 
 <style>
   main.page {
@@ -98,26 +105,20 @@
     align-items: flex-start;
     min-height: calc(100vh - 56px);
     padding: 2rem 1rem 6rem;
-    background: #fafafa;
   }
 
   :global(.join-card) {
-    width: 340px;
     padding: 1.25rem 1.5rem;
     padding-left: 30px;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
   /* Überschrift in card */
   .title {
     margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-    font-weight: 600;
+    /*font-size: 1.5rem;
+    font-weight: 600; */
   }
 
   .subtitle {
-    font-size: 0.95rem;
-    color: #444;
     margin-bottom: 1rem;
   }
 
@@ -139,30 +140,5 @@
   .divider {
     text-align: center;
     margin: 0.75rem 0;
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  /* bottom bar */
-  .nav-item {
-    flex: 1;
-    text-align: center;
-    background: none;
-    border: none;
-    color: white;
-    font: inherit;
-    font-size: 0.9rem;
-    cursor: pointer;
-    padding: 0.4rem 0;
-    opacity: 0.85;
-    transition: all 0.2s ease;
-  }
-
-  .nav-item:hover {
-    opacity: 1;
-  }
-
-  .nav-item.active {
-    opacity: 1;
-    font-weight: 600;
   }
 </style>
