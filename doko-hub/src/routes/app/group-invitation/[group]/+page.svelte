@@ -98,6 +98,35 @@
   </Card>
 </main>
 
+<BottomAppBar variant="fixed" color="primary" class="bottom-bar">
+  <Section class="nav-section">
+    <button
+      class="nav-item"
+      class:active={active === "groups"}
+      on:click={() => (active = "groups")}
+    >
+      Gruppen
+    </button>
+
+    <button
+      class="nav-item"
+      class:active={active === "stats"}
+      on:click={() => (active = "stats")}
+    >
+      Meine Statistiken
+    </button>
+
+    <button
+      class="nav-item"
+      class:active={active === "profile"}
+      on:click={() => (active = "profile")}
+    >
+      Profil
+    </button>
+  </Section>
+</BottomAppBar>
+
+<!--FIXME: keine Farben im CSS setzen!-->
 <style>
   main.page {
     display: flex;

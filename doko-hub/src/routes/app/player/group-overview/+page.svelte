@@ -31,7 +31,8 @@
 
   let dialogOpen = $state(false);
   let groupName = $state("New Group");
-  let groups = $state(data.groups); //FIXME: svelte warns here but the suggested fix doesn't seem to work? :(
+  // svelte-ignore state_referenced_locally The group list is only fetched once, so copying here is fine
+  let groups = $state(data.groups);
 
   async function handleCreate(name: string) {
     console.log("Neue Gruppe erstellt:", name);

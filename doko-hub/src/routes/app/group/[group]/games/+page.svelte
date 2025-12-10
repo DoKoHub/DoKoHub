@@ -110,6 +110,7 @@
   </List>
 </main>
 
+//TODO: remove the `|| true` once debugging is done
 {#if can_start_new_game || true}
   <PlusButton addSomething={() => (newGameOpen = true)} />
 {/if}
