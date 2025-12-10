@@ -87,7 +87,9 @@
   <List twoLine>
     {#each games as game}
       <!--TODO: go to game page. That needs to be moved somewhere like /app/game/[gameId]/rounds-->
-      <Item onclick={() => goto(`/app/game/${game.id}/overview/rounds`)}>
+      <Item
+        onclick={() => goto(`/app/game/${group_id}/${game.id}/overview/rounds`)}
+      >
         <Text>
           <PrimaryText>
             {#if game.startedAt}

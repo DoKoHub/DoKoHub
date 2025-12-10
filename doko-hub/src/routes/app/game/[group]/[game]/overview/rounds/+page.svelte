@@ -2,10 +2,20 @@
   import Button from "@smui/button";
   import PlusButton from "$lib/components/PlusButton.svelte";
   import { goto } from "$app/navigation";
+  import type { PageProps } from "./$types";
+  import { UUID } from "$lib/types";
+
+  const { params }: PageProps = $props();
+
+  //svelte-ignore state_referenced_locally fetched once, copying is ok
+  const groupId = UUID.parse(params.group);
+  //svelte-ignore state_referenced_locally fetched once, copying is ok
+  const gameId = UUID.parse(params.game);
 
   function addSomething() {
-    // zur NEW_ROUND/default Seite
-    goto("/app/game_rounds/new_round/default");
+    //TODO: Laut Rücksprache mit den Betreuern soll das eine separate Seite sein.
+    // Sicher, dass das kein Missverständnis ist?
+    goto(`/app/game/${groupId}/${gameId}/new_round`);
   }
 
   // Beispielspieler
