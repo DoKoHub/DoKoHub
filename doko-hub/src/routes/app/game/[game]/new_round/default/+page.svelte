@@ -11,7 +11,10 @@
     Actions as DialogActions,
   } from "@smui/dialog";
   import { goto } from "$app/navigation";
+  import type { PageProps } from "./$types";
+  import { UUID } from "$lib/types";
 
+  //FIXME: Statt eigener Typen sollten die DTOs verwendet werden
   // ================== Typen ==================
 
   // Spielvariante
@@ -42,14 +45,20 @@
 
   // ================== Zustand ==================
 
-  let gameType: GameType = "normal";
-  let weddingType: WeddingType = "normal";
-  let soloIsCompulsory = true; // true = Pflichtsolo, false = Lustsolo
-  let soloTrump: SoloTrump = "buben";
+  const { params }: PageProps = $props();
 
-  let winnerSide: Side = "re"; // Partei, die (voraussichtlich) gewinnt
-  let eyes = "67";
+  //svelte-ignore state_referenced_locally The game ID is static from the URL, so copying is fine
+  const gameId = UUID.parse(params.game);
 
+  let gameType: GameType = $state("normal");
+  let weddingType: WeddingType = $state("normal");
+  let soloIsCompulsory = $state(true); // true = Pflichtsolo, false = Lustsolo
+  let soloTrump: SoloTrump = $state("buben");
+
+  let winnerSide: Side = $state("re"); // Partei, die (voraussichtlich) gewinnt
+  let eyes = $state("67");
+
+  //TODO: fetch from backend
   let players: Player[] = [
     {
       name: "Maurice",
@@ -83,7 +92,8 @@
   // ================== Navigation / AppBar ==================
 
   function goBack() {
-    goto("/app/game/[game]/overview/rounds");
+    //TODO: gruppen-ID vom Backend holen
+    goto(`/app/game/[game]/overview/rounds`);
   }
 
   // ================== Spielvariante auswählen ==================
@@ -139,9 +149,9 @@
   const ANNOUNCEMENT_OPTIONS = ["K90", "K60", "K30", "Schwarz"] as const;
   type AnnouncementOption = (typeof ANNOUNCEMENT_OPTIONS)[number];
 
-  let announcementDialogOpen = false;
-  let announcementSide: AnnouncementSide = "re";
-  let selectedAnnouncements = new Set<AnnouncementOption>();
+  let announcementDialogOpen = $state(false);
+  let announcementSide: AnnouncementSide = $state("re");
+  let selectedAnnouncements = $state(new Set<AnnouncementOption>());
 
   function openAnnouncementDialog(index: number) {
     activePlayerIndex = index;
@@ -192,10 +202,10 @@
   const EXTRA_TYPES = ["Fuchs", "Doppelkopf"] as const;
   type ExtraType = (typeof EXTRA_TYPES)[number];
 
-  let extraDialogOpen = false;
-  let extraFuchs = 0;
-  let extraDoppelkopf = 0;
-  let extraKarlchen = false;
+  let extraDialogOpen = $state(false);
+  let extraFuchs = $state(0);
+  let extraDoppelkopf = $state(0);
+  let extraKarlchen = $state(false);
 
   function openExtraDialog(index: number) {
     activePlayerIndex = index;
@@ -243,8 +253,8 @@
   }
   // ================== Speichern-Validierung ==================
 
-  let saveErrorDialogOpen = false;
-  let saveErrors: string[] = [];
+  let saveErrorDialogOpen = $state(false);
+  let saveErrors: string[] = $state([]);
   function collectSaveErrors(): string[] {
     const errors: string[] = [];
 
@@ -531,6 +541,7 @@
       </Button>
     </div>
 
+    <!--FIXME: should be a number input-->
     <Textfield
       label="Augen"
       variant="outlined"
@@ -552,6 +563,7 @@
       <article class="player-card">
         <div class="player-name">{player.name}</div>
 
+        <!--FIXME: this needs to be an actual interactible element!-->
         <!-- Status-Balken (Re / Contra / Nicht gespielt) -->
         <div
           class={"player-status-row clickable-row " +
@@ -746,6 +758,7 @@
   </DialogActions>
 </Dialog>
 
+<!--FIXME: Ungenutzte/überflüssige CSS-Klassen-->
 <style>
   :global(body) {
     margin: 0;

@@ -126,7 +126,6 @@
   </Section>
 </BottomAppBar>
 
-<!--FIXME: keine Farben im CSS setzen!-->
 <style>
   main.page {
     display: flex;
