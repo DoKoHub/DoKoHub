@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "./server/db";
 import { playgroup, playgroupMember, round, roundParticipation, session, sessionMember } from "./server/db/schema";
+import { PlayGroupMember, UUID, type ReturnSessionMember, type SeatPos } from "./types";
 
 export function validateEmail(email: string): boolean {
     // Entferne umschließende einfache oder doppelte Anführungszeichen
@@ -98,4 +99,35 @@ export async function hasParticipationInRound(roundId: string, memberId: string)
     } else {
         return true;
     }
+}
+
+export async function generateReturnMember(memberId: string) {
+    const [sessionMemberFromDB] = await db
+        .select()
+        .from(sessionMember)
+        .where(eq(sessionMember.memberId, memberId));
+    
+    if (!sessionMemberFromDB) {
+        return null;
+    }
+
+    const [playGroupMemberFromDB] = await db
+        .select()
+        .from(playgroupMember)
+        .where(eq(playgroupMember.id, memberId));
+    
+    if (!playGroupMemberFromDB || !(PlayGroupMember.safeParse(playGroupMemberFromDB).success)) {
+        return null;
+    }
+
+    const returnObj: ReturnSessionMember = {
+        memberId: memberId as UUID,
+        seatPos: sessionMemberFromDB.seatPos as SeatPos,
+        playerId: playGroupMemberFromDB.playerId as UUID,
+        status: playGroupMemberFromDB.status ? playGroupMemberFromDB.status : "ACTIVE", // TODO: OH GOTT
+        nickname: playGroupMemberFromDB.nickname,
+        leftAt: playGroupMemberFromDB.leftAt
+    }
+
+    return returnObj;
 }

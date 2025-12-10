@@ -84,15 +84,16 @@ Tests ohne logs ausgeben: `npm run test:silent`
 
 ## Alle Befehle erklärt
 
+```jsonc
 {
-"scripts": {
-/_ --- Entwicklung und Build --- _/
-// Startet den Entwicklungsserver.
-"dev": "vite dev",
-// Erstellt die Assets des Projekts.
-"build": "vite build",
-// Startet einen lokalen Server, um das gebaute Projekt vor dem Deployment zu testen.
-"preview": "vite preview",
+  "scripts": {
+    /* --- Entwicklung und Build --- */
+    // Startet den Entwicklungsserver.
+    "dev": "vite dev",
+    // Erstellt die Assets des Projekts.
+    "build": "vite build",
+    // Startet einen lokalen Server, um das gebaute Projekt vor dem Deployment zu testen.
+    "preview": "vite preview",
 
     /* --- Vorbereitung und Checks --- */
     // Synchronisiert SvelteKit-Dateien und führt dann SMUI-Vorbereitungen durch.
@@ -127,6 +128,6 @@ Tests ohne logs ausgeben: `npm run test:silent`
     "smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
     // Kompiliert das dunkle SMUI-Theme in die CSS-Datei static/smui-dark.css.
     "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
-
+  }
 }
-}
+```

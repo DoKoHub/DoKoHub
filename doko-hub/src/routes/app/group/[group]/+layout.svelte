@@ -21,6 +21,7 @@
   type Tab = "spiele" | "statistiken" | "mitglieder";
 
   const { children, params }: LayoutProps = $props();
+  // svelte-ignore state_referenced_locally this state will not update
   const groupId = UUID.parse(params.group);
   const tabs: Tab[] = ["spiele", "statistiken", "mitglieder"];
 

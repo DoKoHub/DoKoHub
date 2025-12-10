@@ -1,3 +1,4 @@
+<!--FIXME: Clanker code >:(-->
 <script lang="ts">
   import TopAppBar, { Section, Title } from "@smui/top-app-bar";
   import Button, { Label } from "@smui/button";
@@ -82,7 +83,7 @@
   // ================== Navigation / AppBar ==================
 
   function goBack() {
-    goto("/app/game/game_rounds");
+    goto("/app/game/[game]/overview/rounds");
   }
 
   // ================== Spielvariante auswählen ==================
@@ -240,7 +241,64 @@
 
     closeExtraDialog();
   }
+  // ================== Speichern-Validierung ==================
 
+  let saveErrorDialogOpen = false;
+  let saveErrors: string[] = [];
+  function collectSaveErrors(): string[] {
+    const errors: string[] = [];
+
+    // 1️. Regel: Re-Partei muss genau 1 Spieler haben
+    const rePlayers = players.filter((p) => p.side === "re").length;
+    if (rePlayers !== 1) {
+      errors.push(
+        `Derzeit sind ${rePlayers} Spieler in der Reh-Partei. Es muss jedoch genau 1 Spieler sein.`
+      );
+    }
+
+    // 2️. Regel: K90 nur erlaubt, wenn Re oder Contra angesagt wurde
+    const anyAnnouncement = players.some(
+      (p) => p.announcementSummary && p.announcementSummary !== ""
+    );
+
+    const reOrContraChosen = players.some(
+      (p) => p.side === "re" || p.side === "contra"
+    );
+
+    if (anyAnnouncement && !reOrContraChosen) {
+      errors.push(
+        "Es wurde die Ansage K90 getätigt ohne das Reh/Contra angesagt wurde."
+      );
+    }
+
+    // 3️. Regel: Max 2 Füchse erlaubt
+    const foxCount = players.reduce((sum, p) => {
+      return sum + (p.specialSummary?.toLowerCase().includes("fuchs") ? 1 : 0);
+    }, 0);
+
+    if (foxCount > 2) {
+      errors.push(
+        `Es wurden ${foxCount} Füchse gefangen. Maximal sind jedoch 2 möglich.`
+      );
+    }
+    // Regel: Sonderpunkte sind nicht erlaubt bei stiller/unklarer Hochzeit
+    if (
+      gameType === "wedding" &&
+      (weddingType === "silent" || weddingType === "unclear")
+    ) {
+      const hasAnySpecialPoints = players.some(
+        (p) => p.specialSummary && p.specialSummary.toLowerCase() !== "keine"
+      );
+
+      if (hasAnySpecialPoints) {
+        errors.push(
+          "Sonderpunkte gibt es nicht bei einer stillen Hochzeit und bei einer Hochzeit ohne Klärung."
+        );
+      }
+    }
+
+    return errors;
+  }
   // ================== Speichern ==================
 
   function saveRound() {
@@ -255,24 +313,43 @@
       players,
     });
   }
+  function handleSaveClick() {
+    const errors = collectSaveErrors();
+
+    if (errors.length > 0) {
+      saveErrors = errors;
+      saveErrorDialogOpen = true;
+      return;
+    }
+
+    // keine Fehler -> wirklich speichern
+    saveRound();
+  }
+
+  // ================== Validierung: Darf gespeichert werden? ==================
+
+  function canSaveRound(): boolean {
+    // 1. alle Spieler müssen eine Seite haben (nicht "none")
+    const allPlayersSet = players.every((p) => p.side !== "none");
+
+    // 2. Augen dürfen nicht leer sein
+    const hasEyes = eyes.trim() !== "";
+
+    return allPlayersSet && hasEyes;
+  }
 </script>
 
 <!-- ================== Layout ================== -->
 
-<TopAppBar variant="fixed" class="top-bar">
-  <Section align="start">
-    <IconButton class="nav-icon-btn" onclick={goBack}>
-      <span class="material-icons">close</span>
-    </IconButton>
-    <Title>Neue Runde</Title>
-  </Section>
+<header class="page-header">
+  <IconButton onclick={goBack}>
+    <span class="material-icons">close</span>
+  </IconButton>
 
-  <Section align="end">
-    <IconButton>
-      <span class="material-icons">more_vert</span>
-    </IconButton>
-  </Section>
-</TopAppBar>
+  <IconButton>
+    <span class="material-icons">more_vert</span>
+  </IconButton>
+</header>
 
 <main class="page">
   <!-- ==== Karte: Spielvariante ==== -->
@@ -363,7 +440,7 @@
         </Button>
       </div>
 
-      <div class="segmented-row segmented-row--sub">
+      <div class="segmented-row segmented-row--sub trumpf-row">
         <Button
           class={"segmented-chip " +
             (soloTrump === "buben" ? "segmented-chip--active" : "")}
@@ -523,11 +600,18 @@
 
   <!-- ==== Info + Speichern ==== -->
   <section class="info-section">
-    <p class="info-text">
-      Zum Speichern müssen alle Spielvarianten und Spieler gesetzt sein.
-    </p>
+    {#if !canSaveRound()}
+      <p class="info-text">
+        Zum Speichern müssen alle Spielvarianten und Spieler gesetzt sein.
+      </p>
+    {/if}
 
-    <Button class="save-button" variant="raised" onclick={saveRound}>
+    <Button
+      class="save-button"
+      variant="raised"
+      disabled={!canSaveRound()}
+      onclick={handleSaveClick}
+    >
       <Label>Speichern</Label>
     </Button>
   </section>
@@ -639,11 +723,32 @@
     </Button>
   </DialogActions>
 </Dialog>
+<!-- ================== Speichern-nicht-möglich Dialog ================== -->
+
+<Dialog bind:open={saveErrorDialogOpen}>
+  <DialogTitle>Speichern nicht möglich</DialogTitle>
+
+  <DialogContent>
+    <p>Die aktuellen Eintragungen sind ungültig.</p>
+    <p>Hinweis:</p>
+
+    <ul class="save-error-list">
+      {#each saveErrors as error}
+        <li>{error}</li>
+      {/each}
+    </ul>
+  </DialogContent>
+
+  <DialogActions>
+    <Button onclick={() => (saveErrorDialogOpen = false)}>
+      <Label>Ok</Label>
+    </Button>
+  </DialogActions>
+</Dialog>
 
 <style>
   :global(body) {
     margin: 0;
-    background: #f4eef9;
     font-family:
       system-ui,
       -apple-system,
@@ -653,28 +758,36 @@
   }
 
   .top-bar {
-    background: #f4eef9;
     box-shadow: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
   }
 
   .nav-icon-btn :global(.material-icons) {
     font-size: 24px;
   }
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 0;
+  }
 
   .page {
-    padding: 80px 16px 32px;
+    padding: 8px 16px 24px; /* statt 16/80 nach oben → 8px */
     box-sizing: border-box;
     max-width: 600px;
     margin: 0 auto;
   }
 
+  /* Karten / Container */
   .card {
     border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: #f9f3ff;
-    padding: 16px;
-    margin-bottom: 16px;
+    border-width: 1px;
+    border-style: solid;
+    padding: 16px 16px 20px;
+    margin-bottom: 12px;
+    overflow: visible;
   }
 
   .card-title {
@@ -683,40 +796,75 @@
     font-weight: 500;
   }
 
+  /* ========= Segmented Controls (Normal/Hochzeit/Solo, usw.)========= */
+
+  /* Grundlayout für alle Segmented-Rows */
   .segmented-row {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    gap: 0;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  /* Speziell für die Trumpf-Reihe */
+  .segmented-row.trumpf-row {
+    display: flex;
+    width: 100%; /* nie breiter als die Karte */
+    box-sizing: border-box;
   }
 
   .segmented-row--sub {
     margin-top: 12px;
   }
 
-  .segmented-btn {
-    border-radius: 999px;
+  .segmented-btn,
+  .segmented-chip {
+    min-height: 40px;
+    padding: 0 16px;
     text-transform: none;
+    border-radius: 0;
+    font-size: 14px;
+    line-height: 1.2;
   }
 
   .segmented-btn--active {
-    /* Farbe kommt von SMUI-Theme – nur Form */
-  }
-
-  .segmented-chip {
-    border-radius: 999px;
-    text-transform: none;
-    min-width: 56px;
-    justify-content: center;
+    /* Farben kommen nur von SMUI (raised/outlined) */
   }
 
   .segmented-chip--active {
-    /* Farbe über Theme */
+    /* Farben kommen nur von SMUI */
   }
 
-  .eyes-textfield {
-    margin-top: 16px;
-    width: 100%;
+  /* Erste/letzte Buttons runden die Kapsel */
+  .segmented-row > :first-child {
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
   }
+
+  .segmented-row > :last-child {
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+  }
+
+  /* Alle Trumpf-Segmente teilen sich die Breite */
+  .segmented-row.trumpf-row .segmented-chip {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 40px;
+    padding: 0; /* Icon/Text wird in der Mitte zentriert */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0; /* Rundung kommt von der äußeren Kapsel */
+  }
+
+  /* Label im Button etwas kleiner, damit alles entspannt reinpasst */
+  .segmented-row.trumpf-row .segmented-chip :global(.mdc-button__label) {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  /* ========= Spieler-Karten ========= */
 
   .players-grid {
     display: grid;
@@ -727,15 +875,15 @@
 
   .player-card {
     border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: #f9f3ff;
+    border-width: 1px;
+    border-style: solid;
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
 
   .player-name {
-    padding: 12px 12px 4px;
+    padding: 10px 12px 4px;
     font-weight: 500;
   }
 
@@ -745,19 +893,27 @@
     text-align: center;
   }
 
+  /* Re = grün */
   .status-re {
-    background: #4caf50;
-    color: white;
+    background-color: #4caf50;
+    color: #ffffff;
   }
 
+  /* Contra = rot */
   .status-contra {
-    background: #c62828;
-    color: white;
+    background-color: #e53935;
+    color: #ffffff;
   }
 
+  /* Nicht gespielt = grau */
   .status-none {
-    background: #d6d6d6;
-    color: #222;
+    background-color: #e0e0e0;
+    color: #212121;
+  }
+
+  .eyes-textfield {
+    margin-top: 20px;
+    width: 100%;
   }
 
   .player-row {
@@ -786,6 +942,8 @@
     cursor: pointer;
   }
 
+  /* ========= Footer / Speichern ========= */
+
   .info-section {
     margin-top: 24px;
     display: flex;
@@ -798,7 +956,6 @@
     margin: 0;
     font-size: 13px;
     text-align: center;
-    color: rgba(0, 0, 0, 0.7);
   }
 
   .save-button {
@@ -807,7 +964,7 @@
     text-transform: none;
   }
 
-  /* Dialog-Styles */
+  /* ========= Dialog-Styles ========= */
 
   .dialog-segmented-row {
     display: flex;
@@ -839,5 +996,17 @@
   .extra-value {
     min-width: 20px;
     text-align: center;
+  }
+  .save-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .save-error-list {
+    margin: 8px 0 0;
+    padding-left: 20px;
+  }
+
+  .save-error-list li {
+    margin-bottom: 4px;
   }
 </style>

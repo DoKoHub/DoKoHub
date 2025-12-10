@@ -1,3 +1,4 @@
+<!--FIXME: Clanker code >:(-->
 <script lang="ts">
   import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
   import IconButton from "@smui/icon-button";

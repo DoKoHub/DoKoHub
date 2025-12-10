@@ -1,4 +1,4 @@
-import { AuthProvider, Player } from "$lib/types";
+import { Player } from "$lib/types";
 import z from "zod";
 import { post } from "./fetch";
 
