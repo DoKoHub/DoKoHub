@@ -96,7 +96,7 @@ export const POST: RequestHandler = async(event) => {
 
         const sessionId = createdSession.id;
 
-        const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
+        const response = await event.fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
         const body = (await response.json()) as SessionMember[];
         
         const list: ReturnSessionMember[] = [];

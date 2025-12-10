@@ -146,7 +146,7 @@ describe("API /api/group/[group]/session/[session]/round (Round)", () => {
       {}
     );
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("issues");
+    expect(response.body.message).toBe("Validation failed");
   });
 
   // Test: GET (Leere Liste)
@@ -212,7 +212,7 @@ describe("API /api/group/[group]/session/[session]/round/[round] (Round Details)
       `/api/group/${groupId}/session/${sessionId}/round/${NON_EXISTENT_ID}`
     );
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("Round not found");
   });
 
   // Test: PUT (Aktualisierung von roundNum und gameType)
@@ -294,7 +294,7 @@ describe("API /api/group/[group]/session/[session]/round/[round]/participation (
     );
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("Member already has a participation in Round");
   });
 
   // Test: GET (Leere Liste)
@@ -394,7 +394,7 @@ describe("API /api/group/[group]/session/[session]/round/[round]/participation/[
       `/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation/${NON_EXISTENT_ID}`
     );
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("RoundParticipation not found");
   });
 });
 
@@ -482,7 +482,7 @@ describe('API /api/group/[group]/session/[session]/round/[round]/call/[memberId]
     test('GET: Should return 400 if Call for player is not found', async () => {
         const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/call/${NON_EXISTENT_ID}`);
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body.message).toBe("RoundCall not found");
     });
 
     // Test: PUT (Aktualisierung vom call)
@@ -608,7 +608,7 @@ describe('API /api/group/[group]/session/[session]/round/[round]/bonus/[memberId
     const response = await api.get(`/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus/${NON_EXISTENT_BONUS_ID}`);
 
     expect(response.status).toBe(400); 
-    expect(response.body).toHaveProperty('message', 'RoundBonus not found');
+    expect(response.body.message).toBe("RoundBonus not found");
 });
 
     // Test: PUT (Aktualisierung vom bonus)
