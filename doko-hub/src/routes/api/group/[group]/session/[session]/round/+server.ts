@@ -42,51 +42,92 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 };
 
-export const POST: RequestHandler = async(event) => {
-    const bodySchema = z.object({
-        roundNum: z.number().int().min(1),
-        gameType: GameType,
-        soloKind: SoloKind.optional().nullable(),
-        eyesRe: z.number().int()
-    });
-    
-    const { roundNum, gameType, soloKind, eyesRe } = await readValidatedBody(event, bodySchema);
+// Hilfsfunktion zur Normalisierung der Augen auf RE
+//  - Für eine konsistente Auswertung wird hier auf RE-Augen normalisiert:
+//      Wenn RE-Augen angegeben wurden: Wert wird direkt übernommen.
+//      Wenn KONTRA-Augen angegeben wurden: wird auf RE umgerechnet: 240 - contraEyes.
 
-    try {
-        const groupId = event.params.group;
-        const sessionId = event.params.session;
+function normalizeEyesToRe(
+  enteredEyes: number,
+  sideEntered: "RE" | "KONTRA"
+): number {
+  if (enteredEyes < 0 || enteredEyes > 240) {
+    throw new Error("Eyes must be between 0 and 240");
+  }
 
-        if (!groupId || !(UUID.safeParse(groupId)).success) {
-            return badRequest({ message: 'PlayGroup ID required' });
-        }
+  if (sideEntered === "RE") {
+    return enteredEyes;
+  }
 
-        if (!sessionId || !(UUID.safeParse(sessionId)).success) {
-            return badRequest({ message: 'Session ID required' });
-        }
+  // KONTRA-Augen werden auf RE-Augen abgebildet
+  return 240 - enteredEyes;
+}
 
-        const groupResponse = await event.fetch(`/api/group/${groupId}`);
-        if (groupResponse.status != 200) {
-            return badRequest({ message: 'PlayGroup not found' });
-        }
+export const POST: RequestHandler = async (event) => {
+  // Änderung:
+  //  - Statt direkt eyesRe anzunehmen, wird jetzt
+  //      eyes : Augen einer Partei
+  //      eyesSide: Partei, zu der diese Augen gehören ("RE" oder "KONTRA")
+  //      validiert.
+  //  - Die Normalisierung auf eyesRe erfolgt anschließend serverseitig
 
-        const sessionResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}`);
-        if (sessionResponse.status != 200) {
-            return badRequest({ message: 'Session not found' });
-        }
 
-        const [roundFromDB] = await db
-            .insert(round)
-            .values({
-                sessionId: sessionId,
-                roundNum: roundNum,
-                gameType: gameType,
-                soloKind: soloKind,
-                eyesRe: eyesRe
-            })
-            .returning(); 
+  const bodySchema = z.object({
+    roundNum: z.number().int().min(1),
+    gameType: GameType,
+    soloKind: SoloKind.optional().nullable(),
+    eyes: z.number().int().min(0).max(240),  // UI: Augen einer Partei
+    eyesSide: z.enum(["RE", "KONTRA"]),  // UI: Partei, zu der die Augen gehören
+  });
 
-        return ok({ message: 'Created Round', round: roundFromDB });
-    } catch(error) {
-        return serverError({ message: 'Database error while creating Round' , error});
+  const { roundNum, gameType, soloKind, eyes, eyesSide } =
+    await readValidatedBody(event, bodySchema);
+
+  try {
+    const groupId = event.params.group;
+    const sessionId = event.params.session;
+
+    if (!groupId || !UUID.safeParse(groupId).success) {
+      return badRequest({ message: "PlayGroup ID required" });
     }
+
+    if (!sessionId || !UUID.safeParse(sessionId).success) {
+      return badRequest({ message: "Session ID required" });
+    }
+
+    const groupResponse = await event.fetch(`/api/group/${groupId}`);
+    if (groupResponse.status != 200) {
+      return badRequest({ message: "PlayGroup not found" });
+    }
+
+    const sessionResponse = await event.fetch(
+      `/api/group/${groupId}/session/${sessionId}`
+    );
+    if (sessionResponse.status != 200) {
+      return badRequest({ message: "Session not found" });
+    }
+
+    // Normalisierung der eingegebenen Augen auf eyesRe
+    // - Unabhängig davon, ob die UI RE- oder KONTRA-Augen gesendet hat,
+    //   wird hier die RE-Augen-Zahl berechnet.
+    // - Dadurch enthalten alle Round-Datensätze konsistent eyesRe
+
+    const eyesRe = normalizeEyesToRe(eyes, eyesSide);
+
+    const [roundFromDB] = await db
+      .insert(round)
+      .values({
+        sessionId: sessionId,
+        roundNum: roundNum,
+        gameType: gameType,
+        soloKind: soloKind,
+        eyesRe: eyesRe, // immer RE-Augen in der Datenbank
+      })
+      .returning();
+
+      
+    return ok({ message: "Created Round", round: roundFromDB });
+  } catch (error) {
+    return serverError({ message: "Database error while creating Round", error });
+  }
 };
