@@ -5,48 +5,48 @@ import { GameType, Round, SoloKind, UUID } from "$lib/types";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-import z, { int } from "zod";
+import z from "zod";
 
+export const GET: RequestHandler = async ({ params, fetch }) => {
+  try {
+    const groupId = params.group;
+    const sessionId = params.session;
 
-export const GET: RequestHandler = async({ params, fetch }) => {
-    try {
-        const groupId = params.group;
-        const sessionId = params.session;
-
-        if (!groupId || !(UUID.safeParse(groupId)).success) {
-            return badRequest({ message: 'PlayGroup ID required' });
-        }
-
-        if (!sessionId || !(UUID.safeParse(sessionId)).success) {
-            return badRequest({ message: 'Session ID required' });
-        }
-
-        const groupResponse = await fetch(`/api/group/${groupId}`);
-        if (groupResponse.status != 200) {
-            return badRequest({ message: 'PlayGroup not found' });
-        }
-
-        const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
-        if (sessionResponse.status != 200) {
-            return badRequest({ message: 'Session not found' });
-        }
-
-        const roundsFromDB = await db
-            .select()
-            .from(round)
-            .where(eq(round.sessionId, sessionId));
-
-        return ok(roundsFromDB as Round[]);
-    } catch(error) {
-        return serverError({ message: 'Database error while fetching Round[]' });
+    if (!groupId || !UUID.safeParse(groupId).success) {
+      return badRequest({ message: "PlayGroup ID required" });
     }
+
+    if (!sessionId || !UUID.safeParse(sessionId).success) {
+      return badRequest({ message: "Session ID required" });
+    }
+
+    const groupResponse = await fetch(`/api/group/${groupId}`);
+    if (groupResponse.status != 200) {
+      return badRequest({ message: "PlayGroup not found" });
+    }
+
+    const sessionResponse = await fetch(
+      `/api/group/${groupId}/session/${sessionId}`
+    );
+    if (sessionResponse.status != 200) {
+      return badRequest({ message: "Session not found" });
+    }
+
+    const roundsFromDB = await db
+      .select()
+      .from(round)
+      .where(eq(round.sessionId, sessionId));
+
+    return ok(roundsFromDB as Round[]);
+  } catch (error) {
+    return serverError({ message: "Database error while fetching Round[]" });
+  }
 };
 
 // Hilfsfunktion zur Normalisierung der Augen auf RE
 //  - Für eine konsistente Auswertung wird hier auf RE-Augen normalisiert:
 //      Wenn RE-Augen angegeben wurden: Wert wird direkt übernommen.
 //      Wenn KONTRA-Augen angegeben wurden: wird auf RE umgerechnet: 240 - contraEyes.
-
 function normalizeEyesToRe(
   enteredEyes: number,
   sideEntered: "RE" | "KONTRA"
@@ -64,23 +64,38 @@ function normalizeEyesToRe(
 }
 
 export const POST: RequestHandler = async (event) => {
-  // Änderung:
-  //  - Statt direkt eyesRe anzunehmen, wird jetzt
-  //      eyes : Augen einer Partei
-  //      eyesSide: Partei, zu der diese Augen gehören ("RE" oder "KONTRA")
-  //      validiert.
-  //  - Die Normalisierung auf eyesRe erfolgt anschließend serverseitig
+  // Request-Body:
+  //  neue (UI): eyes + eyesSide
+  //  alt (Tests): eyesRe
 
+  const bodySchema = z
+    .object({
+      roundNum: z.number().int().min(1),
+      gameType: GameType,
+      soloKind: SoloKind.optional().nullable(),
 
-  const bodySchema = z.object({
-    roundNum: z.number().int().min(1),
-    gameType: GameType,
-    soloKind: SoloKind.optional().nullable(),
-    eyes: z.number().int().min(0).max(240),  // UI: Augen einer Partei
-    eyesSide: z.enum(["RE", "KONTRA"]),  // UI: Partei, zu der die Augen gehören
-  });
+      // neues Format (für UI)
+      eyes: z.number().int().min(0).max(240).optional(),
+      eyesSide: z.enum(["RE", "KONTRA"]).optional(),
 
-  const { roundNum, gameType, soloKind, eyes, eyesSide } =
+      // altes Format (für alte Tests / alten Code)
+      eyesRe: z.number().int().min(0).max(240).optional(),
+    })
+    .refine(
+      (data) =>
+        // entweder neues format vollständig
+        (data.eyes !== undefined && data.eyesSide !== undefined) ||
+        // oder altes format
+        data.eyesRe !== undefined,
+      {
+        message:
+          "Either (eyes + eyesSide) or eyesRe must be provided in the request body.",
+        path: ["eyes"],
+      }
+    );
+
+  // wichtig: hier auch eyesRe mit auslesen
+  const { roundNum, gameType, soloKind, eyes, eyesSide, eyesRe } =
     await readValidatedBody(event, bodySchema);
 
   try {
@@ -107,12 +122,21 @@ export const POST: RequestHandler = async (event) => {
       return badRequest({ message: "Session not found" });
     }
 
-    // Normalisierung der eingegebenen Augen auf eyesRe
-    // - Unabhängig davon, ob die UI RE- oder KONTRA-Augen gesendet hat,
-    //   wird hier die RE-Augen-Zahl berechnet.
-    // - Dadurch enthalten alle Round-Datensätze konsistent eyesRe
+    // Normalisierung:
+    //  - wenn eyes + eyesSide vorhanden → neue UI: auf RE-Augen umrechnen
+    //  - sonst, wenn eyesRe vorhanden → alte Variante direkt übernehmen
 
-    const eyesRe = normalizeEyesToRe(eyes, eyesSide);
+    let eyesReValue: number;
+
+    if (eyes !== undefined && eyesSide !== undefined) {
+      eyesReValue = normalizeEyesToRe(eyes, eyesSide);
+    } else if (eyesRe !== undefined) {
+      eyesReValue = eyesRe;
+    } else {
+      return badRequest({
+        message: "No valid eyes data provided.",
+      });
+    }
 
     const [roundFromDB] = await db
       .insert(round)
@@ -121,13 +145,16 @@ export const POST: RequestHandler = async (event) => {
         roundNum: roundNum,
         gameType: gameType,
         soloKind: soloKind,
-        eyesRe: eyesRe, // immer RE-Augen in der Datenbank
+        // immer RE-Augen in der Datenbank
+        eyesRe: eyesReValue,
       })
       .returning();
 
-      
     return ok({ message: "Created Round", round: roundFromDB });
   } catch (error) {
-    return serverError({ message: "Database error while creating Round", error });
+    return serverError({
+      message: "Database error while creating Round",
+      error,
+    });
   }
 };

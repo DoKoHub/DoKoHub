@@ -56,7 +56,7 @@ const isAbsage = (c: CallRow["call"]) =>
  * Rückgabe:
  *  - Objekt: memberId → Punkte in dieser Runde.
  */
-function calculateRoundPoints(
+ export function calculateRoundPoints(
   roundRow: RoundRow,
   participations: ParticipationRow[],
   calls: CallRow[],
@@ -318,7 +318,7 @@ function calculateRoundPoints(
     roundRow.gameType === "SOLO_FARBE" ||
     roundRow.gameType === "SOLO_DAMEN" ||
     roundRow.gameType === "SOLO_BUBEN" ||
-    roundRow.gameType === "SOLO_NULL" ;
+    roundRow.gameType === "SOLO_NULL"  ||
     roundRow.gameType === "HOCHZEIT_STILL"; // stille Hochzeit wird wie Solo behandelt
 
   if (!isSoloGame) {

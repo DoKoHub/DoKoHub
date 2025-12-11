@@ -61,7 +61,9 @@ async function setupRoundEnvironment() {
     const creatorMemberId: string = membersResp.body.find((m: any) => m.playerId === creatorPlayerId).id;
 
     const sessionResp = await api.post(`/api/group/${groupId}/session`, MOCK_SESSION_DATA);
+     console.log('SESSION RESP', sessionResp.status, sessionResp.body); 
     const sessionId: string = sessionResp.body.session.id;
+   
 
     await api.post(`/api/group/${groupId}/session/${sessionId}/sessionmember`, { memberId: creatorMemberId, seatPos: 1 });
 
@@ -173,7 +175,7 @@ describe('API /api/group/[group]/session/[session]/round/[round] (Round Details)
     // Test: PUT (Aktualisierung von roundNum und gameType)
     test('PUT: Should successfully update roundNum and gameType (Status 200)', async () => {
         const newRoundNumber = 20;
-        const newGameType = 'HOCHZEIT';
+        const newGameType = 'HOCHZEIT_NORMAL';
         const newSoloKind = null;
         const newEyesRe = 70;
         
