@@ -14,20 +14,16 @@ import { UUID } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq, and, inArray } from "drizzle-orm";
 
-// Typdefinitionen auf Basis des Drizzle-Schemas
+
 
 type RoundRow = typeof round.$inferSelect;
 type ParticipationRow = typeof roundParticipation.$inferSelect;
 type CallRow = typeof roundCall.$inferSelect;
 type BonusRow = typeof roundBonus.$inferSelect;
 
-// Sonderpunkte-Konfiguration (TSR 7.2.3)
-// Erfasst werden hier nur die im Regelwerk relevanten Sonderpunkte:
 //  - DOKO: Doppelkopf (Stich mit mindestens 40 Augen)
 //  - FUCHS: Karo-Ass (Fuchs) gefangen
 //  - KARLCHEN: Kreuz-Bube macht den letzten Stich
-// Alle anderen Bonus-Typen werden zwar aus der DB geladen, fließen aber
-// nicht in die Berechnung ein (siehe Fallback weiter unten).
 
 const BONUS_POINTS: Record<string, number> = {
   DOKO: 1,
@@ -35,7 +31,7 @@ const BONUS_POINTS: Record<string, number> = {
   KARLCHEN: 1,
 };
 
-// Hilfsfunktion: Klassifikation, ob ein Call eine Absage im Sinne von 7.1 / 7.2.2(c),(d) ist
+
 const isAbsage = (c: CallRow["call"]) =>
   c === "KEINE90" || c === "KEINE60" || c === "KEINE30" || c === "SCHWARZ";
 
@@ -43,18 +39,18 @@ const isAbsage = (c: CallRow["call"]) =>
  * Rundenbewertung nach TSR 7.1–7.2.4.
  * Annahmen:
  *  round.eyesRe enthält immer die Augen der Re-Partei
- *    (die UI-Eingabe wurde zuvor auf Re normalisiert, egal ob RE- oder KONTRA-Augen
- *     eingegeben wurden).
- *  Die Gesamtsumme der Augen beträgt 240 (Standard-Doppelkopf-Regel).
+ *    (die UI-Eingabe wurde zuvor auf Re normalisiert, nur wenn  KONTRA-Augen
+ *     eingegeben wurd).
+ *  Die Gesamtsumme der Augen beträgt 240 
  * Berechnungsschritte:
- *  1. Zuordnung SessionMember → Partei (RE / KONTRA)
+ *  1. Zuordnung SessionMember alo Partei (RE / KONTRA)
  *  2. Ermittlung von Absage-Erfolg/-Misserfolg (7.1.3)
  *  3. Bestimmung der Siegerpartei gemäß 7.1.1 / 7.1.2 / 7.1.3
  *  4. Parteibezogene Plus-Minus-Wertung nach 7.2.2 (a–f)
  *  5. Verteilung der Parteipunkte auf Spieler je nach Spieltyp (Normalspeil / Solo, 7.2.4)
  *  6. Addition der Sonderpunkte (7.2.3) spielerbezogen
  * Rückgabe:
- *  - Objekt: memberId → Punkte in dieser Runde.
+ *  - Objekt: memberId also die Punkte in dieser Runde.
  */
 function calculateRoundPoints(
   roundRow: RoundRow,
@@ -62,7 +58,7 @@ function calculateRoundPoints(
   calls: CallRow[],
   bonuses: BonusRow[]
 ): Record<string, number> {
-  // Augen der Re- und Kontra-Partei
+
   const eyesRe = roundRow.eyesRe ?? 0;
   const eyesKontra = 240 - eyesRe;
 
@@ -96,7 +92,7 @@ function calculateRoundPoints(
   
   // Absageerfolg / misserfolg (TSR 7.1.3 und 7.2.2(c),(d))
   // Eine Absage ("keine 90/60/30" oder "schwarz") gilt als verfehlt, wenn
-  // die gegnerische Partei mehr Augen macht als durch die Absage erlaubt.
+  // die gegen Partei mehr Augen macht als durch die Absage erlaubt.
 
   const absageFailed = (side: "RE" | "KONTRA"): boolean => {
     const oppEyes = side === "RE" ? eyesKontra : eyesRe;
@@ -116,7 +112,6 @@ function calculateRoundPoints(
   const kontraFailedAbsage = absageFailed("KONTRA");
   const bothFailedAbsage = reFailedAbsage && kontraFailedAbsage;
 
-  // Spielerbezogene Punktemap (Ergebnis dieser Funktion)
   const points: Record<string, number> = {};
 
   
@@ -124,14 +119,12 @@ function calculateRoundPoints(
   // Reihenfolge:
   //   1. Genau eine Partei verfehlt eine Absage:
   //        andere Partei gilt als Gewinnerin (entspricht Fällen 7.1.1/5–8
-  //          und 7.1.2/5–8, wird aber abstrakt über Absage-Fehler abgebildet).
-
+  //        und 7.1.2/5–8, wird aber abstrakt über Absage-Fehler abgebildet).
   //   2. Andernfalls entscheidet die höhere Augenzahl (Standardfall ohne
   //      Spezialkonstellationen).
-  
   //   3. Bei Gleichstand (insbesondere 120 : 120):
   //        Re gewinnt, wenn ausschließlich "Kontra" angesagt wurde
-  //          (keine Re-Ansage, keine Absagen) → 7.1.1 Nr. 4.
+  //          (keine Re-Ansage, keine Absagen) in 7.1.1 Nr. 4.
   //        In allen übrigen Gleichstands-Fällen gewinnt Kontra
   //          in 7.1.2 Nr. 1–3.
 
@@ -140,7 +133,7 @@ function calculateRoundPoints(
     if (reFailedAbsage && !kontraFailedAbsage) return "KONTRA";
     if (!reFailedAbsage && kontraFailedAbsage) return "RE";
 
-    // Fall 2: Keine Seite (oder beide) verfehlen eine Absage → Augenvergleich
+    // Fall 2: Keine Seite (oder beide) verfehlen eine Absage also Augenvergleich
     if (eyesRe > eyesKontra) return "RE";
     if (eyesKontra > eyesRe) return "KONTRA";
 
@@ -153,7 +146,7 @@ function calculateRoundPoints(
     const anyAbsage =
       reCalls.some(isAbsage) || kontraCalls.some(isAbsage);
 
-    // "nur Kontra" angesagt, keinerlei Re-Ansage, keinerlei Absagen
+    // "nur Kontra" angesagt, kein Re-Ansage, kein Absagen
     const onlyKontraAnsage =
       hasKontraAnsage && !hasReAnsage && !anyAbsage;
 
@@ -162,7 +155,7 @@ function calculateRoundPoints(
       return "RE";
     }
 
-    // Alle übrigen Gleichstands-Fälle: Kontra gewinnt gemäß 7.1.2 Nr. 1–3.
+    // Alle übrigen Gleichstands-Fälle: Kontra gewinnt nach 7.1.2 Nr. 1–3.
     return "KONTRA";
   };
 
@@ -193,7 +186,6 @@ function calculateRoundPoints(
   //   - +1, falls weniger als 60 Augen ("keine 60")
   //   - +1, falls weniger als 30 Augen ("keine 30")
   //   - +1, falls 0 Augen ("schwarz")
-  //
   // Die Verliererpartei erhält den negativen Gegenwert.
   
 
@@ -208,11 +200,8 @@ function calculateRoundPoints(
 
   
   // Re-/Kontra-Ansagen und Absagen (TSR 7.2.2(b–d))
-  //
   // - Ansagen "Re" / "Kontra" → jeweils ±2 Punkte (abhängig vom Spielsieg).
-  // - Absagen "keine 90/60/30/schwarz" → jeweils ±1 Punkt, abhängig davon,
-  //   ob die Bedingung erfüllt wurde.
-  //
+  // - Absagen "keine 90/60/30/schwarz" → jeweils ±1 Punkt
   // Spezialfall 7.1.3:
   //   Wenn beide Parteien ihre Absage verfehlen, entfallen die Punkte aus
   //   7.2.2(b–d). Es bleiben nur Grundwert/Stufen (a) und Augen-gegen-Absage (e),(f)
@@ -268,14 +257,11 @@ function calculateRoundPoints(
 
   
   // Punkte "Augen gegen Absage" (TSR 7.2.2(e),(f))
-  //
-  // Für die Partei, die gegen eine gegnerische Absage eine bestimmte Augenzahl
-  // erreicht, wird je erfüllter Bedingung 1 Zusatzpunkt vergeben:
+  // Wenn eine Partei trotz einer Absage der anderen Seite genug Augen macht, bekommt sie für jede erfüllte Bedingung einen Zusatzpunkt
   //   120 Augen gegen "keine 90"
   //    90 Augen gegen "keine 60"
   //    60 Augen gegen "keine 30"
   //    30 Augen gegen "schwarz"
-  //
   // Diese Punkte werden auch im Fall 7.1.3 vergeben (beidseitig verfehlte Absage).
   
 
@@ -303,22 +289,19 @@ function calculateRoundPoints(
 
   
   // Verteilung der Parteipunkte auf Spieler (Normalspeil vs. Solo, TSR 7.2.4)
-  //
   // - Normales Spiel / offene Hochzeit:
   //     alle Spieler einer Partei erhalten die gleiche Parteipunktzahl.
-  //
   // - Solo / stille Hochzeit:
   //     die nach 7.2.2 ermittelte Parteipunktzahl wird
   //        * für den Solospieler verdreifacht,
   //        * für die Gegenspieler einfach mit umgekehrtem Vorzeichen
   //          angeschrieben (insgesamt 3 Gegner).
   
-
   const isSoloGame =
     roundRow.gameType === "SOLO_FARBE" ||
     roundRow.gameType === "SOLO_DAMEN" ||
     roundRow.gameType === "SOLO_BUBEN" ||
-    roundRow.gameType === "SOLO_NULL" ;
+    roundRow.gameType === "SOLO_NULL" ||
     roundRow.gameType === "HOCHZEIT_STILL"; // stille Hochzeit wird wie Solo behandelt
 
   if (!isSoloGame) {
@@ -369,7 +352,6 @@ function calculateRoundPoints(
   }
 
   // Sonderpunkte je Spieler (TSR 7.2.3)
-  
   // Jeder Eintrag in round_bonus repräsentiert einen Sonderpunkt-Ereignis.
   // Die genaue Art (DOKO, FUCHS, KARLCHEN) bestimmt die Punktzahl.
   // Alle nicht in BONUS_POINTS hinterlegten Bonus-Typen werden ignoriert.
@@ -386,9 +368,7 @@ function calculateRoundPoints(
 
 
 // GET /api/group/:group/session/:session/result
-//
 // Aggregation der Rundenwerte zu einem Sessionergebnis für alle Teilnehmer.
-
 
 export const GET: RequestHandler = async ({ params }) => {
   const groupId = params.group;
