@@ -5,18 +5,25 @@
   import type { PageProps } from "./$types";
   import { UUID } from "$lib/types";
 
-  const { params }: PageProps = $props();
-
-  //svelte-ignore state_referenced_locally fetched once, copying is ok
+  const { data, params }: PageProps = $props();
   const groupId = UUID.parse(params.group);
-  //svelte-ignore state_referenced_locally fetched once, copying is ok
   const gameId = UUID.parse(params.game);
 
   function addSomething() {
     //TODO: Laut Rücksprache mit den Betreuern soll das eine separate Seite sein.
     // Sicher, dass das kein Missverständnis ist?
-    goto(`/app/game/${groupId}/${gameId}/new_round`);
+    goto(`/app/game/${params.group}/${gameId}/new_round`);
   }
+
+  let session = data.session;
+
+  /**
+   * FIXME
+   *
+   * TODO: Ganzer Code unterhalb überarbeiten
+   * Code ist nicht an das Datenbankmodell angepasst
+   * (Freestyle Moch Daten wurden erstellt und verwendet)
+   */
 
   // Beispielspieler
   let players = ["Marcel", "Fabian", "Nick", "Maurice"];
