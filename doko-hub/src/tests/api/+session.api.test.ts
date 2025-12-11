@@ -78,13 +78,13 @@ describe("API /api/group/[group]/session", () => {
   test("POST: Should fail if required fields (ruleset/plannedRounds) are missing (Status 400)", async () => {
     let response = await api.post(`/api/group/${groupId}/session`, {});
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("issues");
+    expect(response.body.message).toBe("Validation failed");
 
     response = await api.post(`/api/group/${groupId}/session`, {
       plannedRounds: 10,
     });
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("issues");
+    expect(response.body.message).toBe("Validation failed");
   });
 
   // Test: GET (Leere Liste)
@@ -113,7 +113,7 @@ describe("API /api/group/[group]/session", () => {
   test("GET: Should return 400 if group ID has an invalid format", async () => {
     const response = await api.get("/api/group/not-a-valid-uuid/session");
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("PlayGroup ID required");
   });
 });
 
@@ -168,7 +168,7 @@ describe("API /api/group/[group]/session/[session]", () => {
       `/api/group/${groupId}/session/${NON_EXISTENT_ID}`
     );
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("Session not found");
   });
 
   // Test: PUT (Aktualisierung von plannedRounds und endedAt)
@@ -183,13 +183,16 @@ describe("API /api/group/[group]/session/[session]", () => {
     session.plannedRounds = newRounds;
     session.endedAt = endedDate;
 
-        const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, {session: session});
+    const response = await api.put(
+      `/api/group/${groupId}/session/${sessionId}`,
+      { session: session }
+    );
 
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe('Updated Session');
-        expect(response.body.session.plannedRounds).toBe(newRounds);
-        expect(response.body.session.endedAt).not.toBeNull();
-    });
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("Updated Session");
+    expect(response.body.session.plannedRounds).toBe(newRounds);
+    expect(response.body.session.endedAt).not.toBeNull();
+  });
 
   // Test: PUT (Ungültiges Session-ID-Format)
   test("PUT: Should return 400 if session ID has an invalid format", async () => {
@@ -198,7 +201,7 @@ describe("API /api/group/[group]/session/[session]", () => {
       MOCK_SESSION_DATA
     );
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("Session ID required");
   });
 });
 
@@ -270,7 +273,7 @@ describe("API /api/group/[group]/session/[session]/sessionmember", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toBe("Validation failed");
   });
 
   // Test: POST (Validierung - memberId fehlt)
@@ -281,7 +284,7 @@ describe("API /api/group/[group]/session/[session]/sessionmember", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty("issues");
+    expect(response.body.message).toBe("Validation failed");
   });
 
   // Test: GET (Leere Liste)
