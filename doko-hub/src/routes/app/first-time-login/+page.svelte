@@ -3,18 +3,18 @@
   import Card, { Content } from "@smui/card";
   import Textfield from "@smui/textfield";
 
-  let user_name: string = $state("");
+  import { first_time_login } from "$lib/frontend/auth";
+  import { goto } from "$app/navigation";
+  import { StaticRoute } from "$lib/frontend/routes";
 
-  // This should probably live somewhere else
-  async function register_user(name: string) {
-    console.log(`Got name "${name}"`);
-    //TODO: actually post to backend
-  }
+  let user_name: string = $state("");
 
   async function handle_key_down(event: KeyboardEvent) {
     // Remove white space from the name
     if (event.key === "Enter") {
-      register_user(user_name);
+      console.log(`Got name "${user_name}"`);
+      first_time_login(user_name);
+      await goto(StaticRoute.GROUP_OVERVIEW);
     }
   }
 </script>
@@ -42,6 +42,7 @@
         label="Name"
         style="min-width: 250px;"
         required
+        validateOnValueChange
         onkeydown={handle_key_down}
         oninput={() => (user_name = user_name.trim())}
       ></Textfield>

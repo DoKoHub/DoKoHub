@@ -1,9 +1,10 @@
 import { badRequest, serverError, ok } from "$lib/http";
 import type { RequestHandler } from "@sveltejs/kit";
-import { Ruleset, Session, SessionMember, UUID } from "$lib/types";
+import { ReturnSessionMember, Ruleset, Session, SessionMember, UUID } from "$lib/types";
 import { db } from "$lib/server/db";
 import { session } from "$lib/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { generateReturnMember } from "$lib/utils";
 
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
@@ -35,8 +36,14 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Session not found' });
         }
         const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
-        const body = await response.json();
+        const body = (await response.json()) as SessionMember[];
         
+        const list: ReturnSessionMember[] = [];
+        for (let i = 0; i < body.length; i++) {
+            const obj = await generateReturnMember(body[i].memberId);
+            list.push(obj as ReturnSessionMember);
+        }
+
         const sessionObj: Session = {
             id: returnSession.id as UUID,
             groupId: returnSession.groupId as UUID,
@@ -44,7 +51,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             plannedRounds: returnSession.plannedRounds,
             startedAt: returnSession.startedAt,
             endedAt: returnSession.endedAt,
-            members: body as SessionMember[]
+            members: list
         };
         return ok(sessionObj);
     } catch(error) {

@@ -1,11 +1,12 @@
 import { badRequest, created, ok, serverError } from "$lib/http";
 import type { RequestHandler } from "@sveltejs/kit";
-import { UUID as UUIDSchema, Session, Ruleset, ISODate, UUID, SessionMember } from "$lib/types";
+import { UUID as UUIDSchema, Session, Ruleset, ISODate, UUID, SessionMember, ReturnSessionMember } from "$lib/types";
 import { db } from "$lib/server/db";
 import { session } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import z from "zod";
 import { readValidatedBody } from "$lib/validation";
+import { generateReturnMember } from "$lib/utils";
 
 export const GET: RequestHandler = async({ params, fetch }) => { 
     try {
@@ -36,6 +37,12 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             const response = await fetch(`/api/group/${groupId}/session/${session.id}/sessionmember`)
             const body = await response.json();
 
+            const list: ReturnSessionMember[] = [];
+            for (let i = 0; i < body.length; i++) {
+                const obj = await generateReturnMember(body[i].memberId);
+                list.push(obj as ReturnSessionMember);
+            }
+
             sessions.push({
                 id: session.id as UUID,
                 groupId: session.groupId as UUID,
@@ -43,7 +50,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
                 plannedRounds: session.plannedRounds,
                 startedAt: session.startedAt,
                 endedAt: session.endedAt,
-                members: body as SessionMember[]
+                members: list
             });
         }
 
@@ -87,7 +94,28 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'Session could not be created' });
         }
 
-        return created({ message: 'Created Session', session: createdSession as Session });
+        const sessionId = createdSession.id;
+
+        const response = await fetch(`/api/group/${groupId}/session/${sessionId}/sessionmember`);
+        const body = (await response.json()) as SessionMember[];
+        
+        const list: ReturnSessionMember[] = [];
+        for (let i = 0; i < body.length; i++) {
+            const obj = await generateReturnMember(body[i].memberId);
+            list.push(obj as ReturnSessionMember);
+        }
+
+        const sessionObj: Session = {
+            id: createdSession.id as UUID,
+            groupId: createdSession.groupId as UUID,
+            ruleset: createdSession.ruleset,
+            plannedRounds: createdSession.plannedRounds,
+            startedAt: createdSession.startedAt,
+            endedAt: createdSession.endedAt,
+            members: list
+        };
+
+        return created({ message: 'Created Session', session: sessionObj as Session });
     } catch(error) {
         return serverError({ message: 'Database error while creating Session' });
     } 

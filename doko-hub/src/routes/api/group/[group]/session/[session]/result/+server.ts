@@ -319,7 +319,7 @@ function calculateRoundPoints(
     roundRow.gameType === "SOLO_DAMEN" ||
     roundRow.gameType === "SOLO_BUBEN" ||
     roundRow.gameType === "SOLO_NULL" ;
-   // roundRow.gameType === "HOCHZEIT_STILL"; // stille Hochzeit wird wie Solo behandelt
+    roundRow.gameType === "HOCHZEIT_STILL"; // stille Hochzeit wird wie Solo behandelt
 
   if (!isSoloGame) {
     // Normalspiel / offene Hochzeit: klassische Plus-Minus-Wertung
