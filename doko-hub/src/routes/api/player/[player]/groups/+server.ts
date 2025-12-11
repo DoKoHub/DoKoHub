@@ -1,11 +1,25 @@
 import type { RequestHandler } from "@sveltejs/kit";
 
-import { UUID as UUIDSchema, type UUID as UUIDBrand, NonEmpty, PlayGroup, UUID, Name, PlayGroupMember } from "$lib/types";
+import { PlayGroup, UUID, Name, PlayGroupMember } from "$lib/types";
 import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playgroup, playgroupMember } from "$lib/server/db/schema";
 import { and, eq, ne } from "drizzle-orm";
 
+/**
+ * 1. GET /api/player/[player]/group
+ * Request: Keine
+ * Response 200: [PlayGroup]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
+
+/**
+ * Gibt alle Spielgruppen zurück, denen ein Spieler angehört
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         const playerID = params.player;
@@ -13,11 +27,13 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Player ID required' });
         }
 
+        // Prüfe ob Spieler existiert
         const playerResponse = await fetch(`/api/player/${playerID}`);
         if (playerResponse.status != 200) {
             return badRequest({ message: 'Player not found' });
         }
 
+        // Wähle alle Gruppen aus, wo der Spieler Mitglied ist und nicht den Status "LEFT" hat
         const groups = await db
             .select()
             .from(playgroup)
@@ -30,6 +46,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
         const result = groups.map(item => item.playgroup);
         
         let groupsToSend: PlayGroup[] = []; 
+        // Vervollständige jede Gruppe mit ihren Mitgliedern
         for (let i = 0; i < result.length; i++) {
             const group = result[i];
 
@@ -46,6 +63,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             groupsToSend.push(playGroup);
         }
 
+        // Gib die Liste der PlayGroup-Objekte zurück
         return ok(groupsToSend);
     } catch(error) {
         return serverError({ message: 'Database error while fetching PlayGroup[] of Player' });

@@ -5,7 +5,29 @@ import { Round, UUID } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+/**
+ * 1. GET /api/group/[group]/session/[session]/round/[round]
+ * Request: Keine
+ * Response 200: Round
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. PUT /api/group/[group]/session/[session]/round/[round]
+ * Request Body:
+ * {
+ * "round": Round
+ * }
+ * Response 200: { "message": string, round: Round }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
+/**
+ * Ruft eine einzelne Runde ab die zu einer bestimmten Session gehört
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         const groupId = params.group;
@@ -24,16 +46,19 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Round ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         const groupResponse = await fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Runde aus DB abrufen
         const [roundFromDB] = await db
             .select()
             .from(round)
@@ -49,6 +74,13 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 };
 
+/**
+ * Aktualisiert die Daten einer bestehenden Runde.
+ * @param request Das Objekt für den Zugriff auf den Body
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const PUT: RequestHandler = async({ request, params, fetch}) => {
     try {
         const groupId = params.group;
@@ -67,27 +99,32 @@ export const PUT: RequestHandler = async({ request, params, fetch}) => {
             return badRequest({ message: 'Round ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         const groupResponse = await fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Prüfen ob Runde existiert
         const roundResponse = await fetch(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`);
         if (roundResponse.status != 200) {
             return badRequest({ message: 'Round not found' });
         }
 
+        // Request Body validieren
         const body = await request.json();
         const roundObj = body.round;
         if (!roundObj || !(Round.safeParse(roundObj).success)) {
             return badRequest({ message: 'Round required', roundObj});
         }
 
+        // Datenbank update
         const [updatedRound] = await db
             .update(round)
             .set({

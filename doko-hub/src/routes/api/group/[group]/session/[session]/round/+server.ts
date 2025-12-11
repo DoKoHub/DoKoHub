@@ -5,9 +5,34 @@ import { GameType, Round, SoloKind, UUID } from "$lib/types";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-import z, { int } from "zod";
+import z from "zod";
 
+/**
+ * 1. GET /api/group/[group]/session/[session]/round
+ * Request: Keine
+ * Response 200: [Round]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. POST /api/group/[group]/session/[session]/round
+ * Request Body:
+ * {
+ * "roundNum": number,
+ * "gameType": GameType,
+ * "soloKind": SoloKind | null | undefined,
+ * "eyesRe": number
+ * }
+ * Response 200: { "message": string, round: Round }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
+/**
+ * Ruft alle Runden ab die zu einer bestimmten Session gehören.
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         const groupId = params.group;
@@ -21,16 +46,19 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Session ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         const groupResponse = await fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Runden aus DB abrufen
         const roundsFromDB = await db
             .select()
             .from(round)
@@ -42,6 +70,11 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 };
 
+/**
+ * Erstellt eine neue Runde für die Session
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
         roundNum: z.number().int().min(1),
@@ -64,16 +97,19 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'Session ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         const groupResponse = await event.fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         const sessionResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Runden in DB erstellen
         const [roundFromDB] = await db
             .insert(round)
             .values({

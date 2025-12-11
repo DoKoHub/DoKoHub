@@ -34,8 +34,7 @@ describe("API /api/player", () => {
   test("GET: Should return an empty array if no players exist (Status 200)", async () => {
     const response = await api.get("/api/player");
     expect(response.status).toBe(200);
-    expect(response.body.length).toBe(1);
-    //expect(response.body).toEqual([]);
+    expect(response.body).toEqual([]);
   });
 
   // Test: GET (Liste mit angelegten Spielern)

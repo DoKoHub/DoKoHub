@@ -3,13 +3,37 @@ import { player } from "$lib/server/db/schema";
 import { Player } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-import { UUID, Name } from "$lib/types";
+import { UUID } from "$lib/types";
 import { badRequest, ok, serverError } from "$lib/http";
+
+/**
+ * 1. GET /api/player/[player]
+ * Request: Keine
+ * Response 200: Player
+ * Response 400: { "message": string}
+ * Response 500: { "message": string}
+ */
+
+/**
+ * 2. PUT /api/player/[player]
+ * Request Body: { player: Player }
+ * Response 200: { "message": string, player: Player }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
+
+/**
+ * 3. DELETE /api/player/[player]
+ * Request: Keine
+ * Response 200: { "message": string, player: Player }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
 /**
  * Einzelnen Spieler anhand der UUID zurueckgeben
  * 
- * @param params 
+ * @param params URL Parameter
  * @returns Response
  */
 export const GET: RequestHandler = async({ params }) => {
@@ -39,6 +63,13 @@ export const GET: RequestHandler = async({ params }) => {
 
 };
 
+/**
+ * Aktualisiert die Daten eines bestehenden Spielers
+ * 
+ * @param params URL Parameter
+ * @param request Das Objekt für den Zugriff auf den Body
+ * @returns Response
+ */
 export const PUT: RequestHandler = async({ request, params}) => {
     try {
         // Player ID aus der URL
@@ -79,6 +110,12 @@ export const PUT: RequestHandler = async({ request, params}) => {
     }
 };
 
+/**
+ * Löscht die Daten eines bestehenden Spielers
+ * 
+ * @param params URL Parameter
+ * @returns Response
+ */
 export const DELETE: RequestHandler = async({ params }) => {
     try {
         // Player ID aus der URL

@@ -7,7 +7,30 @@ import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import z from "zod";
 
+/**
+ * 1. GET /api/group/[group]/session/[session]/round/[round]/bonus
+ * Request: Keine
+ * Response 200: [RoundBonus]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. POST /api/group/[group]/session/[session]/round/[round]/bonus
+ * Request Body:
+ * {
+ * "memberId": UUID,
+ * "bonus": BonusType
+ * }
+ * Response 200: { "message": string, roundBonus: RoundBonus }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
+/**
+ * Ruft alle Boni ab die zu einer bestimmten Runde gehören
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         const groupId = params.group;
@@ -26,21 +49,25 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Round ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         const groupResponse = await fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Prüfen ob Runde existiert
         const roundResponse = await fetch(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`);
         if (roundResponse.status != 200) {
             return badRequest({ message: 'Round not found' });
         }
 
+        // Boni aus DB abrufen
         const bonusesFromDB = await db
             .select()
             .from(roundBonus)
@@ -52,6 +79,11 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 };
 
+/**
+ * Erstellt einen neuen Bonus für ein Mitglied
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
         memberId: UUID,
@@ -78,21 +110,25 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'Round ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         const groupResponse = await event.fetch(`/api/group/${groupId}`);
         if (groupResponse.status != 200) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         const sessionResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}`);
         if (sessionResponse.status != 200) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Prüfen ob Runde existiert
         const roundResponse = await event.fetch(`/api/group/${groupId}/session/${sessionId}/round/${roundId}`);
         if (roundResponse.status != 200) {
             return badRequest({ message: 'Round not found' });
         }
 
+        // Bonus in DB erstellen
         const [createdBonus] = await db
             .insert(roundBonus)
             .values({
