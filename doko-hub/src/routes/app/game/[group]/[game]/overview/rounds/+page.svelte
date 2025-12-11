@@ -15,14 +15,20 @@
     goto(`/app/game/${params.group}/${gameId}/new_round`);
   }
 
-  let session = data.session;
+  let session = data;
 
   /**
    * FIXME
    *
    * TODO: Ganzer Code unterhalb überarbeiten
    * Code ist nicht an das Datenbankmodell angepasst
-   * (Freestyle Moch Daten wurden erstellt und verwendet)
+   *
+   * Fix Vorschlag:
+   * Backend so überarbeiten, dass das "Session" Objekt eine Liste der Rounds beinhaltet.
+   * Backend so Überarbeiten, dass das "Round" Objekt alle RoundBonus, RoundCall und RoundParticipation Objekte beinhaltet
+   *
+   * Mit der gegebenen Session, die dann alle Daten beinhaltet, kann der unten stehende Code leicht reworked werden.
+   * Ein weiterer Vorteil wäre, dass man nur eine GET Request an das Backend senden muss und nicht viele.
    */
 
   // Beispielspieler
