@@ -298,10 +298,13 @@ const isAbsage = (c: CallRow["call"]) =>
   //          angeschrieben (insgesamt 3 Gegner).
   
   const isSoloGame =
-    roundRow.gameType === "SOLO_FARBE" ||
+    roundRow.gameType === "SOLO_CLUBS"||
+    roundRow.gameType === "SOLO_SPADES"||
+    roundRow.gameType === "SOLO_HEARTS"||
+    roundRow.gameType === "SOLO_DIAMONDS"|| 
     roundRow.gameType === "SOLO_DAMEN" ||
     roundRow.gameType === "SOLO_BUBEN" ||
-    roundRow.gameType === "SOLO_NULL" ||
+    roundRow.gameType === "SOLO_ASSE" ||
     roundRow.gameType === "HOCHZEIT_STILL"; // stille Hochzeit wird wie Solo behandelt
 
   if (!isSoloGame) {
@@ -354,7 +357,6 @@ const isAbsage = (c: CallRow["call"]) =>
   // Sonderpunkte je Spieler (TSR 7.2.3)
   // Jeder Eintrag in round_bonus repräsentiert einen Sonderpunkt-Ereignis.
   // Die genaue Art (DOKO, FUCHS, KARLCHEN) bestimmt die Punktzahl.
-  // Alle nicht in BONUS_POINTS hinterlegten Bonus-Typen werden ignoriert.
 
   for (const b of bonuses) {
     const memberId = b.memberId as string;

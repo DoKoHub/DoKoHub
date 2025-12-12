@@ -8,9 +8,7 @@ export const authProvider = pgEnum('auth_provider', [
 
 export const ruleset = pgEnum('ruleset', [
 	'STANDARD',
-	'HAUSREGEL_FLEISCHLOS',
 	'HAUSREGEL_KURZSPIEL',
-	'HAUSREGEL_KEINE_PFLICHTSOLO'
 ]);
 
 export const memberstatus = pgEnum('memberstatus', [
@@ -28,13 +26,16 @@ export const gameType = pgEnum('game_type', [
    'HOCHZEIT_STILL',
    'HOCHZEIT_UNKOWN',
    'HOCHZEIT_NORMAL',
-	'SOLO_FARBE',
-	'SOLO_DAMEN',
-	'SOLO_BUBEN',
-	'SOLO_NULL'
+   'SOLO_DAMEN',
+     'SOLO_BUBEN',
+     'SOLO_CLUBS',
+     'SOLO_SPADES',
+     'SOLO_HEARTS',
+     'SOLO_DIAMONDS', 
+     'SOLO_ASSE'
 ]);
 
-export const soloKind = pgEnum('solo_kind', ['CLUBS', 'SPADES', 'HEARTS', 'DIAMONDS']);
+export const soloKind = pgEnum('solo_kind', ['PFLICHT' , 'LUST']);
 
 export const side = pgEnum('side', ['RE', 'KONTRA']);
 

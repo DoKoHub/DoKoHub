@@ -92,7 +92,19 @@ export const POST: RequestHandler = async (event) => {
           "Either (eyes + eyesSide) or eyesRe must be provided in the request body.",
         path: ["eyes"],
       }
-    );
+    )
+    // new chanage to enforce soloKind logic
+  .refine(
+  (d) =>
+    d.gameType.startsWith("SOLO_")
+      ? d.soloKind != null
+      : d.soloKind == null,
+  {
+    message: "Bei SOLO muss soloKind gesetzt sein, sonst muss es leer sein",
+    path: ["soloKind"],
+  }
+);
+
 
   // wichtig: hier auch eyesRe mit auslesen
   const { roundNum, gameType, soloKind, eyes, eyesSide, eyesRe } =
