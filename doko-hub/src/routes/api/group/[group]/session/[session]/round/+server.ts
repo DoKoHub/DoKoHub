@@ -123,8 +123,8 @@ export const POST: RequestHandler = async (event) => {
     }
 
     // Normalisierung:
-    //  - wenn eyes + eyesSide vorhanden → neue UI: auf RE-Augen umrechnen
-    //  - sonst, wenn eyesRe vorhanden → alte Variante direkt übernehmen
+    //  wenn eyes + eyesSide vorhanden neue UI: auf RE-Augen umrechnen
+    //  sonst, wenn eyesRe vorhanden  alte Variante direkt übernehmen
 
     let eyesReValue: number;
 
