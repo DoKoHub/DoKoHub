@@ -52,7 +52,7 @@ const isAbsage = (c: CallRow["call"]) =>
  * Rückgabe:
  *  - Objekt: memberId also die Punkte in dieser Runde.
  */
-function calculateRoundPoints(
+ export function calculateRoundPoints(
   roundRow: RoundRow,
   participations: ParticipationRow[],
   calls: CallRow[],
