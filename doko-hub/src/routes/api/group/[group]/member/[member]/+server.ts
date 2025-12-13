@@ -5,7 +5,34 @@ import { PlayGroupMember, UUID, type PlayerStatus } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 
+/**
+ * 1. GET /api/group/[group]/member/[member]
+ * Request: Keine
+ * Response 200: PlayGroupMember
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. PUT /api/group/[group]/member/[member]
+ * Request Body:
+ * {
+ * "playGroupMember": PlayGroupMember
+ * }
+ * Response 200: { "message": string, playGroupMember: PlayGroupMember }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 3. DELETE /api/group/[group]/member/[member]
+ * Request: Keine
+ * Response 200: { "message": string, playgroupMember: PlayGroupMember }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
+/**
+ * Ruft ein einzelnes Gruppenmitglied innerhalb einer Gruppe ab.
+ * @param params URL-Parameter
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params }) => {
     try {
         const groupId = params.group;
@@ -37,6 +64,12 @@ export const GET: RequestHandler = async({ params }) => {
     }
 };
 
+/**
+ * Aktualisiert die Daten eines bestehenden Gruppenmitglieds
+ * @param request Das Objekt für den Zugriff auf den Body
+ * @param params URL-Parameter
+ * @returns Response
+ */
 export const PUT: RequestHandler = async({ request, params }) => {
     try {
         const groupId = params.group;
@@ -76,6 +109,11 @@ export const PUT: RequestHandler = async({ request, params }) => {
     }
 };
 
+/**
+ * Entfernt ein Gruppenmitglied indem der Status auf "LEFT" setzt und 'leftAt' gespeichert wird
+ * @param params URL-Parameter
+ * @returns Response
+ */
 export const DELETE: RequestHandler = async({ params }) => {
     try {
         const groupId = params.group;

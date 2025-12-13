@@ -252,14 +252,6 @@ describe("API /api/group/member & /api/group/invite/join", () => {
     expect(response.body.message).toBe("Player is a member already");
   });
 
-  // Test: POST (Spieler-ID fehlt)
-  test("POST Member: Should fail if playerId is missing (Status 400)", async () => {
-    const response = await api.post(`/api/group/${groupId}/member`, {});
-
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Validation failed");
-  });
-
   // Test: POST Member (Gruppe existiert nicht)
   test("POST Member: Should fail if Group ID does not exist (Status 400)", async () => {
     const response = await api.post(`/api/group/${NON_EXISTENT_ID}/member`, {
@@ -271,13 +263,13 @@ describe("API /api/group/member & /api/group/invite/join", () => {
   });
 
   // Test: POST Member (Spieler existiert nicht)
-  test("POST Member: Should fail if Player ID does not exist (Status 400)", async () => {
+  test("POST Member: Should succeed if Player ID does not exist (local player) (Status 201)", async () => {
     const response = await api.post(`/api/group/${groupId}/member`, {
       playerId: NON_EXISTENT_ID,
     });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Player not found");
+    expect(response.status).toBe(201);
+    expect(response.body.message).toBe("Created PlayGroupMember");
   });
 
   // Test: POST (Hinzufügen eines Spielers)

@@ -1,4 +1,4 @@
-import { badRequest, created, ok, serverError } from "$lib/http";
+import { created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { playgroup } from "$lib/server/db/schema";
 import { Name, PlayGroup, PlayGroupMember, UUID } from "$lib/types";
@@ -6,6 +6,29 @@ import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import z from "zod";
 
+/**
+ * 1. GET /api/group
+ * Request: Keine
+ * Response 200: [PlayGroup]
+ * Response 500: { "message": string }
+ * 
+ * 2. POST /api/group
+ * Request Body:
+ * {
+ * "name": string,
+ * "creatorId": UUID,
+ * "nickname"?: string
+ * }
+ * Response 201: { "message": string, playGroup: PlayGroup }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
+
+/**
+ * Gibt die Spielgruppen zurückgibt
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ fetch }) => {
     try {
         // Alle Gruppen aus der DB lesen
@@ -19,6 +42,7 @@ export const GET: RequestHandler = async({ fetch }) => {
             if (!group) {
                 continue;
             }
+            // Mitglieder abrufen
             const response = await fetch(`/api/group/${group.id}/member`);
             const body = await response.json();
 
@@ -38,6 +62,11 @@ export const GET: RequestHandler = async({ fetch }) => {
     }
 }
 
+/**
+ * Erstellt eine neue Spielgruppe und fügt den Ersteller direkt hinzu
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
         name: Name,
@@ -57,6 +86,7 @@ export const POST: RequestHandler = async(event) => {
             .values(creationObj)
             .returning();
         
+        // Ersteller als Mitglied hinzufügen
         const createMemberRequest = await event.fetch(`/api/group/${insertedGroup.id}/member`, {
             method: 'POST',
             headers: {
@@ -68,6 +98,7 @@ export const POST: RequestHandler = async(event) => {
             })
         });
 
+        // Mitgliederliste abrufen um das vollständige PlayGroup-Objekt zu erstellen
         const response = await event.fetch(`/api/group/${insertedGroup.id}/member`);
         const body = await response.json();
 

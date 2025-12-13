@@ -11,6 +11,29 @@ import {
 import type { RequestHandler } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 
+/**
+ * 1. GET /api/group/[group]/session/[session]/round/[round]/participation/[participation]
+ * Request: Keine
+ * Response 200: RoundParticipation
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. PUT /api/group/[group]/session/[session]/round/[round]/participation/[participation]
+ * Request Body:
+ * {
+ * "roundParticipation": RoundParticipation
+ * }
+ * Response 200: { "message": string, roundParticipation: RoundParticipation }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
+
+/**
+ * Ruft die Participation eines bestimmten Mitglieds an einer Runde ab
+ * @param params Die URL-Parameter (groupID, sessionID, roundID, memberID).
+ * @param fetch Die SvelteKit fetch-Funktion für interne API-Aufrufe zur Validierung.
+ * @returns Response
+ */
 export const GET: RequestHandler = async ({ params, fetch }) => {
   try {
     const groupId = params.group;
@@ -34,11 +57,13 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
       return badRequest({ message: "Player ID required" });
     }
 
+    // Prüfen ob Gruppe existiert
     const groupResponse = await fetch(`/api/group/${groupId}`);
     if (groupResponse.status != 200) {
       return badRequest({ message: "PlayGroup not found" });
     }
 
+    // Prüfen ob Session existiert
     const sessionResponse = await fetch(
       `/api/group/${groupId}/session/${sessionId}`
     );
@@ -46,6 +71,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
       return badRequest({ message: "Session not found" });
     }
 
+    // Prüfen ob Runde existiert
     const roundResponse = await fetch(
       `/api/group/${groupId}/session/${sessionId}/round/${roundId}`
     );
@@ -53,10 +79,12 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
       return badRequest({ message: "Round not found" });
     }
 
+    // Prüfen ob Sessionmember existiert
     if (!isSessionMember(sessionId, memberId)) {
       return badRequest({ message: "SessionMember not found" });
     }
 
+    // Participation abrufen
     const [participation] = await db
       .select()
       .from(roundParticipation)
@@ -79,6 +107,12 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
   }
 };
 
+/**
+ * Aktualisiert die Participation eines Mitglieds an einer Runde
+ * @param request Das Objekt für den Zugriff auf den Body
+ * @param params URL-Parameter
+ * @returns Response
+ */
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const groupId = params.group;
@@ -102,18 +136,22 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return badRequest({ message: "Member ID required" });
     }
 
+    // Prüfen ob Gruppe existiert
     if (!groupExists(groupId)) {
       return badRequest({ message: "PlayGroup not found" });
     }
 
+    // Prüfen ob Session existiert
     if (!sessionExists(sessionId)) {
       return badRequest({ message: "Session not found" });
     }
 
+    // Prüfen ob Runde existiert
     if (!roundExists(roundId)) {
       return badRequest({ message: "Round not found" });
     }
 
+    // Request Body validieren
     const body = await request.json();
     const newParticipation = body.roundParticipation;
 
@@ -123,6 +161,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     ) {
       return badRequest({ message: "Valid RoundParticipation required" });
     }
+    // Datenbank update
     const [updatedParticipation] = await db
       .update(roundParticipation)
       .set({

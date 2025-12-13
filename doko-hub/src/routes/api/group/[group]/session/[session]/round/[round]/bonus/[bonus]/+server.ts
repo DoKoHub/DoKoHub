@@ -1,12 +1,34 @@
 import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
-import { roundBonus, roundCall } from "$lib/server/db/schema";
-import { RoundBonus, RoundCall,UUID } from "$lib/types";
+import { roundBonus } from "$lib/server/db/schema";
+import { RoundBonus, UUID } from "$lib/types";
 import { groupExists, roundExists, sessionExists } from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+/**
+ * 1. GET /api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
+ * Request: Keine
+ * Response 200: RoundBonus
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. PUT /api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
+ * Request Body:
+ * {
+ * "roundBonus": RoundBonus
+ * }
+ * Response 200: { "message": string, roundBonus: RoundBonus }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
+/**
+ * Ruft einen Bonus eines bestimmten Mitglieds an einer Runde ab
+ * @param params Die URL-Parameter (groupID, sessionID, roundID, memberID).
+ * @param fetch Die SvelteKit fetch-Funktion für interne API-Aufrufe zur Validierung.
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         const groupId = params.group;
@@ -30,18 +52,22 @@ export const GET: RequestHandler = async({ params, fetch }) => {
             return badRequest({ message: 'Player ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         if (!groupExists(groupId)) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         if (!sessionExists(sessionId)) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Prüfen ob Runde existiert
         if (!roundExists(roundId)) {
             return badRequest({ message: 'Round not found' });
         }
 
+        // Bonus aus DB abrufen
         const [bonus] = await db
             .select()
             .from(roundBonus)
@@ -57,6 +83,12 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 }
 
+/**
+ * Aktualisiert den Bonus eines Mitglieds an einer Runde
+ * @param request Das Objekt für den Zugriff auf den Body
+ * @param params URL-Parameter
+ * @returns Response
+ */
 export const PUT: RequestHandler = async({ params, request }) => {
     try {
         const groupId = params.group;
@@ -80,24 +112,29 @@ export const PUT: RequestHandler = async({ params, request }) => {
             return badRequest({ message: 'Player ID required' });
         }
 
+        // Prüfen ob Gruppe existiert
         if (!groupExists(groupId)) {
             return badRequest({ message: 'PlayGroup not found' });
         }
 
+        // Prüfen ob Session existiert
         if (!sessionExists(sessionId)) {
             return badRequest({ message: 'Session not found' });
         }
 
+        // Prüfen ob Runde existiert
         if (!roundExists(roundId)) {
             return badRequest({ message: 'Round not found' });
         }
 
+        // Request Body validieren
         const body = await request.json();
         const newBonus = body.roundBonus;
         if (!newBonus || !(RoundBonus.safeParse(newBonus).success)) {
             return badRequest({ message: 'Valid RoundBonus required' });
         }
 
+        // Datenbank update
         const [updatedBonus] = await db
             .update(roundBonus)
             .set({

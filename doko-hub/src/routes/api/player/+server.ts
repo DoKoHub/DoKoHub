@@ -1,10 +1,28 @@
-import { badRequest, created, ok, serverError } from "$lib/http";
+import { created, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { player } from "$lib/server/db/schema";
 import { AuthProvider, Name, NonEmpty, type Player } from "$lib/types";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import z from "zod";
+
+/**
+ * 1. GET /api/player
+ * Request: Keine
+ * Response 200: [Player]
+ * Response 500: { "message": string }
+ *
+ * 2. POST /api/player
+ * Request Body:
+ * {
+ * "name": string,
+ * "provider": AuthProvider,
+ * "subject": string,
+ * "email": string
+ * }
+ * Response 201: { "message": string, player: Player }
+ * Response 500: { "message": string }
+ */
 
 /**
  * Schnittstelle die alle Spieler zurueckgibt
@@ -26,7 +44,7 @@ export const GET: RequestHandler = async () => {
 /**
  * Speichert neuen Spieler in der DB
  * 
- * @param request 
+ * @param event Event, enthält den Body zur validierung
  * @returns Response
  */
 export const POST: RequestHandler = async (event) => {
