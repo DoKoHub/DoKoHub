@@ -24,7 +24,7 @@ export const sessionstatus = pgEnum('sessionstatus', [
 export const gameType = pgEnum('game_type', [
   'NORMAL',
    'HOCHZEIT_STILL',
-   'HOCHZEIT_UNKOWN',
+   'HOCHZEIT_UNKNOWN',
    'HOCHZEIT_NORMAL',
    'SOLO_DAMEN',
      'SOLO_BUBEN',
