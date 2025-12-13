@@ -1,6 +1,11 @@
 import { get } from "$lib/frontend/fetch";
 import { Session, UUID } from "$lib/types";
 import type { PageLoad } from "./$types";
+import { z } from "zod";
+
+
+// erstmal nur als Platzhalter, bis passende types.ts finden 
+const SessionMemberSchema = z.any();
 
 export const load: PageLoad = async({ params, fetch }) => {
     const groupId = UUID.parse(params.group);
@@ -11,5 +16,11 @@ export const load: PageLoad = async({ params, fetch }) => {
         fetch
     );
 
-    return session;
-}
+    const sessionMembers = await get(
+    `/api/group/${groupId}/session/${sessionId}/sessionmember`,
+    z.array(SessionMemberSchema),
+    fetch
+  );
+
+   return { session, sessionMembers };
+};

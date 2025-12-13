@@ -10,12 +10,11 @@
   const gameId = UUID.parse(params.game);
 
   function addSomething() {
-    //TODO: Laut Rücksprache mit den Betreuern soll das eine separate Seite sein.
-    // Sicher, dass das kein Missverständnis ist?
     goto(`/app/game/${params.group}/${gameId}/new_round`);
   }
 
-  let session = data;
+  const session = data.session;
+  const sessionMembers = data.sessionMembers;
 
   /**
    * FIXME
