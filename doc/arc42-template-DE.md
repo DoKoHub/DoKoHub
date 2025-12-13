@@ -1321,6 +1321,17 @@ Spezifische Participation einer Runde
 
 Spezifische Participation einer Runde
 
+>`PUT`:<br>
+>URL Parameter:<br> 
+>`[group]`: `string`<br>
+>`[session]`: `string`<br>
+>`[round]`: `string`<br>
+>`[participation]`: `string`<br>
+>Request Body: `{"roundParticipation": RoundParticipation}`<br>
+>Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
+
+Spezifische Participation einer Runde
+
 ### \<Name Blackbox n>
 
 _\<Blackbox-Template>_

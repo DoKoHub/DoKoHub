@@ -27,18 +27,23 @@ export type SeatPos = z.infer<typeof SeatPos>;
 
 export const GameType = z.enum([
   "NORMAL",
-  "HOCHZEIT",
-  "SOLO_FARBE",
+  "HOCHZEIT_STILL",
+  "HOCHZEIT_UNKNOWN",
+  "HOCHZEIT_NORMAL",
+  "SOLO_CLUBS",
+  "SOLO_SPADES",
+  "SOLO_HEARTS",
+  "SOLO_DIAMONDS",
   "SOLO_DAMEN",
   "SOLO_BUBEN",
-  "SOLO_NULL",
+  "SOLO_ASSE",
 ]);
 export type GameType = z.infer<typeof GameType>;
 
 export const AuthProvider = z.enum(["GOOGLE", "APPLE", "META"]);
 export type AuthProvider = z.infer<typeof AuthProvider>;
 
-export const SoloKind = z.enum(["CLUBS", "SPADES", "HEARTS", "DIAMONDS"]);
+export const SoloKind = z.enum(["PFLICHT","LUST"]);
 export type SoloKind = z.infer<typeof SoloKind>;
 
 export const Side = z.enum(["RE", "KONTRA"]);
@@ -46,9 +51,8 @@ export type Side = z.infer<typeof Side>;
 
 export const Ruleset = z.enum([
   "STANDARD",
-  "HAUSREGEL_FLEISCHLOS",
-  "HAUSREGEL_KURZSPIEL",
-  "HAUSREGEL_KEINE_PFLICHTSOLO",
+  "HAUSREGEL_KURZSPIEL"
+  
 ]);
 export type Ruleset = z.infer<typeof Ruleset>;
 
@@ -66,13 +70,7 @@ export const BonusType = z.enum([
   "DOKO",
   "FUCHS",
   "KARLCHEN",
-  "LAUFENDE",
-  "GEGEN_DIE_ALTEN"/*,
-  "SCHWEINCHEN",
-  "HYPERSCHWEIN",           Auskommentiert, weil die in der ER Modellierung nicht vorhanden sind.
-  "DULLE_GEFANGEN",
-  "FUCHS_GEFANGEN",
-  "KARLCHEN_IM_LETZTEN",*/
+  
 ]);
 export type BonusType = z.infer<typeof BonusType>;
 
@@ -170,29 +168,27 @@ export const Session = z.object({
 export type Session = z.infer<typeof Session>;
 
 //Rounds & Participation
+ 
+export const Round = z.object({
+  id: UUID,
+  sessionId: UUID,
+  roundNum: z.number().int().min(1).optional().nullable(),
+  gameType: GameType,
+  soloKind: SoloKind.optional().nullable(),
+  eyesRe: z.number().int(),
+})
+.refine(
+  (r) =>
+    r.gameType.startsWith("SOLO_")
+      ? r.soloKind != null
+      : r.soloKind == null,
+  {
+    message: "Bei SOLO muss soloKind gesetzt sein, sonst muss es leer sein",
+    path: ["soloKind"],
+  }
+)
 
-export const Round = z
-  .object({
-    id: UUID,
-    sessionId: UUID,
-    roundNum: z.number().int().min(1).optional().nullable(),
-    gameType: GameType,
-    soloKind: SoloKind.optional().nullable(),
-    eyesRe: z.number().int(),
-  })
-  .refine(
-    //Wenn es kein SOLO_FARBE-Spiel ist → alles gut
-    // Wenn es ein SOLO_FARBE-Spiel ist → dann muss soloKind gesetzt sein
-    (r) => r.gameType !== "SOLO_FARBE" || !!r.soloKind,
-    { message: "soloKind ist erforderlich bei SOLO_FARBE", path: ["soloKind"] }
-  )
-  .refine(
-    //Wenn es ein SOLO_FARBE-Spiel ist → alles gut
-    //Wenn es kein SOLO_FARBE-Spiel ist → dann muss soloKind leer sein
-    (r) => r.gameType === "SOLO_FARBE" || !r.soloKind,
-    { message: "soloKind nur bei SOLO_FARBE erlaubt", path: ["soloKind"] }
-  )
-  .strict();
+.strict();
 export type Round = z.infer<typeof Round>;
 
 export const RoundParticipation = z
@@ -203,6 +199,7 @@ export const RoundParticipation = z
   })
   .strict();
 export type RoundParticipation = z.infer<typeof RoundParticipation>;
+
 
 // Scoring, Calls, Bonuses, Points
 

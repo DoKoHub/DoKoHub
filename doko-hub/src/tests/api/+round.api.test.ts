@@ -22,8 +22,8 @@ const MOCK_SESSION_DATA = {
 
 const MOCK_ROUND_DATA = {
   roundNum: 12,
-  gameType: "SOLO_FARBE",
-  soloKind: "CLUBS",
+  gameType: "SOLO_ASSE",
+  soloKind: "LUST",
   eyesRe: 60,
 };
 
@@ -218,7 +218,7 @@ describe("API /api/group/[group]/session/[session]/round/[round] (Round Details)
   // Test: PUT (Aktualisierung von roundNum und gameType)
   test("PUT: Should successfully update roundNum and gameType (Status 200)", async () => {
     const newRoundNumber = 20;
-    const newGameType = "HOCHZEIT";
+    const newGameType = "HOCHZEIT_STILL";
     const newSoloKind = null;
     const newEyesRe = 70;
 

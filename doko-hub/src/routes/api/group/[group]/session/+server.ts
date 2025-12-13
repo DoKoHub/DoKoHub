@@ -33,7 +33,6 @@ import { generateReturnMember } from "$lib/utils";
  * @param fetch SvelteKit fetch-Funktion
  * @returns Response
  */
-
 export const GET: RequestHandler = async({ params, fetch }) => { 
     try {
         const groupId = params.group;
