@@ -8,13 +8,13 @@
   const { data, params }: PageProps = $props();
   const groupId = UUID.parse(params.group);
   const gameId = UUID.parse(params.game);
+  const { sessionMembers, groupMembers } = data as any;
 
   function addSomething() {
     goto(`/app/game/${params.group}/${gameId}/new_round`);
   }
 
-  const session = data.session;
-  const sessionMembers = data.sessionMembers;
+  const session = (data as any).session;
 
   /**
    * FIXME
@@ -30,8 +30,13 @@
    * Ein weiterer Vorteil wäre, dass man nur eine GET Request an das Backend senden muss und nicht viele.
    */
 
-  // Beispielspieler
-  let players = ["Marcel", "Fabian", "Nick", "Maurice"];
+  // players ohne Dummy
+  const players = [...sessionMembers]
+    .sort((a, b) => a.seatPos - b.seatPos)
+    .map((sm) => {
+      const gm = groupMembers.find((m: any) => m.id === sm.memberId);
+      return gm?.nickname ?? "?";
+    });
 
   // Dummy Daten für Erg
   function getRounds() {

@@ -6,6 +6,7 @@ import { z } from "zod";
 
 // erstmal nur als Platzhalter, bis passende types.ts finden 
 const SessionMemberSchema = z.any();
+const GroupMemberSchema = z.any();
 
 export const load: PageLoad = async({ params, fetch }) => {
     const groupId = UUID.parse(params.group);
@@ -15,12 +16,20 @@ export const load: PageLoad = async({ params, fetch }) => {
         Session,
         fetch
     );
-
+ 
+    // 1️. SessionMembers (Sitzordnung)
     const sessionMembers = await get(
     `/api/group/${groupId}/session/${sessionId}/sessionmember`,
     z.array(SessionMemberSchema),
     fetch
   );
+  // 2️. GroupMembers (Namen)
+  const groupMembers = await get(
+    `/api/group/${groupId}/member`,
+    z.array(GroupMemberSchema),
+    fetch
+  );
 
-   return { session, sessionMembers };
+
+   return { groupMembers, sessionMembers };
 };
