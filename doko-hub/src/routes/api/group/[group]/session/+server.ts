@@ -8,6 +8,31 @@ import z from "zod";
 import { readValidatedBody } from "$lib/validation";
 import { generateReturnMember } from "$lib/utils";
 
+/**
+ * 1. GET /api/group/[group]/session
+ * Request: Keine
+ * Response 200: [Session]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. POST /api/group/[group]/session
+ * Request Body:
+ * {
+ * "ruleset": Ruleset,
+ * "plannedRounds": number,
+ * "startedAt"?: ISODate
+ * }
+ * Response 201: { "message": string, session: Session }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
+
+/**
+ * Ruft alle Sessions ab die zu einer bestimmten Gruppe gehören
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => { 
     try {
         const groupId = params.group;

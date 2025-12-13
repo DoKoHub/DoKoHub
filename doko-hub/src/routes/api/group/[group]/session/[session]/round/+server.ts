@@ -1,7 +1,7 @@
 import { badRequest, ok, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { round } from "$lib/server/db/schema";
-import { GameType, Round, SoloKind, UUID } from "$lib/types";
+import { GameType, SoloKind, UUID } from "$lib/types";
 import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -64,7 +64,7 @@ export const GET: RequestHandler = async({ params, fetch }) => {
         .from(round)
         .where(eq(round.sessionId, sessionId));
       
-      return ok(roundsFromDB as Round[]);
+      return ok(roundsFromDB);
     } catch(error) {
         return serverError({ message: 'Database error while fetching Round[]' });
     }
@@ -102,20 +102,8 @@ export const POST: RequestHandler = async (event) => {
       roundNum: z.number().int().min(1),
       gameType: GameType,
       soloKind: SoloKind.optional().nullable(),
-      eyes: z.number().int().min(0).max(240).optional(),
-      eyesSide: z.enum(["RE", "KONTRA"]).optional(),
-      eyesRe: z.number().int().min(0).max(240).optional(),
+      eyesRe: z.number().int().min(0).max(240),
     })
-    .refine(
-      (data) =>
-        (data.eyes !== undefined && data.eyesSide !== undefined) ||
-        data.eyesRe !== undefined,
-      {
-        message:
-          "Either (eyes + eyesSide) or eyesRe must be provided in the request body.",
-        path: ["eyes"],
-      }
-    )
   .refine(
   (d) =>
     d.gameType.startsWith("SOLO_")
@@ -127,7 +115,7 @@ export const POST: RequestHandler = async (event) => {
   }
 );
 
-  const { roundNum, gameType, soloKind, eyes, eyesSide, eyesRe } =
+  const { roundNum, gameType, soloKind, eyesRe } =
     await readValidatedBody(event, bodySchema);
 
   try {
@@ -156,22 +144,6 @@ export const POST: RequestHandler = async (event) => {
       return badRequest({ message: "Session not found" });
     }
 
-    // Normalisierung:
-    //  wenn eyes + eyesSide vorhanden neue UI: auf RE-Augen umrechnen
-    //  sonst, wenn eyesRe vorhanden  alte Variante direkt übernehmen
-
-    let eyesReValue: number;
-
-    if (eyes !== undefined && eyesSide !== undefined) {
-      eyesReValue = normalizeEyesToRe(eyes, eyesSide);
-    } else if (eyesRe !== undefined) {
-      eyesReValue = eyesRe;
-    } else {
-      return badRequest({
-        message: "No valid eyes data provided.",
-      });
-    }
-
     // Runden in DB erstellen
     const [roundFromDB] = await db
       .insert(round)
@@ -180,15 +152,12 @@ export const POST: RequestHandler = async (event) => {
         roundNum: roundNum,
         gameType: gameType,
         soloKind: soloKind,
-        eyesRe: eyesReValue,
+        eyesRe,
       })
       .returning();
 
     return ok({ message: "Created Round", round: roundFromDB });
   } catch (error) {
-    return serverError({
-      message: "Database error while creating Round",
-      error,
-    });
+    return serverError({ message: "Database error while creating Round" });
   }
 };

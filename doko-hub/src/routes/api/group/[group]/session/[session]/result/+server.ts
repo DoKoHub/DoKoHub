@@ -15,7 +15,22 @@ import { UUID } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq, and, inArray } from "drizzle-orm";
 
-
+/**
+ * 1. GET /api/group/[group]/session/[session]/result
+ * Request: Keine
+ * Response 200: [
+ * {
+ * player_id: string,
+ * member_id: string,
+ * player_name: string,
+ * seat_pos: number,
+ * points: number
+ * }, 
+ * // ... weitere Spieler
+ * ]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
 type RoundRow = typeof round.$inferSelect;
 type ParticipationRow = typeof roundParticipation.$inferSelect;
@@ -53,7 +68,7 @@ const isAbsage = (c: CallRow["call"]) =>
  * Rückgabe:
  *  - Objekt: memberId also die Punkte in dieser Runde.
  */
- export function calculateRoundPoints(
+ export function _calculateRoundPoints(
   roundRow: RoundRow,
   participations: ParticipationRow[],
   calls: CallRow[],
@@ -369,9 +384,11 @@ const isAbsage = (c: CallRow["call"]) =>
   return points;
 }
 
-
-// GET /api/group/:group/session/:session/result
-// Aggregation der Rundenwerte zu einem Sessionergebnis für alle Teilnehmer.
+/**
+ * Aggregation der Rundenwerte zu einem Sessionergebnis für alle Teilnehmer
+ * @param params URL-Parameter
+ * @returns Response
+ */
 
 export const GET: RequestHandler = async ({ params }) => {
   const groupId = params.group;
@@ -476,7 +493,7 @@ export const GET: RequestHandler = async ({ params }) => {
     // Rundenweise Auswertung und Aufsummierung
     for (const r of rounds) {
       const rid = r.id as string;
-      const roundPoints = calculateRoundPoints(
+      const roundPoints = _calculateRoundPoints(
         r,
         partsByRound[rid] ?? [],
         callsByRound[rid] ?? [],
@@ -498,14 +515,8 @@ export const GET: RequestHandler = async ({ params }) => {
       points: scoreMap[member.memberId as string] ?? 0,
     }));
 
-    return ok({
-      sessionResults: playersWithResults,
-      message: "Session results calculated successfully.",
-    });
+      return ok({ sessionResults: playersWithResults, message: "Session results calculated successfully." });
   } catch (error) {
-    console.error("Error fetching and calculating session results:", error);
-    return serverError({
-      message: "Database error while calculating session results.",
-    });
+      return serverError({ message: "Database error while calculating session results." });
   }
 };

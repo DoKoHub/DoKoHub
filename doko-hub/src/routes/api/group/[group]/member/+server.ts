@@ -58,7 +58,7 @@ export const GET: RequestHandler = async({ params }) => {
  */
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
-      playerId: UUID,
+      playerId: UUID.optional(), // optional, wegen lokalen Spielern
       nickname: Name.optional(), // optional, wird bei Invalid fallbacken
     });
     const { playerId, nickname } = await readValidatedBody(event, bodySchema);
@@ -96,25 +96,47 @@ export const POST: RequestHandler = async(event) => {
             return badRequest({ message: 'PlayGroup not found' })
         }
     
-        // Prüfen ob Spieler existiert
-        const playerResponse = await event.fetch(`/api/player/${playerId}`);
-        if (playerResponse.status != 200) {
-            return badRequest({ message: 'Player not found' });
-        }
-        const player = await playerResponse.json();
+        let memberPlayerId: UUID | null = null;
+        let memberNickname: Name | undefined = nickname;
 
-        // Prüfen ob Spieler bereits Mitglied ist
-        if (await isPlayGroupMember(groupId, playerId)) {
-            return badRequest({ message: 'Player is a member already' });
+        if (playerId) {
+            // Prüfen ob Spieler existiert
+            const playerResponse = await event.fetch(`/api/player/${playerId}`);
+            // Prüfen ob Spieler bereits Mitglied ist
+            if (await isPlayGroupMember(groupId, playerId)) {
+                return badRequest({ message: 'Player is a member already' });
+            }
+
+            if (playerResponse.status != 200) {
+                // Erstelle lokalen Spieler
+                memberPlayerId = null; 
+            } else {
+                // Spieler gefunden, verwende dessen ID und Name
+                const player = await playerResponse.json();
+                memberPlayerId = player.id as UUID;
+                
+                // Setze den Nickname falls keiner gesendet wurde
+                if (!memberNickname) {
+                    memberNickname = player.name;
+                }
+            }
+        } else {
+            // Lokaler Spieler
+            memberPlayerId = null;
         }
+
+        if (!memberNickname && memberPlayerId === null) {
+             memberNickname = "Lokaler Spieler";
+        }
+        
 
         // Neues Mitglied hinzufügen
         const [playgroupMemberFromDB] = await db
             .insert(playgroupMember)
             .values({
                 groupId: groupId as UUID,
-                playerId: player.id as UUID,
-                nickname: nickname ? nickname : player.name,
+                playerId: memberPlayerId,
+                nickname: memberNickname,
                 status: "ACTIVE" as PlayerStatus
             })
             .returning();
