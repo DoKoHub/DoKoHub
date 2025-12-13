@@ -8,7 +8,29 @@ import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import z from "zod";
 
+/**
+ * 1. GET /api/group/[group]/session/[session]/sessionmember
+ * Request: Keine
+ * Response 200: [SessionMember]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. POST /api/group/[group]/session/[session]/sessionmember
+ * Request Body:
+ * {
+ * "memberId": UUID,
+ * "seatPos": SeatPos
+ * }
+ * Response 200: { "message": string, sessionMember: SessionMember}
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
+/**
+ * Ruft alle Session-Mitglieder ab die zu einer bestimmten Session gehören.
+ * @param params URL-Parameter
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params }) => {
     try {
         const groupId = params.group;
@@ -41,6 +63,11 @@ export const GET: RequestHandler = async({ params }) => {
     }
 };
 
+/**
+ * Fügt ein Gruppenmitglied zu einer Session hinzu
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
 export const POST: RequestHandler = async(event) => {
     const bodySchema = z.object({
         memberId: UUID,

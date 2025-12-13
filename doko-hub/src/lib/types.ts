@@ -191,13 +191,37 @@ export const Round = z.object({
 .strict();
 export type Round = z.infer<typeof Round>;
 
+export const Round = z
+  .object({
+    id: UUID,
+    sessionId: UUID,
+    roundNum: z.number().int().min(1).optional().nullable(),
+    gameType: GameType,
+    soloKind: SoloKind.optional().nullable(),
+    eyesRe: z.number().int(),
+  })
+  .refine(
+    //Wenn es kein SOLO_FARBE-Spiel ist → alles gut
+    // Wenn es ein SOLO_FARBE-Spiel ist → dann muss soloKind gesetzt sein
+    (r) => r.gameType !== "SOLO_FARBE" || !!r.soloKind,
+    { message: "soloKind ist erforderlich bei SOLO_FARBE", path: ["soloKind"] }
+  )
+  .refine(
+    //Wenn es ein SOLO_FARBE-Spiel ist → alles gut
+    //Wenn es kein SOLO_FARBE-Spiel ist → dann muss soloKind leer sein
+    (r) => r.gameType === "SOLO_FARBE" || !r.soloKind,
+    { message: "soloKind nur bei SOLO_FARBE erlaubt", path: ["soloKind"] }
+  )
+  .strict();
+export type Round = z.infer<typeof Round>;
 
-export const RoundParticipation = z.object({
-  roundId: UUID,
-  memberId: UUID,
-  side: Side,
-})
-.strict();
+export const RoundParticipation = z
+  .object({
+    roundId: UUID,
+    memberId: UUID,
+    side: Side,
+  })
+  .strict();
 export type RoundParticipation = z.infer<typeof RoundParticipation>;
 
 

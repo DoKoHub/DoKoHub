@@ -5,14 +5,23 @@ WORKDIR /app
 # Copy package manager files and .npmrc
 COPY package.json package-lock.json .npmrc ./
 
+# Deactivate scricpts
+ENV NPM_CONFIG_IGNORE_SCRIPTS=true
+
 # Install directory static
 RUN mkdir static
 
 # Install dependencies
 RUN npm install
 
+# Reactivate scricpts
+ENV NPM_CONFIG_IGNORE_SCRIPTS=false
+
 # Copy the rest of the application source code
 COPY . .
+
+# Install smui themes
+RUN npm run smui-prepare
 
 ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
 

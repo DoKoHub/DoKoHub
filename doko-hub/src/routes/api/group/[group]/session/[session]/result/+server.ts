@@ -9,7 +9,8 @@ import {
   roundParticipation,
   roundCall,
   roundBonus,
-} from "$lib/server/db/schema";
+} 
+from "$lib/server/db/schema";
 import { UUID } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq, and, inArray } from "drizzle-orm";

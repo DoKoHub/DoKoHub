@@ -6,6 +6,8 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - ORIGIN=http://localhost:3000
     depends_on:
       db-setup:
         condition: service_completed_successfully

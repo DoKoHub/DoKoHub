@@ -5,6 +5,35 @@ import { PlayGroup, UUID, type PlayGroupMember } from "$lib/types";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+/**
+ * 1. GET /api/group/[group]
+ * Request: Keine
+ * Response 200: PlayGroup
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. PUT /api/group/[group]
+ * Request Body:
+ * {
+ * "playGroup": PlayGroup
+ * }
+ * Response 200: { "message": string, playGroup: PlayGroup }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 3. DELETE /api/group/[group]
+ * Request: Keine
+ * Response 200: { "message": string, playGroup: PlayGroup }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
+
+/**
+ * Gibt eine einzelne Spielgruppe mit Mitgliederliste zurück
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const GET: RequestHandler = async({ params, fetch }) => {
     try {
         // UUID der Gruppe
@@ -45,6 +74,12 @@ export const GET: RequestHandler = async({ params, fetch }) => {
     }
 };
 
+/**
+ * Aktualisiert Daten einer bestehenden Spielgruppe.
+ * @param request Das Request-Objekt für den Zugriff auf den Body.
+ * @param params Die URL-Parameter, enthält die Gruppen-ID.
+ * @returns Response
+ */
 export const PUT: RequestHandler = async({ request, params }) => {
     try {
         // UUID der Gruppe
@@ -83,6 +118,12 @@ export const PUT: RequestHandler = async({ request, params }) => {
     }
 }
 
+/**
+ * Löscht eine Spielgruppe, inklusive aller zugehörigen Mitglieder und Einladungen.
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
 export const DELETE: RequestHandler = async({ params, fetch }) => {
     try {
         // UUID der Gruppe
@@ -116,7 +157,6 @@ export const DELETE: RequestHandler = async({ params, fetch }) => {
             .delete(groupInvite)
             .where(eq(groupInvite.groupId, groupId));
 
-        // TODO: Sessions loeschen
 
         const [deletedGroup] = await db
             .delete(playgroup)

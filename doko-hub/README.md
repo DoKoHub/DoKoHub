@@ -19,13 +19,16 @@ Und den Port bitte auf dem Standard Wert lassen (5432).
 ## Projekt initialisieren
 
 Ein Terminal (CMD / Powershell) öffnen und in den Ordner "doko-hub" navigieren.
+
 ```bash
 npm install
 ```
+
 Lädt alle nötigen Pakete runter.
 
 > [!WARNING]
 > Sollte der Error `Die Datei [...\npm.psi] kann nicht geladen werden, [...]` auftauchen
+>
 > 1.  Neues z.B CMD Fenster als Administrator starten
 > 2.  ODER `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` ausführen und erneut versuchen.
 
@@ -35,12 +38,15 @@ Dann den Text aus ".env.example" kopieren und "<passwort>" zu dem bei PostgreSQL
 ```bash
 npm run db:push
 ```
+
 Dann `Yes, I want to execute all statements` auswählen mit den Pfeiltasten und `Enter` drücken.
->Um die Datenbank zu initialisieren.
+
+> Um die Datenbank zu initialisieren.
 
 ```bash
 npm run dev
 ```
+
 > Startet das Projekt. Über den Browser [localhost](http://localhost:5173/) erreichbar.
 
 # Test ob das Projekt funktioniert
@@ -48,6 +54,7 @@ npm run dev
 Um zu testen ob alle Komponenten funktionieren, auf der Website in dem Nummern-Feld eine beliebige Zahl eingeben.
 
 Als nächstes die Anwendung `pgAdmin` starten.
+
 > `pgAdmin` ist ein Tool um Datenbanken zu verwalten.
 
 1. Ordner ausklappen `servers`>`postgressql 18`>`databases>postgres`
@@ -67,6 +74,7 @@ Als nächstes die Anwendung `pgAdmin` starten.
 
 Projekt starten: `npm run dev`
 Änderungen der Datenbank: `npm run db:push`
+
 > Nicht für `INSERT`, sondern wenn zum Beispiel Tabellen angepasst/hinzugefügt/... werden.
 
 ## Tests ausführen
@@ -76,6 +84,7 @@ Tests ohne logs ausgeben: `npm run test:silent`
 
 ## Alle Befehle erklärt
 
+```jsonc
 {
   "scripts": {
     /* --- Entwicklung und Build --- */
@@ -121,3 +130,4 @@ Tests ohne logs ausgeben: `npm run test:silent`
     "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
   }
 }
+```

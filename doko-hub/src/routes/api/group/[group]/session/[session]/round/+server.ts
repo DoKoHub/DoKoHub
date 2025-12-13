@@ -7,40 +7,67 @@ import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import z from "zod";
 
-export const GET: RequestHandler = async ({ params, fetch }) => {
-  try {
-    const groupId = params.group;
-    const sessionId = params.session;
+/**
+ * 1. GET /api/group/[group]/session/[session]/round
+ * Request: Keine
+ * Response 200: [Round]
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ * 
+ * 2. POST /api/group/[group]/session/[session]/round
+ * Request Body:
+ * {
+ * "roundNum": number,
+ * "gameType": GameType,
+ * "soloKind": SoloKind | null | undefined,
+ * "eyesRe": number
+ * }
+ * Response 200: { "message": string, round: Round }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
-    if (!groupId || !UUID.safeParse(groupId).success) {
-      return badRequest({ message: "PlayGroup ID required" });
+/**
+ * Ruft alle Runden ab die zu einer bestimmten Session gehören.
+ * @param params URL-Parameter
+ * @param fetch SvelteKit fetch-Funktion
+ * @returns Response
+ */
+export const GET: RequestHandler = async({ params, fetch }) => {
+    try {
+        const groupId = params.group;
+        const sessionId = params.session;
+    
+    if (!groupId || !(UUID.safeParse(groupId)).success) {
+       return badRequest({ message: 'PlayGroup ID required' });
     }
 
     if (!sessionId || !UUID.safeParse(sessionId).success) {
       return badRequest({ message: "Session ID required" });
     }
 
+    // Prüfen ob Gruppe existiert
     const groupResponse = await fetch(`/api/group/${groupId}`);
     if (groupResponse.status != 200) {
-      return badRequest({ message: "PlayGroup not found" });
+        return badRequest({ message: 'PlayGroup not found' });
     }
 
-    const sessionResponse = await fetch(
-      `/api/group/${groupId}/session/${sessionId}`
-    );
+    // Prüfen ob Session existiert
+    const sessionResponse = await fetch(`/api/group/${groupId}/session/${sessionId}`);
     if (sessionResponse.status != 200) {
-      return badRequest({ message: "Session not found" });
+        return badRequest({ message: 'Session not found' });
     }
 
+    // Runden aus DB abrufen
     const roundsFromDB = await db
-      .select()
-      .from(round)
-      .where(eq(round.sessionId, sessionId));
-
-    return ok(roundsFromDB as Round[]);
-  } catch (error) {
-    return serverError({ message: "Database error while fetching Round[]" });
-  }
+        .select()
+        .from(round)
+        .where(eq(round.sessionId, sessionId));
+      
+      return ok(roundsFromDB as Round[]);
+    } catch(error) {
+        return serverError({ message: 'Database error while fetching Round[]' });
+    }
 };
 
 // Hilfsfunktion zur Normalisierung der Augen auf RE
@@ -63,29 +90,25 @@ function normalizeEyesToRe(
   return 240 - enteredEyes;
 }
 
+/**
+ * Erstellt eine neue Runde für die Session
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
 export const POST: RequestHandler = async (event) => {
-  // Request-Body:
-  //  neue (UI): eyes + eyesSide
-  //  alt (Tests): eyesRe
 
   const bodySchema = z
     .object({
       roundNum: z.number().int().min(1),
       gameType: GameType,
       soloKind: SoloKind.optional().nullable(),
-
-      // neues Format (für UI)
       eyes: z.number().int().min(0).max(240).optional(),
       eyesSide: z.enum(["RE", "KONTRA"]).optional(),
-
-      // altes Format (für alte Tests / alten Code)
       eyesRe: z.number().int().min(0).max(240).optional(),
     })
     .refine(
       (data) =>
-        // entweder neues format vollständig
         (data.eyes !== undefined && data.eyesSide !== undefined) ||
-        // oder altes format
         data.eyesRe !== undefined,
       {
         message:
@@ -93,7 +116,6 @@ export const POST: RequestHandler = async (event) => {
         path: ["eyes"],
       }
     )
-    // new chanage to enforce soloKind logic
   .refine(
   (d) =>
     d.gameType.startsWith("SOLO_")
@@ -105,8 +127,6 @@ export const POST: RequestHandler = async (event) => {
   }
 );
 
-
-  // wichtig: hier auch eyesRe mit auslesen
   const { roundNum, gameType, soloKind, eyes, eyesSide, eyesRe } =
     await readValidatedBody(event, bodySchema);
 
@@ -122,11 +142,13 @@ export const POST: RequestHandler = async (event) => {
       return badRequest({ message: "Session ID required" });
     }
 
+    // Prüfen ob Gruppe existiert
     const groupResponse = await event.fetch(`/api/group/${groupId}`);
     if (groupResponse.status != 200) {
       return badRequest({ message: "PlayGroup not found" });
     }
 
+    // Prüfen ob Session existiert
     const sessionResponse = await event.fetch(
       `/api/group/${groupId}/session/${sessionId}`
     );
@@ -150,6 +172,7 @@ export const POST: RequestHandler = async (event) => {
       });
     }
 
+    // Runden in DB erstellen
     const [roundFromDB] = await db
       .insert(round)
       .values({
@@ -157,7 +180,6 @@ export const POST: RequestHandler = async (event) => {
         roundNum: roundNum,
         gameType: gameType,
         soloKind: soloKind,
-        // immer RE-Augen in der Datenbank
         eyesRe: eyesReValue,
       })
       .returning();
