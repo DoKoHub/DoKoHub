@@ -74,6 +74,7 @@ const isAbsage = (c: CallRow["call"]) =>
   calls: CallRow[],
   bonuses: BonusRow[]
 ): Record<string, number> {
+  
 
   const eyesRe = roundRow.eyesRe ?? 0;
   const eyesKontra = 240 - eyesRe;
@@ -105,30 +106,165 @@ const isAbsage = (c: CallRow["call"]) =>
     partyCalls[side].push(c.call);
   }
 
+
+  //helper: stärkste Absage pro Partei 
+const absageRank = (call: CallRow["call"]) => {
+  if (call === "SCHWARZ") return 4;
+  if (call === "KEINE30") return 3;
+  if (call === "KEINE60") return 2;
+  if (call === "KEINE90") return 1;
+  return 0;
+};
+
+
+
+// Welche Absage-Stufe wurde von der Partei tatsächlich verfehlt?
+// 0 = keine verfehlt, 1=KEINE90, 2=KEINE60, 3=KEINE30, 4=SCHWARZ
+const failedLevel = (side: "RE" | "KONTRA") => {
+  const oppEyes = side === "RE" ? eyesKontra : eyesRe;
+  const callsSide = Array.from(new Set(partyCalls[side]));
+
+
+  // Wichtig: Reihenfolge von streng nach weniger streng
+  if (callsSide.includes("SCHWARZ") && oppEyes !== 0) return absageRank("SCHWARZ");
+  if (callsSide.includes("KEINE30") && oppEyes > 29) return absageRank("KEINE30");
+  if (callsSide.includes("KEINE60") && oppEyes > 59) return absageRank("KEINE60");
+  if (callsSide.includes("KEINE90") && oppEyes > 89) return absageRank("KEINE90");
+  return 0;
+};
+
+
+
+
+
   
   // Absageerfolg / misserfolg (TSR 7.1.3 und 7.2.2(c),(d))
   // Eine Absage ("keine 90/60/30" oder "schwarz") gilt als verfehlt, wenn
   // die gegen Partei mehr Augen macht als durch die Absage erlaubt.
 
-  const absageFailed = (side: "RE" | "KONTRA"): boolean => {
-    const oppEyes = side === "RE" ? eyesKontra : eyesRe;
-    const callsSide = partyCalls[side];
+const reFailLevel = failedLevel("RE");
+const kontraFailLevel = failedLevel("KONTRA");
 
-    const has = (t: CallRow["call"]) => callsSide.includes(t);
+const reFailedAbsage = reFailLevel > 0;
+const kontraFailedAbsage = kontraFailLevel > 0;
+const bothFailedAbsage = reFailedAbsage && kontraFailedAbsage;
 
-    if (has("KEINE90") && oppEyes > 89) return true;
-    if (has("KEINE60") && oppEyes > 59) return true;
-    if (has("KEINE30") && oppEyes > 29) return true;
-    if (has("SCHWARZ") && oppEyes !== 0) return true;
 
-    return false;
-  };
 
-  const reFailedAbsage = absageFailed("RE");
-  const kontraFailedAbsage = absageFailed("KONTRA");
-  const bothFailedAbsage = reFailedAbsage && kontraFailedAbsage;
+
 
   const points: Record<string, number> = {};
+
+
+ 
+
+// 7.1.3: Beide Parteien verfehlen ihre Absage -> keine "normalen" Gewinner-Punkte b–d.
+// Wir rechnen hier nur (a) + (e/f) und gehen dann zur Verteilung + Sonderpunkte.
+if (bothFailedAbsage) {
+  // (a) nach Augenvergleich (praktische Umsetzung, damit Plus/Minus weiterhin definiert ist)
+  const winnerByEyes: "RE" | "KONTRA" =
+    eyesRe > eyesKontra ? "RE" : eyesKontra > eyesRe ? "KONTRA" : "KONTRA";
+  const loserByEyes: "RE" | "KONTRA" = winnerByEyes === "RE" ? "KONTRA" : "RE";
+  const loserEyesLocal = loserByEyes === "RE" ? eyesRe : eyesKontra;
+
+  // PartyPoints init (wie später bei dir)
+  type PartyPoints = { RE: number; KONTRA: number };
+  const partyPoints: PartyPoints = { RE: 0, KONTRA: 0 };
+
+  const addParty = (side: "RE" | "KONTRA", value: number) => {
+    const other: "RE" | "KONTRA" = side === "RE" ? "KONTRA" : "RE";
+    partyPoints[side] += value;
+    partyPoints[other] -= value;
+  };
+
+  // (a) Grundwert + Stufen
+  let baseStufen = 1;
+  if (loserEyesLocal <= 89) baseStufen += 1;
+  if (loserEyesLocal <= 59) baseStufen += 1;
+  if (loserEyesLocal <= 29) baseStufen += 1;
+  if (loserEyesLocal === 0) baseStufen += 1;
+  addParty(winnerByEyes, baseStufen);
+
+  // (e/f) Augen-gegen-Absage (genau dein Code)
+  const gegenAbsageThresholds = {
+    KEINE90: 120,
+    KEINE60: 90,
+    KEINE30: 60,
+    SCHWARZ: 30,
+  } as const;
+
+  (["RE", "KONTRA"] as const).forEach((side) => {
+    const ownEyes = side === "RE" ? eyesRe : eyesKontra;
+    const oppSide: "RE" | "KONTRA" = side === "RE" ? "KONTRA" : "RE";
+    const oppCalls = partyCalls[oppSide];
+
+    let extra = 0;
+    if (oppCalls.includes("KEINE90") && ownEyes >= gegenAbsageThresholds.KEINE90) extra += 1;
+    if (oppCalls.includes("KEINE60") && ownEyes >= gegenAbsageThresholds.KEINE60) extra += 1;
+    if (oppCalls.includes("KEINE30") && ownEyes >= gegenAbsageThresholds.KEINE30) extra += 1;
+    if (oppCalls.includes("SCHWARZ") && ownEyes >= gegenAbsageThresholds.SCHWARZ) extra += 1;
+
+    if (extra !== 0) addParty(side, extra);
+  });
+
+  // ab hier geht es weiter mit Verteilung (Normalspeil vs Solo) + Sonderpunkte.
+  // Dafür brauchen wir reMembers/kontraMembers und isSoloGame - die hast du später.
+  // => Trick: Wir springen NICHT return raus, sondern setzen "winnerSide" etc. NICHT.
+  // Wir benutzen direkt partyPoints für die Verteilung:
+
+  const isSoloGame =
+    roundRow.gameType === "SOLO_CLUBS" ||
+    roundRow.gameType === "SOLO_SPADES" ||
+    roundRow.gameType === "SOLO_HEARTS" ||
+    roundRow.gameType === "SOLO_DIAMONDS" ||
+    roundRow.gameType === "SOLO_DAMEN" ||
+    roundRow.gameType === "SOLO_BUBEN" ||
+    roundRow.gameType === "SOLO_ASSE" ||
+    roundRow.gameType === "HOCHZEIT_STILL";
+
+  if (!isSoloGame) {
+    for (const id of reMembers) points[id] = (points[id] ?? 0) + partyPoints.RE;
+    for (const id of kontraMembers) points[id] = (points[id] ?? 0) + partyPoints.KONTRA;
+  } else {
+    // Solo-Verteilung wie bei dir
+    let soloSide: "RE" | "KONTRA" | null = null;
+    let soloMembers: string[] = [];
+
+    if (reMembers.length === 1 && kontraMembers.length === 3) {
+      soloSide = "RE";
+      soloMembers = reMembers;
+    } else if (kontraMembers.length === 1 && reMembers.length === 3) {
+      soloSide = "KONTRA";
+      soloMembers = kontraMembers;
+    }
+
+    if (!soloSide) {
+      for (const id of reMembers) points[id] = (points[id] ?? 0) + partyPoints.RE;
+      for (const id of kontraMembers) points[id] = (points[id] ?? 0) + partyPoints.KONTRA;
+    } else {
+      const oppSide: "RE" | "KONTRA" = soloSide === "RE" ? "KONTRA" : "RE";
+      const base = partyPoints[soloSide];
+
+      for (const id of soloMembers) points[id] = (points[id] ?? 0) + base * 3;
+
+      const oppMembers = oppSide === "RE" ? reMembers : kontraMembers;
+      for (const id of oppMembers) points[id] = (points[id] ?? 0) - base;
+    }
+  }
+
+  // Sonderpunkte: nur im Normalspiel (siehe Fix #3)
+  if (!isSoloGame) {
+    for (const b of bonuses) {
+      const memberId = b.memberId as string;
+      const bonusType = b.bonus as string;
+      const value = BONUS_POINTS[bonusType] ?? 0;
+      points[memberId] = (points[memberId] ?? 0) + value;
+    }
+  }
+
+  return points;
+}
+
 
   
   // Gewinnerbestimmung (TSR 7.1.1 / 7.1.2 / 7.1.3)
@@ -146,8 +282,9 @@ const isAbsage = (c: CallRow["call"]) =>
 
   const determineWinnerSide = (): "RE" | "KONTRA" => {
     // Fall 1: Eine Seite verfehlt eine Absage, die andere nicht
-    if (reFailedAbsage && !kontraFailedAbsage) return "KONTRA";
-    if (!reFailedAbsage && kontraFailedAbsage) return "RE";
+   if (reFailedAbsage && !kontraFailedAbsage) return "KONTRA";
+  if (!reFailedAbsage && kontraFailedAbsage) return "RE";
+
 
     // Fall 2: Keine Seite (oder beide) verfehlen eine Absage also Augenvergleich
     if (eyesRe > eyesKontra) return "RE";
@@ -176,6 +313,22 @@ const isAbsage = (c: CallRow["call"]) =>
   };
 
   const winnerSide: "RE" | "KONTRA" = determineWinnerSide();
+  // Sonderfall 120:120 + nur KONTRA-Ansage -> RE gewinnt, aber KONTRA-Ansage darf NICHT als +2/-2 gewertet werden
+if (eyesRe === 120 && eyesKontra === 120) {
+  const reCalls = partyCalls.RE;
+  const kontraCalls = partyCalls.KONTRA;
+
+  const hasReAnsage = reCalls.includes("RE");
+  const hasKontraAnsage = kontraCalls.includes("KONTRA");
+  const anyAbsage = reCalls.some(isAbsage) || kontraCalls.some(isAbsage);
+
+  const onlyKontraAnsage = hasKontraAnsage && !hasReAnsage && !anyAbsage;
+
+  if (onlyKontraAnsage) {
+    partyCalls.KONTRA = partyCalls.KONTRA.filter((c) => c !== "KONTRA");
+  }
+}
+
   const loserSide: "RE" | "KONTRA" = winnerSide === "RE" ? "KONTRA" : "RE";
   const loserEyes = loserSide === "RE" ? eyesRe : eyesKontra;
 
@@ -233,43 +386,33 @@ const isAbsage = (c: CallRow["call"]) =>
     KONTRA: undefined,
   };
 
-  if (!bothFailedAbsage) {
-    for (const c of calls) {
-      const memberId = c.memberId as string;
-      const side = sideByMember[memberId];
-      if (!side) continue;
+  const uniquePartyCalls = {
+  RE: Array.from(new Set(partyCalls.RE)),
+  KONTRA: Array.from(new Set(partyCalls.KONTRA)),
+};
 
-      const oppEyes = side === "RE" ? eyesKontra : eyesRe;
+if (!bothFailedAbsage) {
+  (["RE", "KONTRA"] as const).forEach((side) => {
+    const oppEyes = side === "RE" ? eyesKontra : eyesRe;
 
+    for (const call of uniquePartyCalls[side]) {
       let value = 0;
       let success = false;
 
-      switch (c.call) {
-        case "RE":
-        case "KONTRA":
-          // Re-/Kontra-Ansage (7.2.2(b))
-          value = 2;
-          success = winnerSide === side;
-          break;
-
-        case "KEINE90":
-        case "KEINE60":
-        case "KEINE30":
-        case "SCHWARZ": {
-          // Absagen (7.2.2(c),(d))
-          value = 1;
-          const limit = absageThresholds[c.call]!;
-          success = oppEyes <= limit;
-          break;
-        }
+      if (call === "RE" || call === "KONTRA") {
+        value = 2;
+        success = winnerSide === side;
+      } else if (isAbsage(call)) {
+        value = 1;
+        const limit = absageThresholds[call]!;
+        success = oppEyes <= limit;
       }
 
-      if (value !== 0) {
-        const delta = success ? value : -value;
-        addParty(side, delta);
-      }
+      if (value) addParty(side, success ? value : -value);
     }
-  }
+  });
+}
+
 
   
   // Punkte "Augen gegen Absage" (TSR 7.2.2(e),(f))
@@ -374,15 +517,21 @@ const isAbsage = (c: CallRow["call"]) =>
   // Jeder Eintrag in round_bonus repräsentiert einen Sonderpunkt-Ereignis.
   // Die genaue Art (DOKO, FUCHS, KARLCHEN) bestimmt die Punktzahl.
 
+ 
+
+ // Sonderpunkte nur im Normalspiel
+if (!isSoloGame) {
   for (const b of bonuses) {
     const memberId = b.memberId as string;
     const bonusType = b.bonus as string;
     const value = BONUS_POINTS[bonusType] ?? 0;
     points[memberId] = (points[memberId] ?? 0) + value;
   }
-
-  return points;
 }
+
+return points;
+}
+
 
 /**
  * Aggregation der Rundenwerte zu einem Sessionergebnis für alle Teilnehmer
