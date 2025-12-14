@@ -4,17 +4,14 @@
   import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
   import { UUID } from "$lib/types";
+  import { post } from "$lib/frontend/fetch";
+  import { z } from "zod";
+  import type { PageData } from "./$types";
 
-  const { data, params }: PageProps = $props();
-  const groupId = UUID.parse(params.group);
-  const gameId = UUID.parse(params.game);
-  const { sessionMembers, groupMembers } = data as any;
-
+  // Funktion für Plus Button
   function addSomething() {
-    goto(`/app/game/${params.group}/${gameId}/new_round`);
+    //goto(`/app/game/${params.group}/${sessionId}/new_round`);
   }
-
-  const session = (data as any).session;
 
   /**
    * FIXME
@@ -31,75 +28,126 @@
    */
 
   // players ohne Dummy
-  const players = [...sessionMembers]
+  /*const players = [...sessionMembers]
     .sort((a, b) => a.seatPos - b.seatPos)
     .map((sm) => {
       const gm = groupMembers.find((m: any) => m.id === sm.memberId);
       return gm?.nickname ?? "?";
-    });
+    }); */
 
-  // Dummy Daten für Erg
-  function getRounds() {
-    return [
-      // Runde 1
+  // ====== Ab hier neu: =========
+
+  // Daten aus .ts
+  export let data: PageData;
+
+  // Zugriff:
+  //const rounds = data.rounds; // result-Array
+  const rounds = Array.isArray(data.rounds) // Array
+    ? data.rounds
+    : data.rounds
+      ? [data.rounds]
+      : [];
+  const players = data.sessionMembers; // Spalten
+  const playerIds = players.map((p) => p.id); // Reihenfolge der Spalten
+  const sessionId = data.sessionId;
+  const groupId = data.groupId;
+
+  // TODO addFourRounds statt neue Runde
+  async function createRound() {
+    const nextRoundNum = (data.rounds?.length ?? 0) + 1;
+
+    await post(
+      `/api/group/${groupId}/session/${sessionId}/round`,
       {
-        points: ["+3", "-3", "+3", "-3"],
-        winners: [true, false, true, false],
+        roundNum: nextRoundNum,
+        gameType: "NORMAL", // DOTO muss zum GameType passen
+        soloKind: null,
+        eyesRe: 0,
       },
-      // Runde 2
-      {
-        points: ["-1", "-1", "+1", "-1"],
-        winners: [false, true, true, false],
-      },
-      // Runde 3
-      {
-        points: ["+9", "-3", "-3", "-3"],
-        winners: [true, false, false, false], // z.B. Team von Spieler 1 hat gewonnen
-      },
-      // Runde 4 (alle 0)
-      {
-        points: ["0", "0", "0", "0"],
-        winners: [true, true, false, false], // 0 kann dennoch grün ODER rot sein
-      },
-    ];
+      z.any()
+    );
   }
 
-  function colorClass(value: string, winner: boolean) {
-    // Pflichtsolo / neutral
-    if (value === "X") return "neutral";
+  // Hilfsfunktion für Anzeige
+  const nameOf = (p: any) => p.nickname;
 
-    // 0: Gewinner/Verlierer
-    if (value === "0") return winner ? "green" : "red";
+  // Logik für Runden
+  // Rundennummer
+  const roundLabel = (r: any, index: number) =>
+    r?.round?.roundNum ?? r?.roundNum ?? index + 1;
 
-    // reguläre Punkte
-    if (value.startsWith("+")) return "green";
-    if (value.startsWith("-")) return "red";
+  // Hilfsfunktion
+  const valueFor = (r: any, playerId: string): number | null =>
+    r?.pointsByPlayerId?.[playerId] ?? null;
 
-    return "neutral";
+  // Formatierung für UI Anzeige
+  const fmt = (v: number | null) =>
+    v === null ? "—" : v > 0 ? `+${v}` : `${v}`;
+
+  // Farben für UI Anzeige
+  function colorClass(v: number | null) {
+    if (v === null) return "neutral"; // noch keine Punkte berechnet = grau
+    if (v > 0) return "green";
+    if (v < 0) return "red";
+    return "neutral"; // 0 = neutral
   }
 
-  const rounds = getRounds();
+  // === Pflichtsolo Logik ===
+  // Hilfsfunktion, prüfen ob solo Runde
+  const isSoloRound = (r: any) =>
+    (r?.round?.gameType ?? r?.gameType ?? "").startsWith("SOLO_");
 
-  let columns = players.map((_, pIndex) => {
-    return rounds.map((r) => ({
-      value: r.points[pIndex],
-      winner: r.winners[pIndex],
-    }));
+  // Solo-Runden herausfiltern
+  const soloRounds = rounds.filter(isSoloRound);
+
+  // Participations holen
+  const partsOf = (r: any) => r?.participation ?? r?.participations ?? [];
+
+  // ID aus Participation holen (playerId/memberId)
+  const idOfPart = (p: any) => p.playerId ?? p.memberId ?? p.id;
+
+  // Solo Spieler bestimmen
+  function soloistIdOf(r: any): string | null {
+    const parts = partsOf(r);
+
+    const re = parts.filter((p: any) => p.side === "RE");
+    const ko = parts.filter((p: any) => p.side === "KONTRA");
+
+    if (re.length === 1) return idOfPart(re[0]);
+    if (ko.length === 1) return idOfPart(ko[0]);
+
+    return null;
+  }
+  // Map: SpielerId -> die Solo-Runde dieses Spielers
+  const soloRoundByPlayerId = new Map<string, any>();
+
+  for (const r of soloRounds) {
+    const soloistId = soloistIdOf(r);
+    if (soloistId && !soloRoundByPlayerId.has(soloistId)) {
+      soloRoundByPlayerId.set(soloistId, r);
+    }
+  }
+  type PfCell = number | null | "X" | "-";
+
+  // Pflichtsolo-Tabelle: 1 Zeile pro Spieler
+  const pflichtsoloRows: PfCell[][] = playerIds.map((pid) => {
+    const soloRound = soloRoundByPlayerId.get(pid);
+    // Spieler hat Solo gespielt = Punkte dieser Solo-Runde anzeigen
+    if (soloRound) {
+      return playerIds.map(
+        (cellPid) => soloRound?.pointsByPlayerId?.[cellPid] ?? null
+      );
+    }
+    // Spieler hat noch kein Solo gespielt -> X / -
+    return playerIds.map((cellPid) => (cellPid === pid ? "X" : "-"));
   });
 
-  // Dummy Pflichtsolo-Daten
-  const pflichtsolo = [
-    ["X", "-", "X", "-"],
-    ["-2", "+6", "-2", "-2"],
-    ["-", "X", "-", "X"],
-    ["-", "-", "-", "-"],
-  ];
-
-  // Dummy Summe-Daten
-  const sum = {
-    values: ["+11", "-3", "-1", "-9"],
-    winners: [true, false, false, false],
-  };
+  // ==== Summe berechnen (Runde für Runde) ====
+  const totalFor = (playerId: string) =>
+    rounds.reduce(
+      (sum: number, r: any) => sum + (valueFor(r, playerId) ?? 0),
+      0
+    );
 </script>
 
 <div class="page-content">
@@ -111,26 +159,26 @@
     style="display: grid; grid-template-columns: 60px repeat({players.length}, 1fr); gap: 12px;"
   >
     <div class="round-number"></div>
-    <!-- leere Zelle über den Rundennummern -->
 
-    {#each players as p}
-      <Button class="player-btn" variant="outlined">{p}</Button>
+    {#each players as p (p.id)}
+      <Button class="player-btn" variant="outlined">{nameOf(p)}</Button>
     {/each}
   </div>
 
   <!-- Aufbau Runden -->
   <div
     class="round-grid"
-    style="display: grid; grid-template-columns: 60px repeat({columns.length}, 1fr); gap: 12px;"
+    style="display: grid; grid-template-columns: 60px repeat({players.length}, 1fr); gap: 12px;"
   >
-    <!-- Spalte: Rundennummer -->
-    {#each columns[0] as _, rIndex}
-      <div class="round-number">{rIndex + 1}</div>
+    {#each rounds as r, rIndex}
+      <!-- Spalte: Rundennummer -->
+      <div class="round-number">{roundLabel(r, rIndex)}</div>
 
-      <!-- Spalte: Punkte pro Spieler -->
-      {#each columns as col}
-        <div class="cell {colorClass(col[rIndex].value, col[rIndex].winner)}">
-          {col[rIndex].value}
+      <!-- Spalten: Punkte pro Spieler -->
+      {#each playerIds as pid}
+        {@const v = valueFor(r, pid)}
+        <div class="cell {colorClass(v)}">
+          {fmt(v)}
         </div>
       {/each}
 
@@ -141,41 +189,32 @@
     {/each}
   </div>
 
-  <!-- Pflichtsolo Titel -->
-  <div class="section-title">Pflichtsolos</div>
+  {#each pflichtsoloRows as row, rIndex}
+    <div class="round-number">{rIndex + 1}</div>
 
-  <div
-    class="round-grid"
-    style="display: grid; grid-template-columns: 60px repeat({players.length}, 1fr); gap: 12px;"
-  >
-    {#each pflichtsolo as row, rIndex}
-      <!-- Zeilennummer -->
-      <div class="round-number">{rIndex + 1}</div>
-
-      <!-- Zellen pro Spieler -->
-      {#each row as value, pIndex}
-        <div class="cell {colorClass(value, false)}">
-          {value}
-        </div>
-      {/each}
+    {#each row as cell}
+      {#if typeof cell === "number" || cell === null}
+        <div class="cell {colorClass(cell)}">{fmt(cell)}</div>
+      {:else}
+        <div class="cell neutral">{cell}</div>
+      {/if}
     {/each}
-  </div>
+  {/each}
 
   <!-- Summe -->
   <div class="section-title">Summe</div>
 
   <div
     class="round-grid"
-    style="display: grid; grid-template-columns: 60px repeat({columns.length}, 1fr); gap: 12px;"
+    style="display: grid; grid-template-columns: repeat({players.length}, 1fr); gap: 12px;"
   >
-    <div class="round-number"></div>
-
-    {#each sum.values as value, i}
-      <div class="cell {colorClass(value, sum.winners[i])}">
-        {value}
-      </div>
+    {#each playerIds as pid}
+      {@const t = totalFor(pid)}
+      <div class="cell {colorClass(t)}">{fmt(t)}</div>
     {/each}
   </div>
+
+  <!-- Plusbutton-->
   <PlusButton {addSomething} />
 </div>
 
