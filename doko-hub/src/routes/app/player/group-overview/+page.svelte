@@ -69,7 +69,7 @@
       >Spieler: {group.members
         //TODO: the nickname is never actually null but the DTOs don't reflect that
         .map(({ nickname }) => nickname!)
-        .join()}</SecondaryText
+        .join(", ")}</SecondaryText
     >
     <SecondaryText>
       {#if group.lastPlayedOn}

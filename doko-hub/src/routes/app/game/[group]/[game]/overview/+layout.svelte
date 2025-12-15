@@ -1,5 +1,10 @@
 <!--FIXME: Clanker code >:(-->
 <script lang="ts">
+  /**
+   * FIXME: Die Tab-Navigation ist broken.
+   * Dieser Code sollte mit **Svelte-5**-Code ähnlich
+   * zu dem in `/app/group/+layout.svelte` ersetzt werden
+   */
   import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
   import IconButton from "@smui/icon-button";
   import TabBar from "@smui/tab-bar";
