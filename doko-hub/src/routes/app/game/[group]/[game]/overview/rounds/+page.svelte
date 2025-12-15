@@ -47,8 +47,28 @@
     : data.rounds
       ? [data.rounds]
       : [];
-  const players = data.sessionMembers; // Spalten
-  const playerIds = players.map((p) => p.id); // Reihenfolge der Spalten
+  //const players = data.sessionMembers; // Spalten
+  //const playerIds = players.map((p) => p.id); // Reihenfolge der Spalten
+  // viewPlayers
+  const sessionMembers = data.sessionMembers ?? [];
+  const groupMembers = data.groupMembers ?? [];
+  // Spieler in Sitzreihenfolge: SessionMember → GroupMember join über memberId
+  const viewPlayers = [...sessionMembers]
+    .sort((a, b) => (a.seatPos ?? 0) - (b.seatPos ?? 0))
+    .map((sm) => {
+      const gm = groupMembers.find((m: any) => m.id === sm.memberId);
+      return {
+        id: sm.id ?? sm.memberId,
+        name: gm?.nickname ?? "?",
+
+        sessionMemberId: sm.id,
+        memberId: sm.memberId,
+        seatPos: sm.seatPos,
+      };
+    });
+
+  const playerIds = viewPlayers.map((p) => p.sessionMemberId ?? p.id);
+
   const sessionId = data.sessionId;
   const groupId = data.groupId;
 
@@ -69,7 +89,7 @@
   }
 
   // Hilfsfunktion für Anzeige
-  const nameOf = (p: any) => p.nickname;
+  //const nameOf = (p: any) => p.nickname;
 
   // Logik für Runden
   // Rundennummer
@@ -156,19 +176,19 @@
   <!-- buttons für Spieler -->
   <div
     class="players"
-    style="display: grid; grid-template-columns: 60px repeat({players.length}, 1fr); gap: 12px;"
+    style="display: grid; grid-template-columns: 60px repeat({viewPlayers.length}, 1fr); gap: 12px;"
   >
     <div class="round-number"></div>
 
-    {#each players as p (p.id)}
-      <Button class="player-btn" variant="outlined">{nameOf(p)}</Button>
+    {#each viewPlayers as p (p.id)}
+      <Button class="player-btn" variant="outlined">{p.name}</Button>
     {/each}
   </div>
 
   <!-- Aufbau Runden -->
   <div
     class="round-grid"
-    style="display: grid; grid-template-columns: 60px repeat({players.length}, 1fr); gap: 12px;"
+    style="display: grid; grid-template-columns: 60px repeat({viewPlayers.length}, 1fr); gap: 12px;"
   >
     {#each rounds as r, rIndex}
       <!-- Spalte: Rundennummer -->
@@ -190,7 +210,7 @@
   </div>
 
   {#each pflichtsoloRows as row, rIndex}
-    <div class="round-number">{rIndex + 1}</div>
+    <div class="round-number">Pflichtsolos</div>
 
     {#each row as cell}
       {#if typeof cell === "number" || cell === null}
@@ -206,7 +226,7 @@
 
   <div
     class="round-grid"
-    style="display: grid; grid-template-columns: repeat({players.length}, 1fr); gap: 12px;"
+    style="display: grid; grid-template-columns: repeat({viewPlayers.length}, 1fr); gap: 12px;"
   >
     {#each playerIds as pid}
       {@const t = totalFor(pid)}
