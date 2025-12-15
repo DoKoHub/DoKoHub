@@ -3,8 +3,9 @@
   Am besten wird er neu geschrieben.
 
   Vorschläge:
-  1. Dialoge in eigene Komponenten rausziehen
-  2. DTOs anpassen
+  1. Dialoge in eigene Komponenten rausziehen!!!
+  2. DTOs anpassen!!!!
+  3. Keine Silliness mit HTML+CSS sondern SMUI dafür nutzen wofür es gemacht wurde >:(
 -->
 <script lang="ts">
   import Button, { Label } from "@smui/button";
@@ -27,7 +28,6 @@
     type Side,
     SoloKind,
     UUID,
-    RoundParticipation,
   } from "$lib/types";
   import { post } from "$lib/frontend/fetch";
   import z from "zod";
@@ -48,7 +48,8 @@
 
   const { data }: PageProps = $props();
 
-  const { session } = $state.snapshot(data);
+  //svelte-ignore state_referenced_locally only fetched once on page load, so copying is fine here
+  const { session, next_round_number } = data;
   const gameId = session.id;
   const groupId = session.groupId;
 
@@ -83,7 +84,6 @@
   // ================== Navigation / AppBar ==================
 
   function goBack() {
-    //TODO: gruppen-ID vom Backend holen
     goto(`/app/game/${groupId}/${gameId}/overview/rounds`);
   }
 
@@ -140,7 +140,6 @@
   function confirmAnnouncements() {
     if (activePlayer === null) return;
 
-    //TODO: handle the side of the announcement
     activePlayer.announcementSide = announcementSide;
     activePlayer.announcementSummary = selectedAnnouncements;
 
@@ -152,6 +151,7 @@
   let saveErrorDialogOpen = $state(false);
   let saveErrors: string[] = $state([]);
   function collectSaveErrors(): string[] {
+    //TODO: Diese """Regeln""" müssen doppelgeprüft werden, da AI-generiert >:(
     const errors: string[] = [];
 
     // 1️. Regel: Re-Partei muss genau 1 Spieler haben
@@ -227,7 +227,7 @@
     const { round } = await post(
       `/api/group/${groupId}/session/${gameId}/round`,
       {
-        roundNum: 1, //TODO: how do we get the current round number?
+        roundNum: next_round_number,
         gameType,
         soloKind,
         eyesRe,
@@ -258,21 +258,21 @@
       }
 
       for (const [bonus, n] of Object.entries(player.specialSummary)) {
-        //TODO: what to do about multiple bonusses?
-        if (n === 0) continue;
-
-        await post(
-          `/api/group/${groupId}/session/${gameId}/round/${round.id}/bonus`,
-          {
-            memberId: player.id,
-            bonus,
-          },
-          z.any()
-        );
+        for (let i = 0; i != n; ++i) {
+          await post(
+            `/api/group/${groupId}/session/${gameId}/round/${round.id}/bonus`,
+            {
+              memberId: player.id,
+              bonus,
+            },
+            z.any()
+          );
+        }
       }
     }
 
-    console.table(players_);
+    // After all's done, we can safely go back to the round overview :)
+    goBack();
   }
 
   function handleSaveClick() {
@@ -502,7 +502,7 @@
           <div class="row-label">
             <strong>An-/Absagen</strong>
             <div class="row-value">
-              {player.announcementSummary.keys().toArray().join(", ")}
+              {Array.from(player.announcementSummary).join(", ")}
             </div>
           </div>
           <span class="material-icons row-icon">edit</span>
