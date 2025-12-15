@@ -10,7 +10,7 @@
 
   // Funktion für Plus Button
   function addSomething() {
-    //goto(`/app/game/${params.group}/${sessionId}/new_round`);
+    goto(`/app/game/${groupId}/${sessionId}/new_round`);
   }
 
   /**
@@ -148,6 +148,20 @@
     }
   }
   type PfCell = number | null | "X" | "-";
+  function pfColor(cell: PfCell) {
+    if (cell === "X") return "neutral"; // grau
+    if (cell === "-") return "red"; // rot
+    if (cell === null) return "neutral";
+    if (cell > 0) return "green";
+    if (cell < 0) return "red";
+    return "neutral"; // 0
+  }
+
+  function pfText(cell: PfCell) {
+    if (cell === null) return "—";
+    if (cell === "X" || cell === "-") return cell;
+    return cell > 0 ? `+${cell}` : `${cell}`;
+  }
 
   // Pflichtsolo-Tabelle: 1 Zeile pro Spieler
   const pflichtsoloRows: PfCell[][] = playerIds.map((pid) => {
@@ -209,17 +223,21 @@
     {/each}
   </div>
 
-  {#each pflichtsoloRows as row, rIndex}
-    <div class="round-number">Pflichtsolos</div>
+  <div class="section-title">Pflichtsolos</div>
+  <div
+    class="round-grid"
+    style="display: grid; grid-template-columns: 60px repeat({viewPlayers.length}, 1fr); gap: 12px;"
+  >
+    {#each pflichtsoloRows as row, rIndex}
+      <div class="round-number">{rIndex + 1}</div>
 
-    {#each row as cell}
-      {#if typeof cell === "number" || cell === null}
-        <div class="cell {colorClass(cell)}">{fmt(cell)}</div>
-      {:else}
-        <div class="cell neutral">{cell}</div>
-      {/if}
+      {#each row as cell}
+        <div class="cell {pfColor(cell)}">
+          {pfText(cell)}
+        </div>
+      {/each}
     {/each}
-  {/each}
+  </div>
 
   <!-- Summe -->
   <div class="section-title">Summe</div>
