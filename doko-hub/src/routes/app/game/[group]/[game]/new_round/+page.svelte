@@ -1,6 +1,12 @@
-<!--FIXME: Clanker code >:(-->
+<!--FIXME: Clanker code >:(
+  Der Code unten muss großflächig überarbeitet werden.
+  Am besten wird er neu geschrieben.
+
+  Vorschläge:
+  1. Dialoge in eigene Komponenten rausziehen
+  2. DTOs anpassen
+-->
 <script lang="ts">
-  import TopAppBar, { Section, Title } from "@smui/top-app-bar";
   import Button, { Label } from "@smui/button";
   import IconButton from "@smui/icon-button";
   import Textfield from "@smui/textfield";
@@ -12,245 +18,135 @@
   } from "@smui/dialog";
   import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
-  import { UUID } from "$lib/types";
 
-  //FIXME: Statt eigener Typen sollten die DTOs verwendet werden
+  import {
+    BonusType,
+    CallType,
+    type GameType,
+    Round,
+    type Side,
+    SoloKind,
+    UUID,
+    RoundParticipation,
+  } from "$lib/types";
+  import { post } from "$lib/frontend/fetch";
+  import z from "zod";
+
   // ================== Typen ==================
 
-  // Spielvariante
-  type GameType = "normal" | "wedding" | "solo";
-
-  // Hochzeit-Untervariante
-  type WeddingType = "normal" | "silent" | "unclear";
-
-  // Solo-Trumpf
-  type SoloTrump =
-    | "buben"
-    | "damen"
-    | "as"
-    | "clubs"
-    | "spades"
-    | "hearts"
-    | "diamonds";
-
-  // Partei
-  type Side = "re" | "contra" | "none";
-
-  type Player = {
+  interface Player {
+    id: UUID;
     name: string;
-    side: Side;
-    specialSummary: string; // z.B. "1 Fuchs, 1 Karlchen"
-    announcementSummary: string; // z.B. "Re: K90"
-  };
+    side: Side | null;
+
+    specialSummary: Record<BonusType, number>;
+    announcementSide: Side;
+    announcementSummary: Set<CallType>;
+  }
 
   // ================== Zustand ==================
 
-  const { params }: PageProps = $props();
+  const { data }: PageProps = $props();
 
-  //svelte-ignore state_referenced_locally The game ID is static from the URL, so copying is fine
-  const gameId = UUID.parse(params.game);
+  const { session } = $state.snapshot(data);
+  const gameId = session.id;
+  const groupId = session.groupId;
 
-  let gameType: GameType = $state("normal");
-  let weddingType: WeddingType = $state("normal");
+  let gameType: GameType = $state("NORMAL");
   let soloIsCompulsory = $state(true); // true = Pflichtsolo, false = Lustsolo
-  let soloTrump: SoloTrump = $state("buben");
 
-  let winnerSide: Side = $state("re"); // Partei, die (voraussichtlich) gewinnt
-  let eyes = $state("67");
+  let winnerSide: Side = $state("RE"); // Partei, die (voraussichtlich) gewinnt
+  let eyes = $state(42);
 
-  //TODO: fetch from backend
-  let players: Player[] = [
-    {
-      name: "Maurice",
-      side: "none",
-      specialSummary: "Keine",
-      announcementSummary: "Keine",
-    },
-    {
-      name: "Fabian",
-      side: "none",
-      specialSummary: "Keine",
-      announcementSummary: "Keine",
-    },
-    {
-      name: "Marcel",
-      side: "none",
-      specialSummary: "Keine",
-      announcementSummary: "Keine",
-    },
-    {
-      name: "Nick",
-      side: "none",
-      specialSummary: "Keine",
-      announcementSummary: "Keine",
-    },
-  ];
+  let players: Player[] = $state(
+    session.members.map(({ memberId, nickname }) => ({
+      id: memberId,
+      name: nickname!, //FIXME: the nickname is never null but the DTOs don't reflect that
+      side: null,
+      specialSummary: {
+        DOKO: 0,
+        FUCHS: 0,
+        KARLCHEN: 0,
+      },
+      announcementSide: "RE",
+      announcementSummary: new Set(),
+    }))
+  );
 
   // Welcher Spieler wird gerade im Dialog bearbeitet?
-  let activePlayerIndex: number | null = null;
+  let activePlayer: Player | null = $state(null);
+
+  function isSolo(game_type: GameType) {
+    return game_type.startsWith("SOLO_");
+  }
 
   // ================== Navigation / AppBar ==================
 
   function goBack() {
     //TODO: gruppen-ID vom Backend holen
-    goto(`/app/game/[game]/overview/rounds`);
-  }
-
-  // ================== Spielvariante auswählen ==================
-
-  function selectGameType(type: GameType) {
-    gameType = type;
-  }
-
-  function selectWeddingType(type: WeddingType) {
-    weddingType = type;
-  }
-
-  function selectSoloKind(kind: "pflicht" | "lust") {
-    soloIsCompulsory = kind === "pflicht";
-  }
-
-  function selectSoloTrump(trump: SoloTrump) {
-    soloTrump = trump;
-  }
-
-  // ================== Augen / Siegerpartei ==================
-
-  function selectWinnerSide(side: Side) {
-    if (side === "none") return;
-    winnerSide = side;
-  }
-
-  function clearEyes() {
-    eyes = "";
+    goto(`/app/game/${groupId}/${gameId}/overview/rounds`);
   }
 
   // ================== Spieler-Seite toggeln ==================
 
-  function cyclePlayerSide(index: number) {
-    const current = players[index].side;
-    let next: Side;
-
-    if (current === "none") {
-      // erster Klick → Gewinner-Partei, falls gesetzt, sonst "re"
-      next = winnerSide === "re" || winnerSide === "contra" ? winnerSide : "re";
-    } else if (current === "re") {
-      next = "contra";
+  function cyclePlayerSide(player: Player) {
+    if (player.side === "RE") {
+      player.side = "KONTRA";
     } else {
-      next = "none";
+      player.side = "RE";
     }
-
-    players[index] = { ...players[index], side: next };
   }
 
+  // Extrapunkte-Dialog
+  let extraDialogOpen = $state(false);
+
+  function open_extra_dialog(player: Player) {
+    activePlayer = player;
+    extraDialogOpen = true;
+  }
+
+  function changeExtra(k: BonusType, delta: -1 | 1) {
+    if (!activePlayer) return;
+
+    activePlayer.specialSummary[k] += delta;
+  }
   // ================== Ansagen-Dialog ==================
 
-  type AnnouncementSide = "re" | "contra";
-  const ANNOUNCEMENT_OPTIONS = ["K90", "K60", "K30", "Schwarz"] as const;
-  type AnnouncementOption = (typeof ANNOUNCEMENT_OPTIONS)[number];
-
   let announcementDialogOpen = $state(false);
-  let announcementSide: AnnouncementSide = $state("re");
-  let selectedAnnouncements = $state(new Set<AnnouncementOption>());
+  let announcementSide: Side = $state("RE");
+  let selectedAnnouncements = $state(new Set<CallType>());
 
-  function openAnnouncementDialog(index: number) {
-    activePlayerIndex = index;
+  function openAnnouncementDialog(player: Player) {
+    activePlayer = player;
     announcementDialogOpen = true;
 
-    const player = players[index];
-    announcementSide = player.side === "contra" ? "contra" : "re";
+    announcementSide = player.side ?? "RE";
     selectedAnnouncements = new Set();
   }
 
-  function toggleAnnouncementOption(opt: AnnouncementOption) {
-    const next = new Set(selectedAnnouncements);
-    if (next.has(opt)) {
-      next.delete(opt);
+  function toggleAnnouncementOption(opt: CallType) {
+    if (selectedAnnouncements.has(opt)) {
+      selectedAnnouncements.delete(opt);
     } else {
-      next.add(opt);
+      selectedAnnouncements.add(opt);
     }
-    selectedAnnouncements = next;
   }
 
   function closeAnnouncementDialog() {
     announcementDialogOpen = false;
-    activePlayerIndex = null;
+    activePlayer = null;
   }
 
   function confirmAnnouncements() {
-    if (activePlayerIndex === null) return;
+    if (activePlayer === null) return;
 
-    if (selectedAnnouncements.size === 0) {
-      players[activePlayerIndex] = {
-        ...players[activePlayerIndex],
-        announcementSummary: "Keine",
-      };
-    } else {
-      const sideLabel = announcementSide === "re" ? "Re" : "Contra";
-      const optionsText = Array.from(selectedAnnouncements).join(", ");
-      players[activePlayerIndex] = {
-        ...players[activePlayerIndex],
-        announcementSummary: `${sideLabel}: ${optionsText}`,
-      };
-    }
+    //TODO: handle the side of the announcement
+    activePlayer.announcementSide = announcementSide;
+    activePlayer.announcementSummary = selectedAnnouncements;
 
     closeAnnouncementDialog();
   }
 
-  // ================== Sonderpunkte-Dialog ==================
-
-  const EXTRA_TYPES = ["Fuchs", "Doppelkopf"] as const;
-  type ExtraType = (typeof EXTRA_TYPES)[number];
-
-  let extraDialogOpen = $state(false);
-  let extraFuchs = $state(0);
-  let extraDoppelkopf = $state(0);
-  let extraKarlchen = $state(false);
-
-  function openExtraDialog(index: number) {
-    activePlayerIndex = index;
-    extraDialogOpen = true;
-
-    // Prototyp: Immer leer starten
-    extraFuchs = 0;
-    extraDoppelkopf = 0;
-    extraKarlchen = false;
-  }
-
-  function changeExtra(kind: ExtraType, delta: number) {
-    if (kind === "Fuchs") {
-      extraFuchs = Math.max(0, extraFuchs + delta);
-    } else {
-      extraDoppelkopf = Math.max(0, extraDoppelkopf + delta);
-    }
-  }
-
-  function toggleKarlchen() {
-    extraKarlchen = !extraKarlchen;
-  }
-
-  function closeExtraDialog() {
-    extraDialogOpen = false;
-    activePlayerIndex = null;
-  }
-
-  function confirmExtra() {
-    if (activePlayerIndex === null) return;
-
-    const parts: string[] = [];
-    if (extraFuchs > 0) parts.push(`${extraFuchs} Fuchs`);
-    if (extraDoppelkopf > 0) parts.push(`${extraDoppelkopf} Doppelkopf`);
-    if (extraKarlchen) parts.push("1 Karlchen");
-
-    const text = parts.length > 0 ? parts.join(", ") : "Keine";
-
-    players[activePlayerIndex] = {
-      ...players[activePlayerIndex],
-      specialSummary: text,
-    };
-
-    closeExtraDialog();
-  }
   // ================== Speichern-Validierung ==================
 
   let saveErrorDialogOpen = $state(false);
@@ -259,7 +155,7 @@
     const errors: string[] = [];
 
     // 1️. Regel: Re-Partei muss genau 1 Spieler haben
-    const rePlayers = players.filter((p) => p.side === "re").length;
+    const rePlayers = players.filter((p) => p.side === "RE").length;
     if (rePlayers !== 1) {
       errors.push(
         `Derzeit sind ${rePlayers} Spieler in der Reh-Partei. Es muss jedoch genau 1 Spieler sein.`
@@ -268,11 +164,11 @@
 
     // 2️. Regel: K90 nur erlaubt, wenn Re oder Contra angesagt wurde
     const anyAnnouncement = players.some(
-      (p) => p.announcementSummary && p.announcementSummary !== ""
+      (p) => p.announcementSummary.size !== 0
     );
 
     const reOrContraChosen = players.some(
-      (p) => p.side === "re" || p.side === "contra"
+      (p) => p.side === "RE" || p.side === "KONTRA"
     );
 
     if (anyAnnouncement && !reOrContraChosen) {
@@ -283,7 +179,7 @@
 
     // 3️. Regel: Max 2 Füchse erlaubt
     const foxCount = players.reduce((sum, p) => {
-      return sum + (p.specialSummary?.toLowerCase().includes("fuchs") ? 1 : 0);
+      return sum + p.specialSummary.FUCHS;
     }, 0);
 
     if (foxCount > 2) {
@@ -292,14 +188,14 @@
       );
     }
     // Regel: Sonderpunkte sind nicht erlaubt bei stiller/unklarer Hochzeit
-    if (
-      gameType === "wedding" &&
-      (weddingType === "silent" || weddingType === "unclear")
-    ) {
+    if (gameType === "HOCHZEIT_STILL" || gameType === "HOCHZEIT_UNKNOWN") {
       const hasAnySpecialPoints = players.some(
-        (p) => p.specialSummary && p.specialSummary.toLowerCase() !== "keine"
+        ({ specialSummary }) =>
+          specialSummary.DOKO +
+            specialSummary.FUCHS +
+            specialSummary.KARLCHEN !==
+          0
       );
-
       if (hasAnySpecialPoints) {
         errors.push(
           "Sonderpunkte gibt es nicht bei einer stillen Hochzeit und bei einer Hochzeit ohne Klärung."
@@ -311,18 +207,74 @@
   }
   // ================== Speichern ==================
 
-  function saveRound() {
-    // Hier später API-Call einbauen
-    console.log("Speichern (Prototyp)", {
-      gameType,
-      weddingType,
-      soloIsCompulsory,
-      soloTrump,
-      winnerSide,
-      eyes,
-      players,
-    });
+  async function saveRound() {
+    //This silliness is required because of sveltes' deep reactive state. The objects inside the array are only lazily updated
+    const players_ = $state.snapshot(players);
+
+    //FIXME: the below should be a single API call to ensure data integrity!
+    // Create new session
+
+    let soloKind: SoloKind | null = null;
+    if (isSolo(gameType)) {
+      soloKind = soloIsCompulsory ? "PFLICHT" : "LUST";
+    }
+
+    let eyesRe = eyes;
+    if (winnerSide === "KONTRA") {
+      eyesRe = 240 - eyes;
+    }
+
+    const { round } = await post(
+      `/api/group/${groupId}/session/${gameId}/round`,
+      {
+        roundNum: 1, //TODO: how do we get the current round number?
+        gameType,
+        soloKind,
+        eyesRe,
+      },
+      z.object({ message: z.string(), round: Round })
+    );
+
+    // Add members
+    for (const player of players_) {
+      await post(
+        `/api/group/${groupId}/session/${gameId}/round/${round.id}/participation`,
+        {
+          memberId: player.id,
+          side: player.side!,
+        },
+        z.any()
+      );
+
+      for (const call of player.announcementSummary) {
+        await post(
+          `/api/group/${groupId}/session/${gameId}/round/${round.id}/call`,
+          {
+            memberId: player.id,
+            call,
+          },
+          z.any()
+        );
+      }
+
+      for (const [bonus, n] of Object.entries(player.specialSummary)) {
+        //TODO: what to do about multiple bonusses?
+        if (n === 0) continue;
+
+        await post(
+          `/api/group/${groupId}/session/${gameId}/round/${round.id}/bonus`,
+          {
+            memberId: player.id,
+            bonus,
+          },
+          z.any()
+        );
+      }
+    }
+
+    console.table(players_);
   }
+
   function handleSaveClick() {
     const errors = collectSaveErrors();
 
@@ -340,10 +292,10 @@
 
   function canSaveRound(): boolean {
     // 1. alle Spieler müssen eine Seite haben (nicht "none")
-    const allPlayersSet = players.every((p) => p.side !== "none");
+    const allPlayersSet = players.every((p) => p.side !== null);
 
     // 2. Augen dürfen nicht leer sein
-    const hasEyes = eyes.trim() !== "";
+    const hasEyes = eyes !== 0;
 
     return allPlayersSet && hasEyes;
   }
@@ -370,72 +322,60 @@
     <div class="segmented-row">
       <Button
         class={"segmented-btn " +
-          (gameType === "normal" ? "segmented-btn--active" : "")}
-        variant={gameType === "normal" ? "raised" : "outlined"}
-        onclick={() => selectGameType("normal")}
+          (gameType === "NORMAL" ? "segmented-btn--active" : "")}
+        variant={gameType === "NORMAL" ? "raised" : "outlined"}
+        onclick={() => (gameType = "NORMAL")}
       >
         <Label>Normal</Label>
       </Button>
 
       <Button
         class={"segmented-btn " +
-          (gameType === "wedding" ? "segmented-btn--active" : "")}
-        variant={gameType === "wedding" ? "raised" : "outlined"}
-        onclick={() => selectGameType("wedding")}
+          (gameType === "HOCHZEIT_NORMAL" ? "segmented-btn--active" : "")}
+        variant={gameType === "HOCHZEIT_NORMAL" ? "raised" : "outlined"}
+        onclick={() => (gameType = "HOCHZEIT_NORMAL")}
       >
         <Label>Hochzeit</Label>
       </Button>
 
       <Button
         class={"segmented-btn " +
-          (gameType === "solo" ? "segmented-btn--active" : "")}
-        variant={gameType === "solo" ? "raised" : "outlined"}
-        onclick={() => selectGameType("solo")}
+          (isSolo(gameType) ? "segmented-btn--active" : "")}
+        variant={isSolo(gameType) ? "raised" : "outlined"}
+        onclick={() => (gameType = "SOLO_BUBEN")}
       >
         <Label>Solo</Label>
       </Button>
     </div>
 
     <!-- Hochzeit-Untervariante -->
-    {#if gameType === "wedding"}
+    {#if gameType.startsWith("HOCHZEIT_")}
       <div class="segmented-row segmented-row--sub">
-        <Button
-          class={"segmented-btn " +
-            (weddingType === "normal" ? "segmented-btn--active" : "")}
-          variant={weddingType === "normal" ? "raised" : "outlined"}
-          onclick={() => selectWeddingType("normal")}
-        >
-          <Label>Normal</Label>
-        </Button>
+        {#snippet WeddingOption(type: GameType, label: string)}
+          <Button
+            class={"segmented-btn " +
+              (gameType === type ? "segmented-btn--active" : "")}
+            variant={gameType === type ? "raised" : "outlined"}
+            onclick={() => (gameType = type)}
+          >
+            <Label>{label}</Label>
+          </Button>
+        {/snippet}
 
-        <Button
-          class={"segmented-btn " +
-            (weddingType === "silent" ? "segmented-btn--active" : "")}
-          variant={weddingType === "silent" ? "raised" : "outlined"}
-          onclick={() => selectWeddingType("silent")}
-        >
-          <Label>Still</Label>
-        </Button>
-
-        <Button
-          class={"segmented-btn " +
-            (weddingType === "unclear" ? "segmented-btn--active" : "")}
-          variant={weddingType === "unclear" ? "raised" : "outlined"}
-          onclick={() => selectWeddingType("unclear")}
-        >
-          <Label>Ohne Klärung</Label>
-        </Button>
+        {@render WeddingOption("HOCHZEIT_NORMAL", "Normal")}
+        {@render WeddingOption("HOCHZEIT_STILL", "Still")}
+        {@render WeddingOption("HOCHZEIT_UNKNOWN", "Ungeklärt")}
       </div>
     {/if}
 
     <!-- Solo-Untervariante -->
-    {#if gameType === "solo"}
+    {#if isSolo(gameType)}
       <div class="segmented-row segmented-row--sub">
         <Button
           class={"segmented-btn " +
             (soloIsCompulsory ? "segmented-btn--active" : "")}
           variant={soloIsCompulsory ? "raised" : "outlined"}
-          onclick={() => selectSoloKind("pflicht")}
+          onclick={() => (soloIsCompulsory = true)}
         >
           <Label>Pflichtsolo</Label>
         </Button>
@@ -444,75 +384,33 @@
           class={"segmented-btn " +
             (!soloIsCompulsory ? "segmented-btn--active" : "")}
           variant={!soloIsCompulsory ? "raised" : "outlined"}
-          onclick={() => selectSoloKind("lust")}
+          onclick={() => (soloIsCompulsory = false)}
         >
           <Label>Lustsolo</Label>
         </Button>
       </div>
 
       <div class="segmented-row segmented-row--sub trumpf-row">
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "buben" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "buben" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("buben")}
-        >
-          <Label>Buben</Label>
-        </Button>
+        {#snippet SoloOption(type: GameType, label: string)}
+          <Button
+            class={"segmented-chip " +
+              (gameType === type ? "segmented-chip--active" : "")}
+            variant={gameType === type ? "raised" : "outlined"}
+            onclick={() => (gameType = type)}
+          >
+            <Label>{label}</Label>
+          </Button>
+        {/snippet}
 
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "damen" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "damen" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("damen")}
-        >
-          <Label>Damen</Label>
-        </Button>
-
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "as" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "as" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("as")}
-        >
-          <Label>AS</Label>
-        </Button>
-
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "clubs" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "clubs" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("clubs")}
-        >
-          <Label>♣</Label>
-        </Button>
-
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "spades" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "spades" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("spades")}
-        >
-          <Label>♠</Label>
-        </Button>
-
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "hearts" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "hearts" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("hearts")}
-        >
-          <Label>♥</Label>
-        </Button>
-
-        <Button
-          class={"segmented-chip " +
-            (soloTrump === "diamonds" ? "segmented-chip--active" : "")}
-          variant={soloTrump === "diamonds" ? "raised" : "outlined"}
-          onclick={() => selectSoloTrump("diamonds")}
-        >
-          <Label>♦</Label>
-        </Button>
+        <!--FIXME: Die Solo-Buttons sind zu breit für die meisten mobile screens -->
+        {@render SoloOption("SOLO_BUBEN", "Buben")}
+        {@render SoloOption("SOLO_DAMEN", "Damen")}
+        {@render SoloOption("SOLO_ASSE", "Ass")}
+        {@render SoloOption("SOLO_CLUBS", "♣")}
+        {@render SoloOption("SOLO_SPADES", "♠")}
+        {@render SoloOption("SOLO_HEARTS", "♥")}
+        {@render SoloOption("SOLO_DIAMONDS", "♦")}
+        <!--TODO: add the other solo options once the DTOs are ready-->
       </div>
     {/if}
   </section>
@@ -524,33 +422,35 @@
     <div class="segmented-row">
       <Button
         class={"segmented-btn " +
-          (winnerSide === "re" ? "segmented-btn--active" : "")}
-        variant={winnerSide === "re" ? "raised" : "outlined"}
-        onclick={() => selectWinnerSide("re")}
+          (winnerSide === "RE" ? "segmented-btn--active" : "")}
+        variant={winnerSide === "RE" ? "raised" : "outlined"}
+        onclick={() => (winnerSide = "RE")}
       >
         <Label>Re</Label>
       </Button>
 
       <Button
         class={"segmented-btn " +
-          (winnerSide === "contra" ? "segmented-btn--active" : "")}
-        variant={winnerSide === "contra" ? "raised" : "outlined"}
-        onclick={() => selectWinnerSide("contra")}
+          (winnerSide === "KONTRA" ? "segmented-btn--active" : "")}
+        variant={winnerSide === "KONTRA" ? "raised" : "outlined"}
+        onclick={() => (winnerSide = "KONTRA")}
       >
         <Label>Contra</Label>
       </Button>
     </div>
 
-    <!--FIXME: should be a number input-->
+    <!--Why is the top margin even necessary?????-->
     <Textfield
       label="Augen"
       variant="outlined"
       bind:value={eyes}
       withTrailingIcon
       class="eyes-textfield"
+      type="number"
+      style="margin-top: 16px"
     >
       {#snippet trailingIcon()}
-        <Icon class="material-icons" role="button" onclick={clearEyes}>
+        <Icon class="material-icons" role="button" onclick={() => (eyes = 0)}>
           close
         </Icon>
       {/snippet}
@@ -559,7 +459,7 @@
 
   <!-- ==== Spieler-Karten ==== -->
   <section class="players-grid">
-    {#each players as player, i}
+    {#each players as player}
       <article class="player-card">
         <div class="player-name">{player.name}</div>
 
@@ -567,30 +467,29 @@
         <!-- Status-Balken (Re / Contra / Nicht gespielt) -->
         <div
           class={"player-status-row clickable-row " +
-            (player.side === "re"
-              ? "status-re"
-              : player.side === "contra"
-                ? "status-contra"
+            (player.side === winnerSide
+              ? "status-won"
+              : player.side !== null
+                ? "status-lost"
                 : "status-none")}
-          on:click={() => cyclePlayerSide(i)}
+          onclick={() => cyclePlayerSide(player)}
         >
-          {#if player.side === "re"}
-            Re
-          {:else if player.side === "contra"}
-            Contra
-          {:else}
-            Nicht gespielt
-          {/if}
+          {player.side?.toString() ?? "Nicht gespielt"}
         </div>
 
         <!-- Sonderpunkte -->
         <div
           class="player-row clickable-row"
-          on:click={() => openExtraDialog(i)}
+          onclick={() => open_extra_dialog(player)}
         >
           <div class="row-label">
             <strong>Sonderpunkte</strong>
-            <div class="row-value">{player.specialSummary}</div>
+            <div class="row-value">
+              {Object.entries(player.specialSummary)
+                .filter(([_, v]) => v !== 0)
+                .map(([k, v]) => `${k}x${v}`)
+                .join(", ")}
+            </div>
           </div>
           <span class="material-icons row-icon">edit</span>
         </div>
@@ -598,11 +497,13 @@
         <!-- An- / Absagen -->
         <div
           class="player-row clickable-row"
-          on:click={() => openAnnouncementDialog(i)}
+          onclick={() => openAnnouncementDialog(player)}
         >
           <div class="row-label">
             <strong>An-/Absagen</strong>
-            <div class="row-value">{player.announcementSummary}</div>
+            <div class="row-value">
+              {player.announcementSummary.keys().toArray().join(", ")}
+            </div>
           </div>
           <span class="material-icons row-icon">edit</span>
         </div>
@@ -638,25 +539,26 @@
     <div class="dialog-segmented-row">
       <Button
         class={"segmented-btn " +
-          (announcementSide === "re" ? "segmented-btn--active" : "")}
-        variant={announcementSide === "re" ? "raised" : "outlined"}
-        onclick={() => (announcementSide = "re")}
+          (announcementSide === "RE" ? "segmented-btn--active" : "")}
+        variant={announcementSide === "RE" ? "raised" : "outlined"}
+        onclick={() => (announcementSide = "RE")}
       >
         <Label>Re</Label>
       </Button>
 
       <Button
         class={"segmented-btn " +
-          (announcementSide === "contra" ? "segmented-btn--active" : "")}
-        variant={announcementSide === "contra" ? "raised" : "outlined"}
-        onclick={() => (announcementSide = "contra")}
+          (announcementSide === "KONTRA" ? "segmented-btn--active" : "")}
+        variant={announcementSide === "KONTRA" ? "raised" : "outlined"}
+        onclick={() => (announcementSide = "KONTRA")}
       >
         <Label>Contra</Label>
       </Button>
     </div>
 
     <div class="dialog-chips-row">
-      {#each ANNOUNCEMENT_OPTIONS as opt}
+      <!--FIXME: this is stupid >:(-->
+      {#each ["KEINE90", "KEINE60", "KEINE30"] as const as opt}
         <Button
           class={"segmented-chip " +
             (selectedAnnouncements.has(opt) ? "segmented-chip--active" : "")}
@@ -688,11 +590,11 @@
     <div class="extra-row">
       <span>Fuchs</span>
       <div class="extra-counter">
-        <Button variant="outlined" onclick={() => changeExtra("Fuchs", -1)}>
+        <Button variant="outlined" onclick={() => changeExtra("FUCHS", -1)}>
           <Label>-</Label>
         </Button>
-        <span class="extra-value">{extraFuchs}</span>
-        <Button variant="outlined" onclick={() => changeExtra("Fuchs", 1)}>
+        <span class="extra-value">{activePlayer?.specialSummary.FUCHS}</span>
+        <Button variant="outlined" onclick={() => changeExtra("FUCHS", 1)}>
           <Label>+</Label>
         </Button>
       </div>
@@ -701,14 +603,11 @@
     <div class="extra-row">
       <span>Doppelkopf</span>
       <div class="extra-counter">
-        <Button
-          variant="outlined"
-          onclick={() => changeExtra("Doppelkopf", -1)}
-        >
+        <Button variant="outlined" onclick={() => changeExtra("DOKO", -1)}>
           <Label>-</Label>
         </Button>
-        <span class="extra-value">{extraDoppelkopf}</span>
-        <Button variant="outlined" onclick={() => changeExtra("Doppelkopf", 1)}>
+        <span class="extra-value">{activePlayer?.specialSummary.DOKO}</span>
+        <Button variant="outlined" onclick={() => changeExtra("DOKO", 1)}>
           <Label>+</Label>
         </Button>
       </div>
@@ -717,9 +616,13 @@
     <div class="extra-row">
       <Button
         class={"segmented-chip " +
-          (extraKarlchen ? "segmented-chip--active" : "")}
-        variant={extraKarlchen ? "raised" : "outlined"}
-        onclick={toggleKarlchen}
+          (activePlayer?.specialSummary.KARLCHEN != 0
+            ? "segmented-chip--active"
+            : "")}
+        variant={activePlayer?.specialSummary.KARLCHEN ? "raised" : "outlined"}
+        onclick={() =>
+          (activePlayer!.specialSummary.KARLCHEN =
+            1 - activePlayer!.specialSummary.KARLCHEN)}
       >
         <Label>Karlchen</Label>
       </Button>
@@ -727,10 +630,7 @@
   </DialogContent>
 
   <DialogActions>
-    <Button onclick={closeExtraDialog}>
-      <Label>Abbrechen</Label>
-    </Button>
-    <Button onclick={confirmExtra}>
+    <Button onclick={() => (extraDialogOpen = false)}>
       <Label>Ok</Label>
     </Button>
   </DialogActions>
@@ -833,48 +733,10 @@
   .segmented-btn,
   .segmented-chip {
     min-height: 40px;
-    padding: 0 16px;
     text-transform: none;
     border-radius: 0;
     font-size: 14px;
     line-height: 1.2;
-  }
-
-  .segmented-btn--active {
-    /* Farben kommen nur von SMUI (raised/outlined) */
-  }
-
-  .segmented-chip--active {
-    /* Farben kommen nur von SMUI */
-  }
-
-  /* Erste/letzte Buttons runden die Kapsel */
-  .segmented-row > :first-child {
-    border-top-left-radius: 999px;
-    border-bottom-left-radius: 999px;
-  }
-
-  .segmented-row > :last-child {
-    border-top-right-radius: 999px;
-    border-bottom-right-radius: 999px;
-  }
-
-  /* Alle Trumpf-Segmente teilen sich die Breite */
-  .segmented-row.trumpf-row .segmented-chip {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 40px;
-    padding: 0; /* Icon/Text wird in der Mitte zentriert */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0; /* Rundung kommt von der äußeren Kapsel */
-  }
-
-  /* Label im Button etwas kleiner, damit alles entspannt reinpasst */
-  .segmented-row.trumpf-row .segmented-chip :global(.mdc-button__label) {
-    font-size: 16px;
-    line-height: 1;
   }
 
   /* ========= Spieler-Karten ========= */
@@ -906,14 +768,14 @@
     text-align: center;
   }
 
-  /* Re = grün */
-  .status-re {
+  /* Gewonnen = grün */
+  .status-won {
     background-color: #4caf50;
     color: #ffffff;
   }
 
-  /* Contra = rot */
-  .status-contra {
+  /* Verloren = rot */
+  .status-lost {
     background-color: #e53935;
     color: #ffffff;
   }
