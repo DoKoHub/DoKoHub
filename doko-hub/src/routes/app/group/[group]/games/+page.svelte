@@ -30,26 +30,6 @@
       )
   );
 
-  //FIXME: Debug-only test data, MUST BE REMOVED!!!
-  onMount(() => {
-    games.push({
-      groupId: group_id,
-      id: "game-id" as UUID,
-      members: [
-        {
-          memberId: "member-id" as UUID,
-          seatPos: 0,
-          playerId: null,
-          status: "ACTIVE",
-        },
-      ],
-      plannedRounds: 24,
-      ruleset: "STANDARD",
-      endedAt: null,
-      startedAt: new Date(),
-    });
-  });
-
   async function create_session({
     planned_rounds,
     session_members,
@@ -76,6 +56,8 @@
           z.any()
         );
       }
+
+      games.push(session);
     } catch (e) {
       console.error("Error while creating session: ", e);
     }
@@ -112,7 +94,7 @@
   </List>
 </main>
 
-//TODO: remove the `|| true` once debugging is done
+<!--TODO: remove the `|| true` once debugging is done-->
 {#if can_start_new_game || true}
   <PlusButton addSomething={() => (newGameOpen = true)} />
 {/if}

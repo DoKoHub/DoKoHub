@@ -1,3 +1,4 @@
+<!--Clanker Code >:(-->
 <script lang="ts">
   import PlusButton from "$lib/components/PlusButton.svelte";
 
@@ -93,7 +94,6 @@
       const response = await post(
         `/api/group/${groupId}/member`,
         {
-          playerId: user.id, // aktueller Spieler
           nickname,
         },
         z.object({
@@ -107,6 +107,7 @@
         response.playGroupMember
       );
 
+      //FIXME: Das ist ineffizient! Das backend returned den neuen Member bereits
       // 2️.Mitgliederliste danach NEU vom Backend laden
       const updatedMembers = await get(
         `/api/group/${groupId}/member` as APIRoute,
