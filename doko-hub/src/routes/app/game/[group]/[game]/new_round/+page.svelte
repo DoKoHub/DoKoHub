@@ -30,6 +30,7 @@
     UUID,
   } from "$lib/types";
   import { post } from "$lib/frontend/fetch";
+  import { SvelteSet } from "svelte/reactivity";
   import z from "zod";
 
   // ================== Typen ==================
@@ -40,7 +41,7 @@
     side: Side | null;
 
     specialSummary: Record<BonusType, number>;
-    announcementSummary: Set<CallType>;
+    announcementSummary: SvelteSet<CallType>;
   }
 
   // ================== Zustand ==================
@@ -68,7 +69,7 @@
         FUCHS: 0,
         KARLCHEN: 0,
       },
-      announcementSummary: new Set(),
+      announcementSummary: new SvelteSet(),
     }))
   );
 
