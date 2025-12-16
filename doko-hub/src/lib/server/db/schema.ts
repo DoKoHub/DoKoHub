@@ -22,17 +22,17 @@ export const sessionstatus = pgEnum('sessionstatus', [
 ]);
 
 export const gameType = pgEnum('game_type', [
-  'NORMAL',
+   'NORMAL',
    'HOCHZEIT_STILL',
    'HOCHZEIT_UNKNOWN',
    'HOCHZEIT_NORMAL',
    'SOLO_DAMEN',
-     'SOLO_BUBEN',
-     'SOLO_CLUBS',
-     'SOLO_SPADES',
-     'SOLO_HEARTS',
-     'SOLO_DIAMONDS', 
-     'SOLO_ASSE'
+   'SOLO_BUBEN',
+   'SOLO_CLUBS',
+   'SOLO_SPADES',
+   'SOLO_HEARTS',
+   'SOLO_DIAMONDS', 
+   'SOLO_ASSE'
 ]);
 
 export const soloKind = pgEnum('solo_kind', ['PFLICHT' , 'LUST']);
