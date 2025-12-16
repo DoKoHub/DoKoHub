@@ -5,6 +5,7 @@
 
   onMount(() => {
     //TODO: check if player is logged in
-    goto(StaticRoute.LOGIN);
+    //FIXME: this is only while the actual login page is unfinished!
+    goto(StaticRoute.FIRST_TIME_LOGIN);
   });
 </script>

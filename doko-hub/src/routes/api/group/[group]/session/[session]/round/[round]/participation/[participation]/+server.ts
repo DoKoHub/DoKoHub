@@ -17,7 +17,7 @@ import { and, eq } from "drizzle-orm";
  * Response 200: RoundParticipation
  * Response 400: { "message": string }
  * Response 500: { "message": string }
- * 
+ *
  * 2. PUT /api/group/[group]/session/[session]/round/[round]/participation/[participation]
  * Request Body:
  * {
