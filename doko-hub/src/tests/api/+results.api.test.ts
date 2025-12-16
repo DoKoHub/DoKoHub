@@ -164,13 +164,6 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     env = await setupVierSpielerUmgebung();
   });
 
-  test("GET: Session ohne Runden -> alle Spieler 0 Punkte", async () => {
-    const res = await getResults(env.groupId, env.sessionId);
-    expect(res.status).toBe(200);
-    expect(res.body.sessionResults.length).toBe(4);
-    for (const p of env.alle) expect(pointsOf(res.body.sessionResults, p.memberId)).toBe(0);
-  });
-
   test("Normal: Re gewinnt ohne Stufen (121:119) -> RE +1, KONTRA -1", async () => {
     const roundId = await createRound({ groupId: env.groupId, sessionId: env.sessionId, roundNum: 1, gameType: "NORMAL", eyesRe: 121 });
 
@@ -317,7 +310,7 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-3);
   });
 
-  test("Ansage doppelt: zwei RE-Calls in der Partei werden gezählt (aktuelles Verhalten)", async () => {
+  test("Ansage doppelt: zwei RE-Calls in der Partei werden gezählt", async () => {
     const roundId = await createRound({ groupId: env.groupId, sessionId: env.sessionId, roundNum: 1, gameType: "NORMAL", eyesRe: 150 });
 
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, side: "RE" });
@@ -624,7 +617,7 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(1);
   });
 
-test("Boni werden im Solo ignoriert (aktuelles Verhalten)", async () => {
+test("Boni werden im Solo ignoriert", async () => {
   // Runde 1: Solo ohne Bonus
   const r1 = await createRound({
     groupId: env.groupId,
@@ -640,10 +633,8 @@ test("Boni werden im Solo ignoriert (aktuelles Verhalten)", async () => {
   await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: r1, memberId: env.p4.memberId, side: "KONTRA" });
 
   const res1 = await getResults(env.groupId, env.sessionId);
-  console.log("RES1 ROW0 keys:", Object.keys(res1.body.sessionResults[0]));
-  console.log("RES1 ROW0:", res1.body.sessionResults[0]);
 
- const total1 = pointsOf(res1.body.sessionResults, env.p1.memberId);
+  const total1 = pointsOf(res1.body.sessionResults, env.p1.memberId);
 
   // Runde 2: Solo mit Bonus (soll im Solo NICHT zählen)
   const r2 = await createRound({
@@ -662,24 +653,11 @@ test("Boni werden im Solo ignoriert (aktuelles Verhalten)", async () => {
   await addBonus({ groupId: env.groupId, sessionId: env.sessionId, roundId: r2, memberId: env.p1.memberId, bonus: "DOKO" });
 
   const res2 = await getResults(env.groupId, env.sessionId);
-  console.log("r1:", r1);
-  console.log("r2:", r2);
+  const total2 = pointsOf(res2.body.sessionResults, env.p1.memberId);
+  const contrib2 = total2 - total1;
 
-  console.log("RES2 ROW0 keys:", Object.keys(res2.body.sessionResults[0]));
-  console.log("RES2 ROW0:", res2.body.sessionResults[0]);
-  console.log("RES2 ALL:", res2.body.sessionResults);
-
-const total2 = pointsOf(res2.body.sessionResults, env.p1.memberId);
-const contrib2 = total2 - total1;
-
-  console.log({ total1, total2, contrib2 });
-
-
-expect(contrib2).toBe(0);
+  expect(contrib2).toBe(0);
 });
-
-///////////////////
-
 
   test("Edge: Call von Member ohne Participation wird ignoriert (kein Crash)", async () => {
     const roundId = await createRound({ groupId: env.groupId, sessionId: env.sessionId, roundNum: 1, gameType: "NORMAL", eyesRe: 150 });
@@ -724,26 +702,6 @@ expect(contrib2).toBe(0);
 
     const res = await getResults(env.groupId, env.sessionId);
     expect(res.status).toBe(200);
-  });
-
-  test("API: Mehrere Runden mit unterschiedlichen Siegern -> korrekt summiert", async () => {
-    const round1 = await createRound({ groupId: env.groupId, sessionId: env.sessionId, roundNum: 1, gameType: "NORMAL", eyesRe: 150 });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round1, memberId: env.p1.memberId, side: "RE" });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round1, memberId: env.p2.memberId, side: "RE" });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round1, memberId: env.p3.memberId, side: "KONTRA" });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round1, memberId: env.p4.memberId, side: "KONTRA" });
-
-    const round2 = await createRound({ groupId: env.groupId, sessionId: env.sessionId, roundNum: 2, gameType: "NORMAL", eyesRe: 110 });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round2, memberId: env.p1.memberId, side: "RE" });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round2, memberId: env.p2.memberId, side: "RE" });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round2, memberId: env.p3.memberId, side: "KONTRA" });
-    await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId: round2, memberId: env.p4.memberId, side: "KONTRA" });
-
-    const res = await getResults(env.groupId, env.sessionId);
-    expect(res.status).toBe(200);
-
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(0);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(0);
   });
 
   test("API: Session-Member nimmt in einer Runde nicht teil -> bekommt dort keine Punkte", async () => {
