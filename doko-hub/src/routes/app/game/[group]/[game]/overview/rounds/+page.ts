@@ -9,6 +9,7 @@ import {
   RoundCall,
   RoundBonus,
   PlayGroup,
+  PlayGroupMember,
 } from "$lib/types";
 import type { PageLoad } from "./$types";
 import { any, z } from "zod";
@@ -48,6 +49,35 @@ export const load: PageLoad = async ({ params, fetch }) => {
     fetch
   );
 
+  //console.log("Anzahl Runden (API):", rounds.length);
+
+  // Gesamtpunkte über alle Runden
+  // DOTO: korrekte Logik einbauen: Punkte PRO Spieler
+  // api/group/[group]/session/[session]/result
+  //const pointsByMemberId = _calculateRoundPoints
+  const SessionResultRow = z.object({
+    player_id: z.string(),
+    member_id: z.string(),
+    player_name: z.string(),
+    seat_pos: z.number(),
+    points: z.number(),
+  });
+
+  const ResultResponse = z.object({
+    sessionResults: z.array(SessionResultRow),
+    message: z.string().optional(),
+  });
+
+  const resultResp = await get(
+    `/api/group/${groupId}/session/${sessionId}/result`,
+    ResultResponse,
+    fetch
+  );
+
+  const totalPointsByMemberId = Object.fromEntries(
+    resultResp.sessionResults.map((r) => [r.member_id, r.points])
+  );
+
   const result = [];
   const players = sessionMembers;
 
@@ -78,19 +108,13 @@ export const load: PageLoad = async ({ params, fetch }) => {
       fetch
     );
 
-    // Punkte pro Spieler - NUR ANSATZ
-    // DOTO: korrekte Logik einbauen
-    const pointsByPlayerId = Object.fromEntries(
-      players.map((p) => [p.playerId ?? p.id, null])
-    ) as Record<string, number | null>;
-
     result.push({
       // Array über alle Runden
+      round,
       roundId,
       participation,
       call,
       bonus,
-      pointsByPlayerId,
     });
   }
 
@@ -101,5 +125,6 @@ export const load: PageLoad = async ({ params, fetch }) => {
     groupMembers,
     sessionMembers,
     rounds: result,
+    totalPointsByMemberId,
   };
 };

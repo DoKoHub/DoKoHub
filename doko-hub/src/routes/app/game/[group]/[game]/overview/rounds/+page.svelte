@@ -13,6 +13,8 @@
     goto(`/app/game/${groupId}/${sessionId}/new_round`);
   }
 
+  //TODO: Logik zurück Button
+
   /**
    * FIXME
    *
@@ -47,8 +49,9 @@
     : data.rounds
       ? [data.rounds]
       : [];
-  //const players = data.sessionMembers; // Spalten
-  //const playerIds = players.map((p) => p.id); // Reihenfolge der Spalten
+
+  //console.log("Anzahl Runden (UI):", data.rounds?.length ?? 0);
+
   // viewPlayers
   const sessionMembers = data.sessionMembers ?? [];
   const groupMembers = data.groupMembers ?? [];
@@ -67,38 +70,24 @@
       };
     });
 
-  const playerIds = viewPlayers.map((p) => p.sessionMemberId ?? p.id);
+  //const playerIds = viewPlayers.map((p) => p.sessionMemberId ?? p.id);
+  const playerIds = viewPlayers.map((p) => p.memberId);
 
   const sessionId = data.sessionId;
   const groupId = data.groupId;
 
-  // TODO addFourRounds statt neue Runde
-  async function createRound() {
-    const nextRoundNum = (data.rounds?.length ?? 0) + 1;
-
-    await post(
-      `/api/group/${groupId}/session/${sessionId}/round`,
-      {
-        roundNum: nextRoundNum,
-        gameType: "NORMAL", // DOTO: muss zum GameType passen
-        soloKind: null,
-        eyesRe: 0,
-      },
-      z.any()
-    );
-  }
-
-  // Hilfsfunktion für Anzeige
-  //const nameOf = (p: any) => p.nickname;
+  const points = data.totalPointsByMemberId;
 
   // Logik für Runden
   // Rundennummer
   const roundLabel = (r: any, index: number) =>
     r?.round?.roundNum ?? r?.roundNum ?? index + 1;
 
-  // Hilfsfunktion
-  const valueFor = (r: any, playerId: string): number | null =>
-    r?.pointsByPlayerId?.[playerId] ?? null;
+  // Hilfsfunktion Zeilen
+  //const valueFor = (r: any, playerId: string): number | null =>
+  // r?.pointsByPlayerId?.[playerId] ?? null;
+  const valueFor = (r: any, memberId: string): number | null =>
+    r?.pointsByMemberId?.[memberId] ?? null;
 
   // Formatierung für UI Anzeige
   const fmt = (v: number | null) =>
@@ -147,6 +136,7 @@
       soloRoundByPlayerId.set(soloistId, r);
     }
   }
+
   type PfCell = number | null | "X" | "-";
   function pfColor(cell: PfCell) {
     if (cell === "X") return "neutral"; // grau
@@ -164,17 +154,20 @@
   }
 
   // Pflichtsolo-Tabelle: 1 Zeile pro Spieler
-  const pflichtsoloRows: PfCell[][] = playerIds.map((pid) => {
-    const soloRound = soloRoundByPlayerId.get(pid);
-    // Spieler hat Solo gespielt = Punkte dieser Solo-Runde anzeigen
-    if (soloRound) {
-      return playerIds.map(
-        (cellPid) => soloRound?.pointsByPlayerId?.[cellPid] ?? null
-      );
-    }
-    // Spieler hat noch kein Solo gespielt -> X / -
-    return playerIds.map((cellPid) => (cellPid === pid ? "X" : "-"));
-  });
+  const pflichtsoloRows: PfCell[][] =
+    rounds.length === 0
+      ? []
+      : playerIds.map((pid) => {
+          const soloRound = soloRoundByPlayerId.get(pid); // Abfrage ob Runden bislang vorhanden sind
+          // Spieler hat Solo gespielt = Punkte dieser Solo-Runde anzeigen
+          if (soloRound) {
+            return playerIds.map(
+              (cellPid) => soloRound?.pointsByPlayerId?.[cellPid] ?? null
+            );
+          }
+          // Spieler hat noch kein Solo gespielt -> X / -
+          return playerIds.map((cellPid) => (cellPid === pid ? "X" : "-"));
+        });
 
   // ==== Summe berechnen (Runde für Runde) ====
   const totalFor = (playerId: string) =>

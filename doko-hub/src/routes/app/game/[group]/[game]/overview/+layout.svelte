@@ -20,13 +20,14 @@
   export let active = tabs[0];
 
   let menuOpen = false;
-  /* Aktiver Tab anhand der URL setzen
+
+  // Aktiver Tab anhand der URL setzen
   $: {
     const path = $page.url.pathname;
 
     if (path.includes("game_rounds")) active = "Runden";
     else if (path.includes("game_stats")) active = "Statistiken";
-  } */
+  }
 
   $: path = $page.url.pathname;
   $: isRounds = path.includes("game_rounds");
@@ -99,7 +100,7 @@
       <IconButton>
         <span class="material-icons">visibility</span>
       </IconButton>
-
+      <!-- TODO: Logik mit Summe - Anzeige verknüpfen -->
       <IconButton onclick={() => (menuOpen = true)}>
         <span class="material-icons">more_vert</span>
       </IconButton>
