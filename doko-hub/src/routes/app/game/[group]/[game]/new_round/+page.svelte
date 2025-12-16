@@ -40,7 +40,6 @@
     side: Side | null;
 
     specialSummary: Record<BonusType, number>;
-    announcementSide: Side;
     announcementSummary: Set<CallType>;
   }
 
@@ -69,7 +68,6 @@
         FUCHS: 0,
         KARLCHEN: 0,
       },
-      announcementSide: "RE",
       announcementSummary: new Set(),
     }))
   );
@@ -108,42 +106,32 @@
   function changeExtra(k: BonusType, delta: -1 | 1) {
     if (!activePlayer) return;
 
-    activePlayer.specialSummary[k] += delta;
+    activePlayer.specialSummary[k] = Math.max(
+      0,
+      activePlayer.specialSummary[k] + delta
+    );
   }
   // ================== Ansagen-Dialog ==================
 
   let announcementDialogOpen = $state(false);
-  let announcementSide: Side = $state("RE");
-  let selectedAnnouncements = $state(new Set<CallType>());
 
   function openAnnouncementDialog(player: Player) {
     activePlayer = player;
     announcementDialogOpen = true;
-
-    announcementSide = player.side ?? "RE";
-    selectedAnnouncements = new Set();
   }
 
   function toggleAnnouncementOption(opt: CallType) {
-    if (selectedAnnouncements.has(opt)) {
-      selectedAnnouncements.delete(opt);
+    const announcements = activePlayer!.announcementSummary;
+    if (announcements.has(opt)) {
+      announcements.delete(opt);
     } else {
-      selectedAnnouncements.add(opt);
+      announcements.add(opt);
     }
   }
 
   function closeAnnouncementDialog() {
     announcementDialogOpen = false;
     activePlayer = null;
-  }
-
-  function confirmAnnouncements() {
-    if (activePlayer === null) return;
-
-    activePlayer.announcementSide = announcementSide;
-    activePlayer.announcementSummary = selectedAnnouncements;
-
-    closeAnnouncementDialog();
   }
 
   // ================== Speichern-Validierung ==================
@@ -331,8 +319,8 @@
 
       <Button
         class={"segmented-btn " +
-          (gameType === "HOCHZEIT_NORMAL" ? "segmented-btn--active" : "")}
-        variant={gameType === "HOCHZEIT_NORMAL" ? "raised" : "outlined"}
+          (gameType.startsWith("HOCHZEIT_") ? "segmented-btn--active" : "")}
+        variant={gameType.startsWith("HOCHZEIT_") ? "raised" : "outlined"}
         onclick={() => (gameType = "HOCHZEIT_NORMAL")}
       >
         <Label>Hochzeit</Label>
@@ -536,33 +524,17 @@
   <DialogTitle>Ansagen auswählen</DialogTitle>
 
   <DialogContent>
-    <div class="dialog-segmented-row">
-      <Button
-        class={"segmented-btn " +
-          (announcementSide === "RE" ? "segmented-btn--active" : "")}
-        variant={announcementSide === "RE" ? "raised" : "outlined"}
-        onclick={() => (announcementSide = "RE")}
-      >
-        <Label>Re</Label>
-      </Button>
-
-      <Button
-        class={"segmented-btn " +
-          (announcementSide === "KONTRA" ? "segmented-btn--active" : "")}
-        variant={announcementSide === "KONTRA" ? "raised" : "outlined"}
-        onclick={() => (announcementSide = "KONTRA")}
-      >
-        <Label>Contra</Label>
-      </Button>
-    </div>
-
     <div class="dialog-chips-row">
       <!--FIXME: this is stupid >:(-->
       {#each ["KEINE90", "KEINE60", "KEINE30"] as const as opt}
         <Button
           class={"segmented-chip " +
-            (selectedAnnouncements.has(opt) ? "segmented-chip--active" : "")}
-          variant={selectedAnnouncements.has(opt) ? "raised" : "outlined"}
+            (activePlayer?.announcementSummary.has(opt)
+              ? "segmented-chip--active"
+              : "")}
+          variant={activePlayer?.announcementSummary.has(opt)
+            ? "raised"
+            : "outlined"}
           onclick={() => toggleAnnouncementOption(opt)}
         >
           <Label>{opt}</Label>
@@ -573,9 +545,6 @@
 
   <DialogActions>
     <Button onclick={closeAnnouncementDialog}>
-      <Label>Abbrechen</Label>
-    </Button>
-    <Button onclick={confirmAnnouncements}>
       <Label>Ok</Label>
     </Button>
   </DialogActions>
