@@ -58,7 +58,7 @@ export const load: PageLoad = async ({ params, fetch }) => {
     // api/group/[group]/session/[session]/round/[round]/participation
     const participation = await get(
       `/api/group/${groupId}/session/${sessionId}/round/${roundId}/participation`,
-      RoundParticipation,
+      z.array(RoundParticipation), // array für eine Runde
       fetch
     );
 
@@ -66,7 +66,7 @@ export const load: PageLoad = async ({ params, fetch }) => {
     //api/group/[group]/session/[session]/round/[round]/call
     const call = await get(
       `/api/group/${groupId}/session/${sessionId}/round/${roundId}/call`,
-      RoundCall,
+      z.array(RoundCall),
       fetch
     );
 
@@ -74,17 +74,18 @@ export const load: PageLoad = async ({ params, fetch }) => {
     //api/group/[group]/session/[session]/round/[round]/bonus
     const bonus = await get(
       `/api/group/${groupId}/session/${sessionId}/round/${roundId}/bonus`,
-      RoundBonus,
+      z.array(RoundBonus),
       fetch
     );
 
     // Punkte pro Spieler - NUR ANSATZ
-    // DOTO
+    // DOTO: korrekte Logik einbauen
     const pointsByPlayerId = Object.fromEntries(
       players.map((p) => [p.playerId ?? p.id, null])
     ) as Record<string, number | null>;
 
     result.push({
+      // Array über alle Runden
       roundId,
       participation,
       call,

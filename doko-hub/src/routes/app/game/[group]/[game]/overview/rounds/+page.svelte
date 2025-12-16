@@ -80,7 +80,7 @@
       `/api/group/${groupId}/session/${sessionId}/round`,
       {
         roundNum: nextRoundNum,
-        gameType: "NORMAL", // DOTO muss zum GameType passen
+        gameType: "NORMAL", // DOTO: muss zum GameType passen
         soloKind: null,
         eyesRe: 0,
       },
