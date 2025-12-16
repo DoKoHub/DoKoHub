@@ -153,8 +153,11 @@ const bothFailedAbsage = reFailedAbsage && kontraFailedAbsage;
 
 
 
-  const points: Record<string, number> = {};
+  const absageFailed = (side: "RE" | "KONTRA"): boolean => {
+    const oppEyes = side === "RE" ? eyesKontra : eyesRe;
+    const callsSide = partyCalls[side];
 
+    const has = (t: CallRow["call"]) => callsSide.includes(t);
 
  
 
@@ -531,7 +534,6 @@ if (!isSoloGame) {
 
 return points;
 }
-
 
 /**
  * Aggregation der Rundenwerte zu einem Sessionergebnis für alle Teilnehmer
