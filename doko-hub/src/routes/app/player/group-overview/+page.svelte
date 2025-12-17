@@ -31,6 +31,7 @@
 
   let dialogOpen = $state(false);
   let groupName = $state("New Group");
+  // svelte-ignore state_referenced_locally The group list is only fetched once, so copying here is fine
   let groups = $state(data.groups);
 
   async function handleCreate(name: string) {
@@ -68,7 +69,7 @@
       >Spieler: {group.members
         //TODO: the nickname is never actually null but the DTOs don't reflect that
         .map(({ nickname }) => nickname!)
-        .join()}</SecondaryText
+        .join(", ")}</SecondaryText
     >
     <SecondaryText>
       {#if group.lastPlayedOn}

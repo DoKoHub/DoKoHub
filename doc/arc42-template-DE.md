@@ -1,5 +1,7 @@
 #
 
+**Dieses Projekt weist einige architektonische Probleme auf! Siehe [hier](#risiken-und-technische-schulden)**
+
 #
 
 **Über arc42**
@@ -985,8 +987,7 @@ Löscht einen Spieler.
 ##### api/player/[player]/groups
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{PlayGroup}]`
 
@@ -995,16 +996,14 @@ Gibt alle Gruppen in denen der gegebene Spieler aktives Mitglied ist zurück.
 ##### api/group/[group]/session/[session]/round
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{Round}]`<br>
 
 Alle Runden einer Session
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `Keine`<br>
+> URL Parameter:<br> > `Keine`<br>
 > Request Body: `{"name": string, "creatorId": UUID, ?"nickname": string}`<br>
 > Response Body: `{"message": string, "playGroup": PlayGroup}`
 
@@ -1013,16 +1012,14 @@ Neue Runde erstellen
 ##### api/group/[group]/session/[session]/round/[round]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{Round}`<br>
 
 Spezifische Runde einer Session
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"round": Round}`<br>
 > Response Body: `{"message": string, "round": Round}`<br>
 
@@ -1031,16 +1028,14 @@ Runde bearbeiten
 ##### api/group/[group]/session/[session]/round/[round]/bonus
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{RoundBonus}]`<br>
 
 Alle Runden Boni einer Runde
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"playerId": UUID, "bonus": BonusType, "count": number}`<br>
 > Response Body: `{"message": string, "roundBonus": RoundBonus}`<br>
 
@@ -1049,8 +1044,7 @@ Neuen Bonus erstellen
 ##### api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string` (Player ID)<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string` (Player ID)<br>
 > Request Body: `Leer`<br>
 > Response Body: `{RoundBonus}`<br>
 
@@ -1059,16 +1053,14 @@ Spezifischer Bonus einer Runde
 ##### api/group/[group]/session/[session]/round/[round]/call
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{RoundCall}]`<br>
 
 Alle Calls einer Runde
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"playerId": UUID, "call": CallType}`<br>
 > Response Body: `{"message": string, "roundCall": RoundCall}`<br>
 
@@ -1077,8 +1069,7 @@ Neuen call erstellen
 ##### api/group/[group]/session/[session]/round/[round]/call/[call]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string` (Player ID)<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string` (Player ID)<br>
 > Request Body: `Leer`<br>
 > Response Body: `{RoundCall}`<br>
 
@@ -1087,16 +1078,14 @@ Spezifischer Call einer Runde
 ##### api/group/[group]/session/[session]/round/[round]/participation
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{RoundParticipation}]`<br>
 
 Alle Participations einer Runde
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"playerId": UUID, "side": Side, "seatPos": SeatPos}`<br>
 > Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
 
@@ -1105,8 +1094,7 @@ Neue Participation erstellen
 ##### api/group/[group]/session/[session]/round/[round]/participation/[participation]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string` (Player ID)<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string` (Player ID)<br>
 > Request Body: `Leer`<br>
 > Response Body: `{RoundParticipation}`<br>
 
@@ -1115,16 +1103,14 @@ Spezifische Participation einer Runde
 ##### api/group/[group]/session
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{Session}]`<br>
 
 Alle Sessions einer Gruppe
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br>
 > Request Body: `{"ruleset": RuleSet, "plannedRounds": number, "startedAt": ISODate}`<br>
 > Response Body: `["message": string, "session": Session]`<br>
 
@@ -1133,16 +1119,14 @@ Neue Session erstellen
 ##### api/group/[group]/session/[session]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{Session}`<br>
 
 Spezifische Session einer Gruppe
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
 > Request Body: `{"session": Session}`<br>
 > Response Body: `{"message": string, "session": Session}`<br>
 
@@ -1160,8 +1144,7 @@ Alle member einer Session
 Alle member einer Session
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
 > Request Body: `{"memberId": UUID, "seatPos": SeatPos}`<br>
 > Response Body: `{"message": string, "sessionMember": SessionMember}`<br>
 
@@ -1179,8 +1162,7 @@ Alle Runden einer Session
 Alle Runden einer Session
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br>
 > Request Body: `{"roundNum": number, "gameType": GameType, ?"soloKind": SoloKind, "eyesRe": number}`<br>
 > Response Body: `{"message": string, "round": Round}`<br>
 
@@ -1224,8 +1206,7 @@ Runde bearbeiten
 Alle Runden Boni einer Runde
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"memberId": UUID, "bonus": BonusType}`<br>
 > Response Body: `{"message": string, "roundBonus": RoundBonus}`<br>
 
@@ -1234,16 +1215,14 @@ Neuen Bonus erstellen
 ##### api/group/[group]/session/[session]/round/[round]/bonus/[bonus]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{RoundBonus}`<br>
 
 Spezifischer Bonus einer Runde
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[bonus]`: `string`<br>
 > Request Body: `{"roundBonus"}`<br>
 > Response Body: `{"message": string, "roundBonus": RoundBonus}`<br>
 
@@ -1252,16 +1231,14 @@ Einen Bonus bearbeiten
 ##### api/group/[group]/session/[session]/round/[round]/call
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{RoundCall}]`<br>
 
 Alle Calls einer Runde
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"memberId": UUID, "call": CallType}`<br>
 > Response Body: `{"message": string, "roundCall": RoundCall}`<br>
 
@@ -1270,16 +1247,14 @@ Neuen call erstellen
 ##### api/group/[group]/session/[session]/round/[round]/call/[call]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{RoundCall}`<br>
 
 Spezifischer Call einer Runde
 
 > `PUT`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[call]`: `string`<br>
 > Request Body: `{"roundCall": RoundCall}`<br>
 > Response Body: `{"message": string, "roundCall": RoundCall}`<br>
 
@@ -1288,16 +1263,14 @@ Einen Call bearbeiten
 ##### api/group/[group]/session/[session]/round/[round]/participation
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `[{RoundParticipation}]`<br>
 
 Alle Participations einer Runde
 
 > `POST`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br>
 > Request Body: `{"memberId": UUID, "side": Side}`<br>
 > Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
 
@@ -1306,10 +1279,23 @@ Neue Participation erstellen
 ##### api/group/[group]/session/[session]/round/[round]/participation/[participation]
 
 > `GET`:<br>
-> URL Parameter:<br>
-> `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string`<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string`<br>
 > Request Body: `Leer`<br>
 > Response Body: `{RoundParticipation}`<br>
+
+Spezifische Participation einer Runde
+
+> `PUT`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string`<br>
+> Request Body: `{"roundParticipation": RoundParticipation}`<br>
+> Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
+
+Spezifische Participation einer Runde
+
+> `PUT`:<br>
+> URL Parameter:<br> > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string`<br>
+> Request Body: `{"roundParticipation": RoundParticipation}`<br>
+> Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
 
 Spezifische Participation einer Runde
 
@@ -1318,17 +1304,6 @@ Spezifische Participation einer Runde
 > `[group]`: `string`<br> >`[session]`: `string`<br> >`[round]`: `string`<br> >`[participation]`: `string`<br>
 > Request Body: `{"roundParticipation": RoundParticipation}`<br>
 > Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
-
-Spezifische Participation einer Runde
-
->`PUT`:<br>
->URL Parameter:<br> 
->`[group]`: `string`<br>
->`[session]`: `string`<br>
->`[round]`: `string`<br>
->`[participation]`: `string`<br>
->Request Body: `{"roundParticipation": RoundParticipation}`<br>
->Response Body: `{"message": string, "roundParticipation": RoundParticipation}`<br>
 
 Spezifische Participation einer Runde
 
@@ -2188,6 +2163,7 @@ Weitere Informationen
 
 # Risiken und technische Schulden
 
+<!--
 <div class="sidebar">
 
 <div class="title">
@@ -2254,6 +2230,54 @@ online-Dokumentation (auf Englisch!).
 </div>
 
 </div>
+-->
+
+## Bekannte Probleme
+
+### 1. Mangelnde Trennung zwischen Datenmodellen
+
+Das Datenmodell der App, das bei der Kommunikation zwischen Front- und Backend eingesetzt wird, ist zu nah am ER-Modell gehalten.
+Dadurch ist es unergonomisch zu verwenden und führt zu überflüssigen Backend-Anfragen und Datenintegritätsproblemen.
+
+**Lösungsvorschlag**:
+Es muss ein separates Datenmodell für die App spezifiziert werden, dass besser zur Objektorientierten Natur von JS passt.
+Das Backend hat die Aufgabe, zwischen diesen Datenmodellen zu übersetzen.
+
+```
+  /----------\            /---------\                 /-----------\
+  | Frontend | <--DTOs--> | Backend | <--ER Schema--> | Datenbank |
+  \----------/            \---------/                 \-----------/
+```
+
+### 2. Inkonsistente DTOs / Keine Enforceability durch den Compiler
+
+DTOs sind nicht einheitlich definiert und manche Endpoints enthalten eigenen Typen, die zwar schriftlich notiert sind, aber nicht vom compiler enforced werden können.
+
+**Lösungsvorschlag**:
+Es muss ein Weg gefunden werden, für jeden Endpoint die Parameter- und Rückgabetypen zu spezifizieren, sodass der typescript compiler sie automatisch enforcen kann.
+
+### 3. Legacy-Code im Frontend
+
+Mindestens folgende Dateien enthalten Svelte 4-Code (commit `57a3edea-1067-43b3-b919-c5c414f8e872`):
+
+- `lib/components/AppBar.svelte`
+- `lib/components/PlusButton.svelte`
+- `lib/components/Tabs.svelte`
+- `routes/app/game/[group]/[game]/overview/+layout.svelte`
+- `routes/app/group-invitation/[group]/+page.svelte`
+
+**Lösungsvorschlag**
+Der deprecated code muss durch entsprechenden Svelte-5 code ersetzt werden.
+
+### 4. Unbrauchbare Seitenprototypen
+
+Mindestens folgende Seiten wurden als Prototypen designed, ohne Rücksicht auf das Datenmodell der App zu nehmen. Dadurch sind sie ohne größere Code-Änderungen nicht an das Backend anbindbar:
+
+- `routes/app/game/[group]/[game]/new_round/+page.svelte`
+- `routes/app/game/[group]/[game]/overview/rounds/+page.svelte`
+
+**Lösungsvorschlag:**
+Die Seiten müssen überarbeitet werden und das Datenmodell berücksichtigen.
 
 # Glossar
 

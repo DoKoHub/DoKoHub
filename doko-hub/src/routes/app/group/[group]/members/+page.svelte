@@ -1,3 +1,4 @@
+<!--Clanker Code >:(-->
 <script lang="ts">
   import PlusButton from "$lib/components/PlusButton.svelte";
 
@@ -93,7 +94,6 @@
       const response = await post(
         `/api/group/${groupId}/member`,
         {
-          playerId: user.id, // aktueller Spieler
           nickname,
         },
         z.object({
@@ -107,6 +107,7 @@
         response.playGroupMember
       );
 
+      //FIXME: Das ist ineffizient! Das backend returned den neuen Member bereits
       // 2️.Mitgliederliste danach NEU vom Backend laden
       const updatedMembers = await get(
         `/api/group/${groupId}/member` as APIRoute,
@@ -148,6 +149,7 @@
 
   // PUT /api/group/[group]/member/[member]
   async function confirmEdit() {
+    //FIXME: PlayerID is not set correctly on POST request!
     const nickname = editName.trim();
     if (!nickname || editIndex === null) return;
 
@@ -162,6 +164,7 @@
     };
 
     try {
+      //FIXME: bitte post benutzen!!! ($lib/frontend/fetch.ts)
       const res = await fetch(`/api/group/${groupId}/member/${current.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -325,154 +328,3 @@
     </Button>
   </DialogActions>
 </Dialog>
-
-<style lang="scss">
-  @use "sass:color";
-  @use "@material/theme/color-palette";
-  @use "@material/theme/index" as theme with (
-    $primary: #955cff,
-    $secondary: #676778,
-    $surface: #fff,
-    $background: #fff,
-    $error: color-palette.$red-900
-  );
-
-  /* === Dialog_New_Person – Figma-Styling === */
-
-  /* Grundfläche des Dialogs */
-  :global(.new-person-dialog .mdc-dialog__surface) {
-    border-radius: 24px;
-    background: #f4eef9;
-    color: #1b1b1f;
-    width: 332px;
-    max-width: calc(100vw - 32px);
-  }
-
-  /* Inhalt (Abstände & Spaltenlayout) */
-  :global(.new-person-dialog .mdc-dialog__content) {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 4px;
-  }
-
-  /* Hinweistext */
-  .hint {
-    margin: 0 0 8px;
-    color: #5f5f66;
-    line-height: 1.4;
-  }
-
-  /* Eingabefeld hell mit violetter Linie */
-  :global(.new-person-dialog .mdc-text-field--filled) {
-    background: #efe8f5;
-  }
-
-  :global(.new-person-dialog .mdc-text-field--filled .mdc-line-ripple) {
-    background-color: #6750a4;
-  }
-
-  /* kleines dunkles X (Eingabe löschen) */
-  :global(.new-person-dialog .material-icons.tf-x) {
-    font-size: 18px;
-    color: #333;
-    margin-right: 8px;
-  }
-
-  /* Aktionen unten rechts */
-  :global(.new-person-dialog .mdc-dialog__actions) {
-    justify-content: flex-end;
-    gap: 20px;
-  }
-
-  /* Farbthema Lila */
-  :global(.new-person-dialog) {
-    --mdc-theme-primary: #6750a4;
-  }
-
-  /* OK-Button aktiv = Lila */
-  :global(.new-person-dialog .mdc-button:not(:disabled) .mdc-button__label) {
-    color: #6750a4 !important;
-  }
-
-  /* OK-Button deaktiviert = hell-lila */
-  :global(.new-person-dialog .mdc-button:disabled .mdc-button__label) {
-    color: #b9aee3 !important;
-    opacity: 1;
-  }
-
-  /* === Dialog_Edit_Player – Figma-Styling === */
-
-  /* Grundfläche */
-  :global(.edit-player-dialog .mdc-dialog__surface) {
-    border-radius: 24px;
-    background: #f4eef9;
-    color: #1b1b1f;
-    width: 332px;
-    max-width: calc(100vw - 32px);
-  }
-
-  /* Inhalt */
-  :global(.edit-player-dialog .mdc-dialog__content) {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 4px;
-  }
-
-  /* Hinweistext */
-  .hint {
-    margin: 0 0 8px;
-    color: #5f5f66;
-    line-height: 1.4;
-  }
-
-  /* Eingabefeld hell + Akzentlinie */
-  :global(.edit-player-dialog .mdc-text-field--filled) {
-    background: #efe8f5;
-  }
-
-  :global(.edit-player-dialog .mdc-text-field--filled .mdc-line-ripple) {
-    background-color: #6750a4;
-  }
-
-  /* kleines dunkles X */
-  :global(.edit-player-dialog .material-icons.tf-x) {
-    font-size: 18px;
-    color: #333;
-    margin-right: 8px;
-  }
-
-  /* Aktionen unten rechts */
-  :global(.dlg-actions-right .mdc-dialog__actions),
-  :global(.edit-player-dialog .mdc-dialog__actions) {
-    justify-content: flex-end;
-    gap: 20px;
-  }
-
-  /* Primärfarbe (Buttons) */
-  :global(.edit-player-dialog) {
-    --mdc-theme-primary: #6750a4;
-  }
-
-  /* OK-Button aktiv */
-  :global(.edit-player-dialog .mdc-button:not(:disabled) .mdc-button__label) {
-    color: #6750a4;
-  }
-
-  /* OK-Button deaktiviert */
-  :global(.edit-player-dialog .mdc-button:disabled .mdc-button__label) {
-    color: #b9aee3;
-    opacity: 1;
-  }
-
-  /* hinzufügen */
-  :global(.player-item-row:hover) {
-    background: rgba(0, 0, 0, 0.04);
-  }
-
-  :global(.player-item-row:focus-visible) {
-    outline: 3px solid #6750a4;
-    border-radius: 12px;
-  }
-</style>

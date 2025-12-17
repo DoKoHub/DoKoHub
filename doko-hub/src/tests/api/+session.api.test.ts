@@ -183,13 +183,16 @@ describe("API /api/group/[group]/session/[session]", () => {
     session.plannedRounds = newRounds;
     session.endedAt = endedDate;
 
-        const response = await api.put(`/api/group/${groupId}/session/${sessionId}`, {session: session});
+    const response = await api.put(
+      `/api/group/${groupId}/session/${sessionId}`,
+      { session: session }
+    );
 
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe('Updated Session');
-        expect(response.body.session.plannedRounds).toBe(newRounds);
-        expect(response.body.session.endedAt).not.toBeNull();
-    });
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("Updated Session");
+    expect(response.body.session.plannedRounds).toBe(newRounds);
+    expect(response.body.session.endedAt).not.toBeNull();
+  });
 
   // Test: PUT (Ungültiges Session-ID-Format)
   test("PUT: Should return 400 if session ID has an invalid format", async () => {

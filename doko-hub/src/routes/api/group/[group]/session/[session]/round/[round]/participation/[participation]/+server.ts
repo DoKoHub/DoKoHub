@@ -2,7 +2,12 @@ import { badRequest, serverError, ok } from "$lib/http";
 import { db } from "$lib/server/db";
 import { roundParticipation, sessionMember } from "$lib/server/db/schema";
 import { RoundParticipation, UUID } from "$lib/types";
-import { groupExists, isSessionMember, roundExists, sessionExists } from "$lib/utils";
+import {
+  groupExists,
+  isSessionMember,
+  roundExists,
+  sessionExists,
+} from "$lib/utils";
 import type { RequestHandler } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 
@@ -12,7 +17,7 @@ import { and, eq } from "drizzle-orm";
  * Response 200: RoundParticipation
  * Response 400: { "message": string }
  * Response 500: { "message": string }
- * 
+ *
  * 2. PUT /api/group/[group]/session/[session]/round/[round]/participation/[participation]
  * Request Body:
  * {
@@ -170,15 +175,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
       .returning();
 
-    if (!updatedParticipation || !(RoundParticipation.safeParse(updatedParticipation).success)) {
-            return badRequest({ message: "RoundParticipation not found" });
-        }
-        return ok({ 
-            message: "Updated RoundParticipation", 
-            roundParticipation: RoundParticipation.parse(updatedParticipation) 
-        });
-
-    } catch(error) {
-        return badRequest({ message: "Database error while updating RoundParticipation" })
+    if (
+      !updatedParticipation ||
+      !RoundParticipation.safeParse(updatedParticipation).success
+    ) {
+      return badRequest({ message: "RoundParticipation not found" });
     }
-}
+    return ok({
+      message: "Updated RoundParticipation",
+      roundParticipation: RoundParticipation.parse(updatedParticipation),
+    });
+  } catch (error) {
+    return badRequest({
+      message: "Database error while updating RoundParticipation",
+    });
+  }
+};

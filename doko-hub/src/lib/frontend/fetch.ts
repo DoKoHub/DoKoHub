@@ -12,17 +12,20 @@ export async function get<T extends z.ZodType>(
     .then(schema.parse);
 }
 
-export async function post<T extends z.ZodType>(
+export async function post<T, R extends z.ZodType>(
   route: APIRoute,
-  obj: any,
-  response_schema: T,
-  do_fetch?: (route: APIRoute, options: any) => Promise<Response>
-): Promise<z.infer<T>> {
+  obj: T,
+  response_schema: R,
+  do_fetch?: (route: APIRoute, options: RequestInit) => Promise<Response>
+): Promise<z.infer<R>> {
   do_fetch = do_fetch || fetch;
 
   return await do_fetch(route, {
     method: "POST",
     body: JSON.stringify(obj),
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
     .then((b) => b.json())
     .then(response_schema.parse);
