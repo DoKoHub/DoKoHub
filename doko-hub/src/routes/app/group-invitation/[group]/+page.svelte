@@ -1,6 +1,7 @@
 <script lang="ts">
   import BottomAppBar, { Section } from "@smui-extra/bottom-app-bar";
-  import Button from "@smui/button";
+  //import Button from "@smui/button";
+  import Button, { Label } from "@smui/button";
   import Card from "@smui/card";
   import TextField from "@smui/textfield";
   import FormField from "@smui/form-field";
@@ -28,8 +29,12 @@
   async function joinGroup() {
     const player = get_user(); // aktuell eingeloggt, den hinzufügen unter neuem nickname
 
+    // FIXME: selectedMember wird nicht erkannt, immer nur
     const selectedMember = members.find((m) => m.id === selectedMemberId);
     const name = (selectedMember?.nickname ?? newName).trim();
+
+    console.log("selectedMember = ", selectedMember);
+    console.log("name neu = ", name);
 
     // Name immer abfragen
     // Logik für Name überschreiben
@@ -97,34 +102,6 @@
     </Button>
   </Card>
 </main>
-
-<BottomAppBar variant="fixed" color="primary" class="bottom-bar">
-  <Section class="nav-section">
-    <button
-      class="nav-item"
-      class:active={active === "groups"}
-      on:click={() => (active = "groups")}
-    >
-      Gruppen
-    </button>
-
-    <button
-      class="nav-item"
-      class:active={active === "stats"}
-      on:click={() => (active = "stats")}
-    >
-      Meine Statistiken
-    </button>
-
-    <button
-      class="nav-item"
-      class:active={active === "profile"}
-      on:click={() => (active = "profile")}
-    >
-      Profil
-    </button>
-  </Section>
-</BottomAppBar>
 
 <style>
   main.page {

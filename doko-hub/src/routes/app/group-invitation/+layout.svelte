@@ -5,6 +5,7 @@
   let active: "groups" | "stats" | "profile" = "groups";
 </script>
 
+<!-- DOTO: cleanup BottomAppbar als einheitliche Komponente -->
 <BottomAppBar variant="fixed">
   <div class="bottom-buttons">
     <Button onclick={() => (active = "groups")}>
