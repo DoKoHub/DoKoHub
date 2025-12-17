@@ -64,7 +64,7 @@ export const load: PageLoad = async ({ params, fetch }) => {
   });
 
   const ResultResponse = z.object({
-    sessionResults: z.array(SessionResultRow),
+    results: z.array(SessionResultRow),
     message: z.string().optional(),
   });
 
@@ -75,7 +75,7 @@ export const load: PageLoad = async ({ params, fetch }) => {
   );
 
   const totalPointsByMemberId = Object.fromEntries(
-    resultResp.sessionResults.map((r) => [r.member_id, r.points])
+    resultResp.results.map((r) => [r.member_id, r.points])
   );
 
   const result = [];
