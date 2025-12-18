@@ -1,6 +1,4 @@
 <script lang="ts">
-  import BottomAppBar, { Section } from "@smui-extra/bottom-app-bar";
-  //import Button from "@smui/button";
   import Button, { Label } from "@smui/button";
   import Card from "@smui/card";
   import TextField from "@smui/textfield";
@@ -11,12 +9,14 @@
   import { post } from "$lib/frontend/fetch";
   import { get_user } from "$lib/frontend/auth";
   import z from "zod";
+  import { goto } from "$app/navigation";
 
   // Daten aus .ts
   export let data: PageData;
   const { groupId, members } = data;
-  // FIX Me Gruppennamen
-  const groupName = ""; // DOTO
+  // FIX ME: Gruppennamen
+  // DOTO: Gruppennamen anzeigen lassen
+  const groupName = "";
 
   let active: "groups" | "stats" | "profile" = "groups";
 
@@ -29,7 +29,6 @@
   async function joinGroup() {
     const player = get_user(); // aktuell eingeloggt, den hinzufügen unter neuem nickname
 
-    // FIXME: selectedMember wird nicht erkannt, immer nur
     const selectedMember = members.find((m) => m.id === selectedMemberId);
     const name = (selectedMember?.nickname ?? newName).trim();
 
@@ -59,6 +58,11 @@
         z.any()
       );
     }
+    await goto(`/app/group/${groupId}/members`);
+    /* FIX ME: 
+    Navigation ausbessern
+    Optimierung: statt Spielübersicht, Member Übersicht aufrufen 
+    */
   }
 </script>
 

@@ -13,7 +13,9 @@
     goto(`/app/game/${groupId}/${sessionId}/new_round`);
   }
 
-  //TODO: Logik zurück Button
+  /* TODO: Logik füt zurück Button
+  -> function goBack() in /overview/+layout.svelte
+  */
 
   /**
    * FIXME
@@ -29,15 +31,7 @@
    * Ein weiterer Vorteil wäre, dass man nur eine GET Request an das Backend senden muss und nicht viele.
    */
 
-  // players ohne Dummy
-  /*const players = [...sessionMembers]
-    .sort((a, b) => a.seatPos - b.seatPos)
-    .map((sm) => {
-      const gm = groupMembers.find((m: any) => m.id === sm.memberId);
-      return gm?.nickname ?? "?";
-    }); */
-
-  // ====== Ab hier neu: =========
+  // TODO: Logik zum Anzeigen der einzelnen Spielrunden - Ergebnisse mit einbauen
 
   // Daten aus .ts
   export let data: PageData;
