@@ -20,21 +20,28 @@ See [here](doko-hub/README.md)
 
 ## Aktuelle Einschränkungen
 Spielergebnisse pro Runde werden noch nicht angezeigt
+
 Status: Datenanbindung in der UI fehlt
 Umsetzung:
 - TODO: In `src/routes/app/game/[group]/[game]/overview/rounds/+page.ts` die Anbindung gemäß Code-Dokumentation ergänzen (Punkte pro Spieler)
-- TODO: In src/routes/app/game/[group]/[game]/overview/rounds/+page.svelte die Punkte pro Spieler aufrufen und Darstellung finalisieren
+- TODO: In `src/routes/app/game/[group]/[game]/overview/rounds/+page.svelte´ die Punkte pro Spieler aufrufen und Darstellung finalisieren
     - Zeilen: Runden
     - Spalten: Spieler
    
 Buttons AppBar - Funktionalität sicherstellen
 
 - Zurück-Button: Logik ist aktuell nicht konsistent
+- TODO: Navigation zu `/group/[group]/games/+page.svelte`
 
 - Summe: klappbar über visibility
   - aktuelle immer sichtbar, soll ein-/ausblendbar sein
 
 - more_vert: aktuell vorhanden, aber Logik fehlt noch nach Anbindung
+- TODO: In `src/routes/app/game/[group]/[game]/overview/+layout.svelte` die folgenden Funktionen erweitern: 
+    - addFourRounds()
+    - finishGameEarly()
+    - deleteGame()
 
 Optimierung
 - TODO: Nach erfolgreichem Hinzufügen zu einer Gruppe automatisch zur Spielerübersicht navigieren (siehe Code-Dokumentation)
+
