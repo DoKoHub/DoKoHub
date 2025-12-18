@@ -70,6 +70,7 @@
   const sessionId = data.sessionId;
   const groupId = data.groupId;
 
+  // DOTO: durch Punkte pro Spieler ersetzen
   const points = data.totalPointsByMemberId;
 
   // Logik für Runden
@@ -77,9 +78,7 @@
   const roundLabel = (r: any, index: number) =>
     r?.round?.roundNum ?? r?.roundNum ?? index + 1;
 
-  // Hilfsfunktion Zeilen
-  //const valueFor = (r: any, playerId: string): number | null =>
-  // r?.pointsByPlayerId?.[playerId] ?? null;
+  // Hilfsfunktion Punkte
   const valueFor = (r: any, memberId: string): number | null =>
     r?.pointsByMemberId?.[memberId] ?? null;
 
