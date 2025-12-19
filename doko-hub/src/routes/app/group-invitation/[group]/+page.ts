@@ -8,8 +8,8 @@ export const load: PageLoad = async ({ params, fetch }) => {
   const groupId = UUID.parse(params.group);
 
   const group = await get(`/api/group/${groupId}`, PlayGroup, fetch);
-  const groupName = group.name; // DOTO
-  // Probleme Namen zu bekommen
+  const groupName = group.name;
+  // FIX ME: Probleme Namen zu bekommen
 
   // Mitglieder aus Gruppe
   let members: PlayGroupMember[] = [];

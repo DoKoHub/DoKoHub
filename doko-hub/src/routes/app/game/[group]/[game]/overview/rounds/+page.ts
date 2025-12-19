@@ -1,6 +1,4 @@
 import { get } from "$lib/frontend/fetch";
-//import { round, roundCall } from "$lib/server/db/schema";
-//import type { APIRoute } from "$lib/server/routes";
 import {
   Session,
   UUID,
@@ -49,12 +47,13 @@ export const load: PageLoad = async ({ params, fetch }) => {
     fetch
   );
 
-  //console.log("Anzahl Runden (API):", rounds.length);
-
-  // Gesamtpunkte über alle Runden
-  // DOTO: korrekte Logik einbauen: Punkte PRO Spieler
   // api/group/[group]/session/[session]/result
   //const pointsByMemberId = _calculateRoundPoints
+  /*
+  FIXME: Aktuell werden nur Session-Gesamtpunkte geladen
+  TODO: Für die UI (Rundenmatrix) werden pro Runde Spielerpunkte benötigt
+  -> pro Runde _calculateRoundPoints (round, participation, call, bonus) ausführen und round.pointsByMemberId befüllen
+  */
   const SessionResultRow = z.object({
     player_id: z.string(),
     member_id: z.string(),
@@ -125,6 +124,6 @@ export const load: PageLoad = async ({ params, fetch }) => {
     groupMembers,
     sessionMembers,
     rounds: result,
-    totalPointsByMemberId,
+    totalPointsByMemberId, // TODO: pointsByMemberId anstatt die Gesamtpunktzahl
   };
 };
