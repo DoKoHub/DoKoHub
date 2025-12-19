@@ -41,7 +41,3 @@ Buttons AppBar - Funktionalität sicherstellen
     - addFourRounds()
     - finishGameEarly()
     - deleteGame()
-
-Optimierung
-- TODO: Nach erfolgreichem Hinzufügen zu einer Gruppe automatisch zur Spielerübersicht navigieren (siehe Code-Dokumentation)
-
