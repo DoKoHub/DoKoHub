@@ -152,8 +152,8 @@ async function getResults(groupId: string, sessionId: string) {
   return api.get(`/api/group/${groupId}/session/${sessionId}/result`);
 }
 
-function pointsOf(sessionResults: any[], memberId: string): number {
-  const row = sessionResults.find((r: any) => r.member_id === memberId);
+function pointsOf(results: any[], memberId: string): number {
+  const row = results.find((r: any) => r.member_id === memberId);
   return row?.points ?? 0;
 }
 
@@ -173,10 +173,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-1);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(-1);
   });
 
   test("Normal: Re verliert ohne Stufen (119:121) -> RE -1, KONTRA +1", async () => {
@@ -188,10 +188,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-1);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-1);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(1);
   });
 
   test("Normal: loserEyes = 90 Grenze (150:90) -> nur Grundwert 1", async () => {
@@ -203,8 +203,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-1);
   });
 
   test("Normal: loserEyes = 89 (151:89) -> Grundwert 2", async () => {
@@ -216,8 +216,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(2);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-2);
   });
 
   test("Normal: loserEyes = 59 (181:59) -> Grundwert 3", async () => {
@@ -229,8 +229,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-3);
   });
 
   test("Normal: loserEyes = 29 (211:29) -> Grundwert 4", async () => {
@@ -242,8 +242,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(4);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-4);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(4);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-4);
   });
 
   test("Normal: schwarz (240:0) -> Grundwert 5", async () => {
@@ -255,8 +255,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(5);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-5);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(5);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-5);
   });
 
   test("Ansage: RE gewinnt + RE-Call -> Grundwert(1) +2 = 3", async () => {
@@ -270,10 +270,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "RE" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-3);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(-3);
   });
 
   test("Ansage: RE verliert + RE-Call -> Grundwert(-1) -2 = -3", async () => {
@@ -287,10 +287,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "RE" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-3);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-3);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(3);
   });
 
   test("Ansage: KONTRA gewinnt + KONTRA-Call -> Grundwert(1) +2 = 3 für KONTRA", async () => {
@@ -304,10 +304,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p3.memberId, call: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-3);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-3);
   });
 
   test("Ansage doppelt: zwei RE-Calls in der Partei werden gezählt", async () => {
@@ -322,10 +322,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p2.memberId, call: "RE" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(5);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(5);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-5);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(-5);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(5);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(5);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-5);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(-5);
   });
 
   test("Absage Erfolg: RE sagt KEINE90 und gewinnt 200:40 -> Grundwert(3) +1 = 4", async () => {
@@ -339,8 +339,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "KEINE90" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(4);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-4);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(4);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-4);
   });
 
   test("Absage Fail: RE sagt KEINE90, aber 150:90 -> Sieger kippt, Ergebnis RE -2 / KONTRA +2", async () => {
@@ -354,10 +354,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "KEINE90" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(2);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(2);
   });
 
   test("Absage Erfolg: RE sagt KEINE60 und gewinnt 200:40 -> Grundwert(3) +1 = 4", async () => {
@@ -371,8 +371,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "KEINE60" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(4);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-4);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(4);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-4);
   });
 
   test("Absage Fail: RE sagt KEINE60, aber KONTRA macht 80 (160:80) -> Ergebnis RE -2 / KONTRA +2", async () => {
@@ -386,10 +386,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "KEINE60" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(2);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(2);
   });
 
   test("Absage Erfolg: RE sagt KEINE30 und gewinnt 230:10 -> Grundwert(4) +1 = 5", async () => {
@@ -403,8 +403,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "KEINE30" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(5);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-5);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(5);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-5);
   });
 
   test("Absage Fail: RE sagt KEINE30, aber KONTRA macht 40 (200:40) -> Ergebnis RE -2 / KONTRA +2", async () => {
@@ -418,10 +418,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "KEINE30" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(2);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(2);
   });
 
   test("Absage Erfolg: RE sagt SCHWARZ und gewinnt 240:0 -> Grundwert(5) +1 = 6", async () => {
@@ -435,8 +435,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "SCHWARZ" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(6);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-6);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(6);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-6);
   });
 
   test("Absage Fail: RE sagt SCHWARZ, aber 230:10 -> Ergebnis RE -2 / KONTRA +2", async () => {
@@ -450,10 +450,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "SCHWARZ" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-2);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(2);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-2);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(2);
   });
 
   test("Beide Seiten verfehlen KEINE90 (7.1.3): nur (a) + (e/f) zählt", async () => {
@@ -512,8 +512,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-1);
   });
 
   test("120:120 mit RE-Ansage -> KONTRA gewinnt, RE-Ansage scheitert", async () => {
@@ -527,8 +527,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p1.memberId, call: "RE" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-3);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(3);
   });
 
   test("120:120 mit nur KONTRA-Ansage -> RE gewinnt (Sonderfall)", async () => {
@@ -542,8 +542,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addCall({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p3.memberId, call: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-3);
   });
 
   test("Solo: KONTRA-Solo gewinnt (1 vs 3) -> Solo *3, andere -base", async () => {
@@ -555,10 +555,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(3);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-1);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(-1);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-1);
   });
 
   test("Solo: RE-Solo verliert (1 vs 3) -> Solo negativ *3, andere positiv", async () => {
@@ -570,10 +570,10 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(-3);
-    expect(pointsOf(res.body.sessionResults, env.p2.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(-3);
+    expect(pointsOf(res.body.results, env.p2.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(1);
   });
 
   test("Stille Hochzeit: HOCHZEIT_STILL wird wie Solo verteilt (1 vs 3)", async () => {
@@ -585,7 +585,7 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p4.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(3);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(3);
   });
 
   test("Solo-Fallback: SOLO_* aber nicht 1-vs-3 -> wird wie Normal verteilt", async () => {
@@ -596,8 +596,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addParticipation({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p3.memberId, side: "KONTRA" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(1);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(-1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(-1);
   });
 
   test("Boni: mehrere Boni auf verschiedene Spieler (Normalspiel) -> pro Spieler addieren", async () => {
@@ -613,8 +613,8 @@ describe("API /api/group/[group]/session/[session]/result (TSR-Logik Integration
     await addBonus({ groupId: env.groupId, sessionId: env.sessionId, roundId, memberId: env.p3.memberId, bonus: "KARLCHEN" });
 
     const res = await getResults(env.groupId, env.sessionId);
-    expect(pointsOf(res.body.sessionResults, env.p1.memberId)).toBe(2);
-    expect(pointsOf(res.body.sessionResults, env.p3.memberId)).toBe(1);
+    expect(pointsOf(res.body.results, env.p1.memberId)).toBe(2);
+    expect(pointsOf(res.body.results, env.p3.memberId)).toBe(1);
   });
 
 test("Boni werden im Solo ignoriert", async () => {
@@ -634,7 +634,7 @@ test("Boni werden im Solo ignoriert", async () => {
 
   const res1 = await getResults(env.groupId, env.sessionId);
 
-  const total1 = pointsOf(res1.body.sessionResults, env.p1.memberId);
+  const total1 = pointsOf(res1.body.results, env.p1.memberId);
 
   // Runde 2: Solo mit Bonus (soll im Solo NICHT zählen)
   const r2 = await createRound({
@@ -653,7 +653,7 @@ test("Boni werden im Solo ignoriert", async () => {
   await addBonus({ groupId: env.groupId, sessionId: env.sessionId, roundId: r2, memberId: env.p1.memberId, bonus: "DOKO" });
 
   const res2 = await getResults(env.groupId, env.sessionId);
-  const total2 = pointsOf(res2.body.sessionResults, env.p1.memberId);
+  const total2 = pointsOf(res2.body.results, env.p1.memberId);
   const contrib2 = total2 - total1;
 
   expect(contrib2).toBe(0);
@@ -683,7 +683,7 @@ test("Boni werden im Solo ignoriert", async () => {
     await createRound({ groupId: env.groupId, sessionId: env.sessionId, roundNum: 1, gameType: "NORMAL", eyesRe: 150 });
     const res = await getResults(env.groupId, env.sessionId);
     expect(res.status).toBe(200);
-    for (const p of env.alle) expect(pointsOf(res.body.sessionResults, p.memberId)).toBe(0);
+    for (const p of env.alle) expect(pointsOf(res.body.results, p.memberId)).toBe(0);
   });
 
   test("Edge: Bonus für Member der nicht in der Session ist -> Scoreboard bleibt unverändert", async () => {
@@ -713,7 +713,7 @@ test("Boni werden im Solo ignoriert", async () => {
 
     const res = await getResults(env.groupId, env.sessionId);
     expect(res.status).toBe(200);
-    expect(pointsOf(res.body.sessionResults, env.p4.memberId)).toBe(0);
+    expect(pointsOf(res.body.results, env.p4.memberId)).toBe(0);
   });
 
   test("API: Session gehört nicht zur Gruppe -> 400", async () => {
