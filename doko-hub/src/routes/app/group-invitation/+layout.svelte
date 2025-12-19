@@ -1,35 +1,20 @@
 <script lang="ts">
-  import BottomAppBar from "@smui-extra/bottom-app-bar";
-  import Button, { Label } from "@smui/button";
+  import type { LayoutProps } from "./$types";
+  import BottomAppBar from "$lib/components/BottemAppBar.svelte";
 
-  let active: "groups" | "stats" | "profile" = "groups";
+  const { children }: LayoutProps = $props();
 </script>
 
+<<<<<<< Updated upstream
 <!-- DOTO: cleanup BottomAppbar als einheitliche Komponente -->
 <BottomAppBar variant="fixed">
   <div class="bottom-buttons">
     <Button onclick={() => (active = "groups")}>
       <Label>Gruppe</Label>
     </Button>
+=======
+{@render children()}
+>>>>>>> Stashed changes
 
-    <Button onclick={() => (active = "stats")}>
-      <Label>Statistiken</Label>
-    </Button>
+<BottomAppBar activeTab="groups" />
 
-    <Button onclick={() => (active = "profile")}>
-      <Label>Profil</Label>
-    </Button>
-  </div>
-</BottomAppBar>
-
-<!--- Seiteninhalt -->
-<slot />
-
-<style>
-  .bottom-buttons {
-    display: flex;
-    justify-content: space-evenly; /* oder space-around / space-between */
-    align-items: center;
-    width: 100%;
-  }
-</style>

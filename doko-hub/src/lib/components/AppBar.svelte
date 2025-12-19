@@ -51,7 +51,7 @@
     gap: 0.25rem;
     background: none;
     border: none;
-    color: white;
+    /*color: white; */
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
@@ -61,7 +61,7 @@
     position: relative !important;
   }
 
-  .group-button:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-  }
+  /*.group-button:hover {
+   background-color: rgba(255, 255, 255, 0.15);
+  }*/
 </style>
