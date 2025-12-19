@@ -58,11 +58,8 @@
         z.any()
       );
     }
-    await goto(`/app/group/${groupId}/members`);
-    /* FIX ME: 
-    Navigation ausbessern
-    Optimierung: statt Spielübersicht, Member Übersicht aufrufen 
-    */
+    // Navigation zu member overview
+    await goto(`/app/group/${groupId}/members#mitglieder`);
   }
 </script>
 

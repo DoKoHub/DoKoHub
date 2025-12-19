@@ -7,6 +7,7 @@
   import type { LayoutProps } from "./$types";
   import { goto } from "$app/navigation";
   import { StaticRoute } from "$lib/frontend/routes";
+  import { page } from "$app/state";
 
   type Data =
     | { tag: "loading" }
@@ -27,6 +28,11 @@
 
   let page_data: Data = $state({ tag: "loading" });
   let active: Tab = $state("spiele");
+
+  // Weiterleitung nach group - invitation: Hinzufügen zu einer neuen Gruppe
+  $effect(() => {
+    if (page.url.hash === "#mitglieder") active = "mitglieder";
+  });
 
   // Navigation bei Tab-Wechsel
   function handleTabChange(tab: Tab) {
