@@ -1,50 +1,72 @@
-import { BadResponse, ErrorResponse, POSTResponse } from "$lib/responses";
+import { badRequest, created, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
 import { groupInvite } from "$lib/server/db/schema";
-import type { GroupInvite } from "$lib/types";
+import { UUID, type GroupInvite } from "$lib/types";
+import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
+import { z } from "zod";
 
+/**
+ * 1. POST /api/group/[group]/invite
+ * Request Body:
+ * {
+ * "expiresAt": string | Date,
+ * "createdBy": UUID
+ * }
+ * Response 201: { "message": string, groupInvite: GroupInvite }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
-export const POST: RequestHandler = async({ request, params, fetch }) => {
+/**
+ * Erstellt eine neue Einladung (Token) für eine Gruppe
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
+export const POST: RequestHandler = async(event) => {
+    const bodySchema = z.object({
+      expiresAt: z.coerce.date(),
+      createdBy: UUID,
+    });
+    const { expiresAt, createdBy } = await readValidatedBody(event, bodySchema);
+
     try {
-        const groupId = params.group;
+        const groupId = event.params.group;
 
-        if (!groupId) {
-            return new BadResponse('Group ID needed');
+        if (!groupId || !(UUID.safeParse(groupId)).success) {
+            return badRequest({ message: 'PlayGroup ID Required' });
         }
 
-        const groupResponseBody = await (await fetch(`/api/group/${groupId}`)).json();
-        if (!groupResponseBody) {
-            return new BadResponse('Group not found');
+        // Prüfen, ob die Gruppe existiert
+        const groupResponse = await event.fetch(`/api/group/${groupId}`);
+        if (groupResponse.status != 200) {
+            return badRequest({ message: 'PlayGroup not found' });
         }
 
-        const body = await request.json();
-
-        const expireDate = body.expiresAt;
-        const createdBy = body.createdBy;
-
-        if (!expireDate || !createdBy) {
-            return new BadResponse('Expire date and creating player ID needed');
-        }
-
+        // Erstellungsvorlage
         const creationTemplate = {
             groupId: groupId,
             token: createToken(),
-            expiresAt: expireDate ? new Date(expireDate) : undefined,
-            createdBy: createdBy
-        }
+            expiresAt: expiresAt ?? (expiresAt ? new Date(expiresAt) : undefined),
+            createdBy: createdBy,
+    };
 
+        // Einladung in DB schreiben
         const [invite] = await db
             .insert(groupInvite)
             .values(creationTemplate)
             .returning();
 
-        return new POSTResponse('Created Invite', {name: 'groupInvite', data: invite as GroupInvite});
+        return created({ message: 'Created GroupInvite', groupInvite: invite as GroupInvite });
     } catch (error) {
-        return new ErrorResponse('Error while creating group invite')
+        return serverError({ message: 'Database error while creating GroupInvite' });
     }
 }
 
+/**
+ * Generiert einen zufälligen 64-stelligen alphanumerischen Token.
+ * @returns string
+ */
 function createToken(): string {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

@@ -1,57 +1,78 @@
-import { BadResponse, ErrorResponse, POSTResponse } from "$lib/responses";
+import { badRequest, created, serverError } from "$lib/http";
 import { db } from "$lib/server/db";
-import { groupInvite } from "$lib/server/db/schema";
-import type { GroupInvite, PlayGroup, PlayGroupMember } from "$lib/types";
+import { groupInvite} from "$lib/server/db/schema";
+import { Token, UUID, type GroupInvite, type PlayGroupMember } from "$lib/types";
+import { readValidatedBody } from "$lib/validation";
 import type { RequestHandler } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 
+/**
+ * 1. POST /api/group/invite/[token]
+ * Request Body:
+ * {
+ * "playerId": UUID,
+ * "nickname"?: string
+ * }
+ * Response 201: { "message": string, playgroupMember: PlayGroupMember }
+ * Response 400: { "message": string }
+ * Response 500: { "message": string }
+ */
 
-export const POST: RequestHandler = async({ request, params, fetch }) => {
+/**
+ * Akzeptiert eine Gruppeneinladung mit Token und fügt den Spieler als neues Mitglied der Gruppe hinzu
+ * @param event Event, enthält den Body zur validierung
+ * @returns Response
+ */
+export const POST: RequestHandler = async(event) => {1
+    const postBodySchema = z.object({
+        playerId: UUID,
+        nickname: z.string().trim().max(60).optional().nullable(),
+    });
+    const { playerId, nickname } = await readValidatedBody(event, postBodySchema)
+
     try {
-        const token = params.token
+        const token = event.params.token
 
-        if (!token) {
-            return new BadResponse('Token needed');
+        if (!token || !(Token.safeParse(token).success)) {
+            return badRequest({ message: 'Token required' });
         }
 
-        const body = await request.json();
-        const playerId = body.playerId;
-
-        if (!playerId) {
-            return new BadResponse('Player ID needed!');
-        }
-
+        // Einladung anhand des Tokens suchen
         const invite = await db
             .select()
             .from(groupInvite)
             .where(eq(groupInvite.token, token));
 
         if (!invite[0]) {
-            return new BadResponse('Invite from token not found (expired?)');
+            return badRequest({ message: 'GroupInvite not found' });
         }
 
         const groupInviteObj = invite[0] as GroupInvite;
-        const group = (await(await fetch(`/api/group/${groupInviteObj.groupId}`)).json()) as PlayGroup;
 
-        if (!group) {
-            return new BadResponse('Group not found');
+        // Prüfen ob Gruppe existiert
+        const groupBody = await event.fetch(`/api/group/${groupInviteObj.groupId}`);
+        if (groupBody.status != 200) {
+            return badRequest({ message: 'PlayGroup not found' });
         }
 
-        const addResponse = await fetch(`/api/group/${group.id}/member`, {
+        // Spieler hinzufügen
+        const addResponse = await event.fetch(`/api/group/${groupInviteObj.groupId}/member`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 playerId: playerId,
-                ...(body.nickname ? {nickname: body.nickname} : {})
+                ...(nickname ? {nickname: nickname} : {})
             })
         });
 
         const addBody = await addResponse.json();
 
-        return new POSTResponse('Player joined group', {name: 'playGroupMember', data: addBody.playGroupMember as PlayGroupMember})
+        // OK und Spieler in der Gruppe zurueckgeben
+        return created({ message: 'Created PlayGroupMember', playgroupMember: addBody.playGroupMember as PlayGroupMember });
     } catch(error) {
-        return new ErrorResponse('Database error while joining group');
+        return serverError({ message: 'Database error while creating PlayGroupMember' })
     }
 };

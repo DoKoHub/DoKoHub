@@ -6,6 +6,8 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - ORIGIN=http://localhost:3000
     depends_on:
       db-setup:
         condition: service_completed_successfully
@@ -21,7 +23,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: npm run db:migrate
+    command: npm run db:push -- --force
 
   db:
     # Use a specific major version for predictability
